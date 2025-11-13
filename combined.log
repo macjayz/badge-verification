@@ -1,0 +1,31 @@
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-12T14:52:49.148Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-12T14:52:54.052Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-12T14:53:51.551Z"}
+{"level":"info","message":"Server running on port 3000","service":"badge-backend","timestamp":"2025-11-12T14:53:51.619Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-12T14:53:51.619Z"}
+{"level":"info","message":"Health check: http://localhost:3000/health","service":"badge-backend","timestamp":"2025-11-12T14:53:51.619Z"}
+{"level":"info","message":"Generated nonce for address: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266","service":"badge-backend","timestamp":"2025-11-12T14:59:44.228Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-12T15:05:51.320Z"}
+{"level":"info","message":"Server running on port 3000","service":"badge-backend","timestamp":"2025-11-12T15:05:51.430Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-12T15:05:51.430Z"}
+{"level":"info","message":"Health check: http://localhost:3000/health","service":"badge-backend","timestamp":"2025-11-12T15:05:51.430Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-12T15:06:17.717Z"}
+{"level":"info","message":"Server running on port 3000","service":"badge-backend","timestamp":"2025-11-12T15:06:17.791Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-12T15:06:17.792Z"}
+{"level":"info","message":"Health check: http://localhost:3000/health","service":"badge-backend","timestamp":"2025-11-12T15:06:17.792Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-12T15:06:57.352Z"}
+{"level":"info","message":"Server running on port 3000","service":"badge-backend","timestamp":"2025-11-12T15:06:57.410Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-12T15:06:57.410Z"}
+{"level":"info","message":"Health check: http://localhost:3000/health","service":"badge-backend","timestamp":"2025-11-12T15:06:57.410Z"}
+{"level":"info","message":"[DEV] Created new user: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266","service":"badge-backend","timestamp":"2025-11-12T15:07:10.773Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-13T08:46:52.176Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-13T08:47:06.038Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-13T08:53:35.273Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-13T08:55:26.172Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-13T08:56:13.163Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-13T08:56:45.053Z"}
+{"level":"info","message":"Server running on port 3000","service":"badge-backend","timestamp":"2025-11-13T08:56:45.117Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-13T08:56:45.117Z"}
+{"level":"info","message":"Health check: http://localhost:3000/health","service":"badge-backend","timestamp":"2025-11-13T08:56:45.117Z"}
+{"level":"info","message":"Auth endpoints: http://localhost:3000/api/auth","service":"badge-backend","timestamp":"2025-11-13T08:56:45.117Z"}
+{"level":"info","message":"Protected endpoints: http://localhost:3000/api/protected","service":"badge-backend","timestamp":"2025-11-13T08:56:45.117Z"}
