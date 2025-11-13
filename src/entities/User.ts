@@ -1,23 +1,28 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, OneToMany } from 'typeorm';
+import { Verification } from './Verification';
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ unique: true })
+  @Column({ type: 'varchar', unique: true, length: 255 })
   @Index()
   wallet!: string;
 
-  @Column({ nullable: true })
-  did!: string;
+  @Column({ type: 'varchar', nullable: true, length: 255 })
+  did!: string | null;
 
-  @Column({ nullable: true })
-  provider!: string;
+  @Column({ type: 'varchar', nullable: true, length: 255 })
+  provider!: string | null;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
+
+  // Add relationship to verifications
+  @OneToMany(() => Verification, verification => verification.user)
+  verifications?: Verification[];
 }
