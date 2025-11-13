@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import { config } from '../config';
 import { User } from '../entities/User';
+import { Verification } from '../entities/Verification'; // Add this import
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -11,10 +12,15 @@ export const AppDataSource = new DataSource({
   database: config.database.database,
   synchronize: config.server.nodeEnv === 'development',
   logging: config.server.nodeEnv === 'development',
-  entities: [User],
+  entities: [User, Verification], // Add Verification here
   migrations: ['src/migrations/**/*.ts'],
   subscribers: [],
+  extra: {
+    max: 20,
+  },
 });
+
+// ... rest of the file remains the same
 
 export const initializeDatabase = async (): Promise<void> => {
   try {
