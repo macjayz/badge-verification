@@ -8,6 +8,12 @@ const router = Router();
 router.get('/providers', didController.getAvailableProviders);
 router.get('/session/:sessionId', didController.getVerificationSession);
 
+// 🆕 NEW: Health check routes (public)
+router.get('/health', didController.getAllProvidersHealth);
+router.get('/health/:provider', didController.getProviderHealth);
+router.get('/status/overview', didController.getSystemStatus);
+router.get('/adapters/:provider', didController.getAdapterDetails);
+
 // Callback routes (called by DID providers)
 router.post('/:provider/callback', didController.handleCallback);
 
