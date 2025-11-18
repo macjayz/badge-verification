@@ -7,9 +7,10 @@ import { authRoutes } from './routes/auth.routes';
 import { healthRoutes } from './routes/health.routes';
 import { protectedRoutes } from './routes/protected.routes';
 import { didRoutes } from './routes/did.routes';
-import { webhookRoutes } from './routes/webhook.routes'; // Add this import
+import { webhookRoutes } from './routes/webhook.routes';
 import { issuerRoutes } from './routes/issuer.routes';
-import { logger } from './utils/logger';
+import { eligibilityRoutes } from './routes/eligibility.routes';
+import { logger } from './utils/logger'; // FIXED: Remove the extra ../
 
 const app = express();
 
@@ -24,8 +25,9 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/protected', protectedRoutes);
 app.use('/api/did', didRoutes);
-app.use('/api/webhooks', webhookRoutes); // Add webhook routes
+app.use('/api/webhooks', webhookRoutes);
 app.use('/api/issuer', issuerRoutes);
+app.use('/api/eligibility', eligibilityRoutes);
 app.use('/health', healthRoutes);
 
 // Error handling middleware
@@ -52,8 +54,9 @@ const startServer = async () => {
       logger.info(`Auth endpoints: http://localhost:${config.server.port}/api/auth`);
       logger.info(`Protected endpoints: http://localhost:${config.server.port}/api/protected`);
       logger.info(`DID endpoints: http://localhost:${config.server.port}/api/did`);
-      logger.info(`Webhook endpoints: http://localhost:${config.server.port}/api/webhooks`); 
-      logger.info(`Issuer endpoints: http://localhost:${config.server.port}/api/issuer`); 
+      logger.info(`Webhook endpoints: http://localhost:${config.server.port}/api/webhooks`);
+      logger.info(`Issuer endpoints: http://localhost:${config.server.port}/api/issuer`);
+      logger.info(`Eligibility endpoints: http://localhost:${config.server.port}/api/eligibility`);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);

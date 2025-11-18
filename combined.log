@@ -182,3 +182,121 @@
 {"level":"info","message":"New badge type created: DeFi Camp Student (defi-camp-student) by issuer: DeFi Camp","service":"badge-backend","timestamp":"2025-11-18T09:28:50.963Z"}
 {"level":"info","message":"Created badge type: DeFi Camp Advanced Student (defi-camp-advanced) for issuer: DeFi Camp","service":"badge-backend","timestamp":"2025-11-18T09:30:25.092Z"}
 {"level":"info","message":"New badge type created: DeFi Camp Advanced Student (defi-camp-advanced) by issuer: DeFi Camp","service":"badge-backend","timestamp":"2025-11-18T09:30:25.093Z"}
+{"level":"info","message":"Created badge type: DAO Voter Badge (dao-voter) for issuer: DeFi Camp","service":"badge-backend","timestamp":"2025-11-18T10:16:25.263Z"}
+{"level":"info","message":"New badge type created: DAO Voter Badge (dao-voter) by issuer: DeFi Camp","service":"badge-backend","timestamp":"2025-11-18T10:16:25.280Z"}
+{"level":"info","message":"Created badge type: Early Supporter Badge (early-supporter) for issuer: DeFi Camp","service":"badge-backend","timestamp":"2025-11-18T10:23:51.594Z"}
+{"level":"info","message":"New badge type created: Early Supporter Badge (early-supporter) by issuer: DeFi Camp","service":"badge-backend","timestamp":"2025-11-18T10:23:51.600Z"}
+{"level":"info","message":"Created badge type: Verified Creator Badge (verified-creator) for issuer: DeFi Camp","service":"badge-backend","timestamp":"2025-11-18T10:24:01.366Z"}
+{"level":"info","message":"New badge type created: Verified Creator Badge (verified-creator) by issuer: DeFi Camp","service":"badge-backend","timestamp":"2025-11-18T10:24:01.366Z"}
+{"level":"info","message":"DID Service initialized with adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-18T10:29:10.286Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-18T10:29:10.344Z"}
+{"level":"info","message":"Server running on port 3000","service":"badge-backend","timestamp":"2025-11-18T10:29:10.469Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-18T10:29:10.469Z"}
+{"level":"info","message":"Health check: http://localhost:3000/health","service":"badge-backend","timestamp":"2025-11-18T10:29:10.469Z"}
+{"level":"info","message":"Auth endpoints: http://localhost:3000/api/auth","service":"badge-backend","timestamp":"2025-11-18T10:29:10.469Z"}
+{"level":"info","message":"Protected endpoints: http://localhost:3000/api/protected","service":"badge-backend","timestamp":"2025-11-18T10:29:10.469Z"}
+{"level":"info","message":"DID endpoints: http://localhost:3000/api/did","service":"badge-backend","timestamp":"2025-11-18T10:29:10.470Z"}
+{"level":"info","message":"Webhook endpoints: http://localhost:3000/api/webhooks","service":"badge-backend","timestamp":"2025-11-18T10:29:10.470Z"}
+{"level":"info","message":"Issuer endpoints: http://localhost:3000/api/issuer","service":"badge-backend","timestamp":"2025-11-18T10:29:10.470Z"}
+{"level":"info","message":"DID Service initialized with adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-18T10:40:22.779Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-18T10:40:22.819Z"}
+{"level":"info","message":"Server running on port 3000","service":"badge-backend","timestamp":"2025-11-18T10:40:23.026Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-18T10:40:23.026Z"}
+{"level":"info","message":"Health check: http://localhost:3000/health","service":"badge-backend","timestamp":"2025-11-18T10:40:23.027Z"}
+{"level":"info","message":"Auth endpoints: http://localhost:3000/api/auth","service":"badge-backend","timestamp":"2025-11-18T10:40:23.027Z"}
+{"level":"info","message":"Protected endpoints: http://localhost:3000/api/protected","service":"badge-backend","timestamp":"2025-11-18T10:40:23.027Z"}
+{"level":"info","message":"DID endpoints: http://localhost:3000/api/did","service":"badge-backend","timestamp":"2025-11-18T10:40:23.027Z"}
+{"level":"info","message":"Webhook endpoints: http://localhost:3000/api/webhooks","service":"badge-backend","timestamp":"2025-11-18T10:40:23.027Z"}
+{"level":"info","message":"Issuer endpoints: http://localhost:3000/api/issuer","service":"badge-backend","timestamp":"2025-11-18T10:40:23.027Z"}
+{"level":"info","message":"Eligibility endpoints: http://localhost:3000/api/eligibility","service":"badge-backend","timestamp":"2025-11-18T10:40:23.027Z"}
+{"level":"info","message":"DID Service initialized with adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-18T10:41:23.369Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-18T10:41:23.415Z"}
+{"level":"info","message":"Server running on port 3000","service":"badge-backend","timestamp":"2025-11-18T10:41:23.519Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-18T10:41:23.519Z"}
+{"level":"info","message":"Health check: http://localhost:3000/health","service":"badge-backend","timestamp":"2025-11-18T10:41:23.519Z"}
+{"level":"info","message":"Auth endpoints: http://localhost:3000/api/auth","service":"badge-backend","timestamp":"2025-11-18T10:41:23.519Z"}
+{"level":"info","message":"Protected endpoints: http://localhost:3000/api/protected","service":"badge-backend","timestamp":"2025-11-18T10:41:23.519Z"}
+{"level":"info","message":"DID endpoints: http://localhost:3000/api/did","service":"badge-backend","timestamp":"2025-11-18T10:41:23.519Z"}
+{"level":"info","message":"Webhook endpoints: http://localhost:3000/api/webhooks","service":"badge-backend","timestamp":"2025-11-18T10:41:23.519Z"}
+{"level":"info","message":"Issuer endpoints: http://localhost:3000/api/issuer","service":"badge-backend","timestamp":"2025-11-18T10:41:23.519Z"}
+{"level":"info","message":"Eligibility endpoints: http://localhost:3000/api/eligibility","service":"badge-backend","timestamp":"2025-11-18T10:41:23.520Z"}
+{"level":"info","message":"DID Service initialized with adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-18T10:42:19.792Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-18T10:42:19.848Z"}
+{"level":"info","message":"Server running on port 3000","service":"badge-backend","timestamp":"2025-11-18T10:42:19.973Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-18T10:42:19.973Z"}
+{"level":"info","message":"Health check: http://localhost:3000/health","service":"badge-backend","timestamp":"2025-11-18T10:42:19.973Z"}
+{"level":"info","message":"Auth endpoints: http://localhost:3000/api/auth","service":"badge-backend","timestamp":"2025-11-18T10:42:19.973Z"}
+{"level":"info","message":"Protected endpoints: http://localhost:3000/api/protected","service":"badge-backend","timestamp":"2025-11-18T10:42:19.973Z"}
+{"level":"info","message":"DID endpoints: http://localhost:3000/api/did","service":"badge-backend","timestamp":"2025-11-18T10:42:19.973Z"}
+{"level":"info","message":"Webhook endpoints: http://localhost:3000/api/webhooks","service":"badge-backend","timestamp":"2025-11-18T10:42:19.974Z"}
+{"level":"info","message":"Issuer endpoints: http://localhost:3000/api/issuer","service":"badge-backend","timestamp":"2025-11-18T10:42:19.974Z"}
+{"level":"info","message":"Eligibility endpoints: http://localhost:3000/api/eligibility","service":"badge-backend","timestamp":"2025-11-18T10:42:19.974Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: verified-creator","service":"badge-backend","timestamp":"2025-11-18T10:43:27.670Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-18T10:43:44.879Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: dao-voter","service":"badge-backend","timestamp":"2025-11-18T10:43:51.981Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: defi-camp-student","service":"badge-backend","timestamp":"2025-11-18T10:44:08.295Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: defi-camp-advanced","service":"badge-backend","timestamp":"2025-11-18T10:44:08.302Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: dao-voter","service":"badge-backend","timestamp":"2025-11-18T10:44:08.305Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-18T10:44:08.308Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: verified-creator","service":"badge-backend","timestamp":"2025-11-18T10:44:08.311Z"}
+{"level":"error","message":"JWT verification failed: jwt malformed","name":"JsonWebTokenError","service":"badge-backend","stack":"JsonWebTokenError: jwt malformed\n    at Object.module.exports [as verify] (/Users/mac/Documents/badge-backend/node_modules/jsonwebtoken/verify.js:70:17)\n    at JWTService.verifyToken (/Users/mac/Documents/badge-backend/src/services/jwt.service.ts:27:18)\n    at authenticateToken (/Users/mac/Documents/badge-backend/src/middleware/auth.middleware.ts:20:30)\n    at Layer.handle [as handle_request] (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/route.js:149:13)\n    at Route.dispatch (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/route.js:119:3)\n    at Layer.handle [as handle_request] (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/layer.js:95:5)\n    at /Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:284:15\n    at router.process_params (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:280:10)","timestamp":"2025-11-18T10:44:16.073Z"}
+{"level":"info","message":"Initiating polygonid verification for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266","service":"badge-backend","timestamp":"2025-11-18T10:47:32.290Z"}
+{"level":"info","message":"Initializing DID verification for polygonid, wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266","service":"badge-backend","timestamp":"2025-11-18T10:47:32.301Z"}
+{"level":"info","message":"DID verification initiated successfully for polygonid, session: session_1763462853302_u9n8bjr","service":"badge-backend","timestamp":"2025-11-18T10:47:33.302Z"}
+{"level":"info","message":"Created verification session: session_1763462853302_u9n8bjr for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, provider: polygonid","service":"badge-backend","timestamp":"2025-11-18T10:47:33.349Z"}
+{"level":"info","message":"Handling polygonid callback, session: YOUR_SESSION_ID","service":"badge-backend","timestamp":"2025-11-18T10:47:45.119Z"}
+{"level":"error","message":"Handle polygonid callback error: Verification session not found","service":"badge-backend","stack":"Error: Verification session not found\n    at VerificationService.handleDIDVerificationCallback (/Users/mac/Documents/badge-backend/src/services/verification.service.ts:260:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at handleCallback (/Users/mac/Documents/badge-backend/src/controllers/did.controller.ts:95:28)","timestamp":"2025-11-18T10:47:45.173Z"}
+{"level":"info","message":"Handling polygonid callback, session: session_1763462853302_u9n8bjr","service":"badge-backend","timestamp":"2025-11-18T10:48:56.978Z"}
+{"level":"info","message":"Handling DID callback for polygonid, session: session_1763462853302_u9n8bjr","service":"badge-backend","timestamp":"2025-11-18T10:48:57.043Z"}
+{"level":"info","message":"DID verification successful for polygonid, DID: did:mock:polygonid:known","service":"badge-backend","timestamp":"2025-11-18T10:48:58.546Z"}
+{"level":"info","message":"Updated user DID: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 -> did:mock:polygonid:known","service":"badge-backend","timestamp":"2025-11-18T10:48:58.603Z"}
+{"level":"info","message":"Verification completed successfully: f684145e-b6cc-418f-bd10-f68c15c61a9e, DID: did:mock:polygonid:known","service":"badge-backend","timestamp":"2025-11-18T10:48:58.604Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: verified-creator","service":"badge-backend","timestamp":"2025-11-18T10:50:11.991Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: defi-camp-student","service":"badge-backend","timestamp":"2025-11-18T10:50:21.544Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: defi-camp-advanced","service":"badge-backend","timestamp":"2025-11-18T10:50:21.550Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: dao-voter","service":"badge-backend","timestamp":"2025-11-18T10:50:21.553Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-18T10:50:21.560Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: verified-creator","service":"badge-backend","timestamp":"2025-11-18T10:50:21.565Z"}
+{"level":"info","message":"Updated badge type: DeFi Camp Student (defi-camp-student)","service":"badge-backend","timestamp":"2025-11-18T10:53:36.415Z"}
+{"level":"info","message":"Badge type updated: DeFi Camp Student by issuer: DeFi Camp","service":"badge-backend","timestamp":"2025-11-18T10:53:36.419Z"}
+{"level":"info","message":"Updated badge type: DeFi Camp Advanced Student (defi-camp-advanced)","service":"badge-backend","timestamp":"2025-11-18T10:53:42.624Z"}
+{"level":"info","message":"Badge type updated: DeFi Camp Advanced Student by issuer: DeFi Camp","service":"badge-backend","timestamp":"2025-11-18T10:53:42.625Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: verified-creator","service":"badge-backend","timestamp":"2025-11-18T10:56:04.871Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-18T10:56:10.266Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: dao-voter","service":"badge-backend","timestamp":"2025-11-18T10:56:15.800Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-18T10:56:15.815Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: verified-creator","service":"badge-backend","timestamp":"2025-11-18T10:56:15.820Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: defi-camp-student","service":"badge-backend","timestamp":"2025-11-18T10:56:15.824Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: defi-camp-advanced","service":"badge-backend","timestamp":"2025-11-18T10:56:15.828Z"}
+{"code":"22P02","driverError":{"code":"22P02","file":"uuid.c","length":140,"line":"133","name":"error","routine":"string_to_uuid","severity":"ERROR","where":"unnamed portal parameter $1 = '...'"},"file":"uuid.c","length":140,"level":"error","line":"133","message":"Update badge type error: invalid input syntax for type uuid: \"BADGE_ID\"","parameters":["BADGE_ID"],"query":"SELECT \"BadgeType\".\"id\" AS \"BadgeType_id\", \"BadgeType\".\"key\" AS \"BadgeType_key\", \"BadgeType\".\"name\" AS \"BadgeType_name\", \"BadgeType\".\"description\" AS \"BadgeType_description\", \"BadgeType\".\"imageUrl\" AS \"BadgeType_imageUrl\", \"BadgeType\".\"rules\" AS \"BadgeType_rules\", \"BadgeType\".\"metadataIpfs\" AS \"BadgeType_metadataIpfs\", \"BadgeType\".\"isGlobal\" AS \"BadgeType_isGlobal\", \"BadgeType\".\"isActive\" AS \"BadgeType_isActive\", \"BadgeType\".\"createdAt\" AS \"BadgeType_createdAt\", \"BadgeType\".\"updatedAt\" AS \"BadgeType_updatedAt\", \"BadgeType\".\"issuerId\" AS \"BadgeType_issuerId\" FROM \"badge_types\" \"BadgeType\" WHERE ((\"BadgeType\".\"id\" = $1)) LIMIT 1","routine":"string_to_uuid","service":"badge-backend","severity":"ERROR","stack":"QueryFailedError: invalid input syntax for type uuid: \"BADGE_ID\"\n    at PostgresQueryRunner.query (/Users/mac/Documents/badge-backend/src/driver/postgres/PostgresQueryRunner.ts:325:19)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at SelectQueryBuilder.loadRawResults (/Users/mac/Documents/badge-backend/src/query-builder/SelectQueryBuilder.ts:3868:25)\n    at SelectQueryBuilder.executeEntitiesAndRawResults (/Users/mac/Documents/badge-backend/src/query-builder/SelectQueryBuilder.ts:3614:26)\n    at SelectQueryBuilder.getRawAndEntities (/Users/mac/Documents/badge-backend/src/query-builder/SelectQueryBuilder.ts:1671:29)\n    at SelectQueryBuilder.getOne (/Users/mac/Documents/badge-backend/src/query-builder/SelectQueryBuilder.ts:1698:25)\n    at IssuerService.updateBadgeType (/Users/mac/Documents/badge-backend/src/services/issuer.service.ts:140:23)\n    at updateBadgeType (/Users/mac/Documents/badge-backend/src/controllers/issuer.controller.ts:195:25)","timestamp":"2025-11-18T10:56:38.978Z","where":"unnamed portal parameter $1 = '...'"}
+{"level":"info","message":"DID Service initialized with adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-18T11:02:05.663Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-18T11:02:05.730Z"}
+{"level":"info","message":"Server running on port 3000","service":"badge-backend","timestamp":"2025-11-18T11:02:05.931Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-18T11:02:05.931Z"}
+{"level":"info","message":"Health check: http://localhost:3000/health","service":"badge-backend","timestamp":"2025-11-18T11:02:05.932Z"}
+{"level":"info","message":"Auth endpoints: http://localhost:3000/api/auth","service":"badge-backend","timestamp":"2025-11-18T11:02:05.932Z"}
+{"level":"info","message":"Protected endpoints: http://localhost:3000/api/protected","service":"badge-backend","timestamp":"2025-11-18T11:02:05.932Z"}
+{"level":"info","message":"DID endpoints: http://localhost:3000/api/did","service":"badge-backend","timestamp":"2025-11-18T11:02:05.932Z"}
+{"level":"info","message":"Webhook endpoints: http://localhost:3000/api/webhooks","service":"badge-backend","timestamp":"2025-11-18T11:02:05.947Z"}
+{"level":"info","message":"Issuer endpoints: http://localhost:3000/api/issuer","service":"badge-backend","timestamp":"2025-11-18T11:02:05.947Z"}
+{"level":"info","message":"Eligibility endpoints: http://localhost:3000/api/eligibility","service":"badge-backend","timestamp":"2025-11-18T11:02:05.947Z"}
+{"level":"info","message":"Updated badge type: Early Supporter Badge (early-supporter)","service":"badge-backend","timestamp":"2025-11-18T11:02:27.810Z"}
+{"level":"info","message":"Badge type updated: Early Supporter Badge by issuer: DeFi Camp","service":"badge-backend","timestamp":"2025-11-18T11:02:27.812Z"}
+{"level":"info","message":"DID Service initialized with adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-18T11:03:46.272Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-18T11:03:46.419Z"}
+{"level":"info","message":"Server running on port 3000","service":"badge-backend","timestamp":"2025-11-18T11:03:46.498Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-18T11:03:46.498Z"}
+{"level":"info","message":"Health check: http://localhost:3000/health","service":"badge-backend","timestamp":"2025-11-18T11:03:46.498Z"}
+{"level":"info","message":"Auth endpoints: http://localhost:3000/api/auth","service":"badge-backend","timestamp":"2025-11-18T11:03:46.498Z"}
+{"level":"info","message":"Protected endpoints: http://localhost:3000/api/protected","service":"badge-backend","timestamp":"2025-11-18T11:03:46.498Z"}
+{"level":"info","message":"DID endpoints: http://localhost:3000/api/did","service":"badge-backend","timestamp":"2025-11-18T11:03:46.498Z"}
+{"level":"info","message":"Webhook endpoints: http://localhost:3000/api/webhooks","service":"badge-backend","timestamp":"2025-11-18T11:03:46.499Z"}
+{"level":"info","message":"Issuer endpoints: http://localhost:3000/api/issuer","service":"badge-backend","timestamp":"2025-11-18T11:03:46.499Z"}
+{"level":"info","message":"Eligibility endpoints: http://localhost:3000/api/eligibility","service":"badge-backend","timestamp":"2025-11-18T11:03:46.499Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: verified-creator","service":"badge-backend","timestamp":"2025-11-18T11:04:07.311Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-18T11:04:17.142Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: dao-voter","service":"badge-backend","timestamp":"2025-11-18T11:04:24.181Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: verified-creator","service":"badge-backend","timestamp":"2025-11-18T11:04:24.189Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: defi-camp-student","service":"badge-backend","timestamp":"2025-11-18T11:04:24.196Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: defi-camp-advanced","service":"badge-backend","timestamp":"2025-11-18T11:04:24.201Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-18T11:04:24.207Z"}
