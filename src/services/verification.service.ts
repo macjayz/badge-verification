@@ -3,6 +3,7 @@ import { Verification, VerificationStatus, VerificationType } from '../entities/
 import { User } from '../entities/User';
 import { logger } from '../utils/logger';
 import { didService } from './did.service';
+import { webhookService, WebhookPayload } from './webhook.service';
 
 const verificationRepository = AppDataSource.getRepository(Verification);
 const userRepository = AppDataSource.getRepository(User);
@@ -37,6 +38,13 @@ export class VerificationService {
     });
   }
 
+  async getVerificationById(verificationId: string): Promise<Verification | null> {
+    return verificationRepository.findOne({
+      where: { id: verificationId },
+      relations: ['user']
+    });
+  }
+
   async getActiveVerifications(wallet: string, provider?: string): Promise<Verification[]> {
     const query = verificationRepository
       .createQueryBuilder('verification')
@@ -51,6 +59,34 @@ export class VerificationService {
     return query.getMany();
   }
 
+  async getAllVerifications(wallet: string, options?: {
+    provider?: string;
+    type?: VerificationType;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ verifications: Verification[]; total: number }> {
+    const { provider, type, limit = 50, offset = 0 } = options || {};
+    
+    const query = verificationRepository
+      .createQueryBuilder('verification')
+      .where('verification.wallet = :wallet', { wallet: wallet.toLowerCase() })
+      .orderBy('verification.createdAt', 'DESC')
+      .skip(offset)
+      .take(limit);
+
+    if (provider) {
+      query.andWhere('verification.provider = :provider', { provider });
+    }
+
+    if (type) {
+      query.andWhere('verification.type = :type', { type });
+    }
+
+    const [verifications, total] = await query.getManyAndCount();
+    
+    return { verifications, total };
+  }
+
   async updateVerificationSuccess(
     verificationId: string,
     did: string,
@@ -58,7 +94,8 @@ export class VerificationService {
     providerVerificationId?: string
   ): Promise<Verification> {
     const verification = await verificationRepository.findOne({
-      where: { id: verificationId }
+      where: { id: verificationId },
+      relations: ['user']
     });
 
     if (!verification) {
@@ -73,6 +110,9 @@ export class VerificationService {
       await this.updateUserDID(verification.wallet, did, verification.provider);
     }
 
+    // Send webhook for successful verification
+    await this.sendVerificationWebhook(verification, 'verification.completed');
+
     logger.info(`Verification completed successfully: ${verificationId}, DID: ${did}`);
     return verification;
   }
@@ -82,7 +122,8 @@ export class VerificationService {
     error: string
   ): Promise<Verification> {
     const verification = await verificationRepository.findOne({
-      where: { id: verificationId }
+      where: { id: verificationId },
+      relations: ['user']
     });
 
     if (!verification) {
@@ -92,7 +133,26 @@ export class VerificationService {
     verification.markFailed(error);
     await verificationRepository.save(verification);
 
+    // Send webhook for failed verification
+    await this.sendVerificationWebhook(verification, 'verification.failed');
+
     logger.warn(`Verification failed: ${verificationId}, error: ${error}`);
+    return verification;
+  }
+
+  async expireVerification(verificationId: string): Promise<Verification> {
+    const verification = await verificationRepository.findOne({
+      where: { id: verificationId }
+    });
+
+    if (!verification) {
+      throw new Error(`Verification not found: ${verificationId}`);
+    }
+
+    verification.status = VerificationStatus.EXPIRED;
+    await verificationRepository.save(verification);
+
+    logger.info(`Verification expired: ${verificationId}`);
     return verification;
   }
 
@@ -115,6 +175,34 @@ export class VerificationService {
 
     await userRepository.save(user);
     logger.info(`Updated user DID: ${wallet} -> ${did}`);
+  }
+
+  private async sendVerificationWebhook(
+    verification: Verification, 
+    event: string
+  ): Promise<void> {
+    const payload: WebhookPayload = {
+      event,
+      wallet: verification.wallet,
+      verificationId: verification.verificationId,
+      did: verification.did,
+      provider: verification.provider,
+      timestamp: new Date().toISOString(),
+      metadata: {
+        ...verification.metadata,
+        verificationType: verification.type,
+        sessionId: verification.sessionId,
+        completedAt: verification.completedAt
+      }
+    };
+
+    // For now, send to all registered issuers
+    // In production, you'd have issuer-specific webhooks
+    const issuers = webhookService.getRegisteredIssuers();
+    
+    for (const issuerId of issuers) {
+      await webhookService.sendWebhook(issuerId, payload);
+    }
   }
 
   async initiateDIDVerification(
@@ -204,18 +292,129 @@ export class VerificationService {
     hasPrimaryDID: boolean;
     primaryDID?: string;
     primaryProvider?: string;
-    verifications: Verification[];
+    activeVerifications: Verification[];
+    totalVerifications: number;
   }> {
-    const verifications = await this.getActiveVerifications(wallet);
-    const primaryVerifications = verifications.filter(v => v.type === VerificationType.PRIMARY_DID);
-    const primaryDIDVerification = primaryVerifications.find(v => v.canBeUsed());
+    const activeVerifications = await this.getActiveVerifications(wallet);
+    const { total: totalVerifications } = await this.getAllVerifications(wallet, { limit: 1 });
+    const primaryDIDVerification = activeVerifications.find(v => 
+      v.type === VerificationType.PRIMARY_DID && v.canBeUsed()
+    );
 
     return {
       hasPrimaryDID: !!primaryDIDVerification,
       primaryDID: primaryDIDVerification?.did,
       primaryProvider: primaryDIDVerification?.provider,
-      verifications
+      activeVerifications,
+      totalVerifications
     };
+  }
+
+  async getVerificationStats(wallet: string): Promise<{
+    total: number;
+    completed: number;
+    failed: number;
+    pending: number;
+    expired: number;
+    byProvider: Record<string, number>;
+    byType: Record<string, number>;
+  }> {
+    const stats = await verificationRepository
+      .createQueryBuilder('verification')
+      .select('verification.status', 'status')
+      .addSelect('verification.provider', 'provider')
+      .addSelect('verification.type', 'type')
+      .addSelect('COUNT(*)', 'count')
+      .where('verification.wallet = :wallet', { wallet: wallet.toLowerCase() })
+      .groupBy('verification.status')
+      .addGroupBy('verification.provider')
+      .addGroupBy('verification.type')
+      .getRawMany();
+
+    const result = {
+      total: 0,
+      completed: 0,
+      failed: 0,
+      pending: 0,
+      expired: 0,
+      byProvider: {} as Record<string, number>,
+      byType: {} as Record<string, number>
+    };
+
+    stats.forEach(stat => {
+      const count = parseInt(stat.count);
+      result.total += count;
+
+      // Status counts
+      switch (stat.status) {
+        case VerificationStatus.COMPLETED:
+          result.completed += count;
+          break;
+        case VerificationStatus.FAILED:
+          result.failed += count;
+          break;
+        case VerificationStatus.PENDING:
+          result.pending += count;
+          break;
+        case VerificationStatus.EXPIRED:
+          result.expired += count;
+          break;
+      }
+
+      // Provider counts
+      if (stat.provider) {
+        result.byProvider[stat.provider] = (result.byProvider[stat.provider] || 0) + count;
+      }
+
+      // Type counts
+      if (stat.type) {
+        result.byType[stat.type] = (result.byType[stat.type] || 0) + count;
+      }
+    });
+
+    return result;
+  }
+
+  async cleanupExpiredVerifications(): Promise<number> {
+    const result = await verificationRepository
+      .createQueryBuilder()
+      .update(Verification)
+      .set({ status: VerificationStatus.EXPIRED })
+      .where('status = :status', { status: VerificationStatus.PENDING })
+      .andWhere('expiresAt < :now', { now: new Date() })
+      .execute();
+
+    const affected = result.affected || 0;
+    if (affected > 0) {
+      logger.info(`Cleaned up ${affected} expired verifications`);
+    }
+
+    return affected;
+  }
+
+  async revokeVerification(verificationId: string, reason?: string): Promise<Verification> {
+    const verification = await verificationRepository.findOne({
+      where: { id: verificationId }
+    });
+
+    if (!verification) {
+      throw new Error(`Verification not found: ${verificationId}`);
+    }
+
+    // Store the original status before revocation
+    const originalStatus = verification.status;
+    
+    verification.status = VerificationStatus.FAILED;
+    verification.errorMessage = reason || 'Manually revoked';
+    verification.completedAt = new Date();
+    
+    await verificationRepository.save(verification);
+
+    // Send webhook for revocation
+    await this.sendVerificationWebhook(verification, 'verification.revoked');
+
+    logger.info(`Verification revoked: ${verificationId}, reason: ${reason}, original status: ${originalStatus}`);
+    return verification;
   }
 }
 

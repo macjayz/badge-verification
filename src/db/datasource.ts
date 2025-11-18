@@ -1,7 +1,10 @@
 import { DataSource } from 'typeorm';
 import { config } from '../config';
 import { User } from '../entities/User';
-import { Verification } from '../entities/Verification'; // Add this import
+import { Verification } from '../entities/Verification';
+import { Issuer } from '../entities/Issuer'; // Add this
+import { BadgeType } from '../entities/BadgeType'; // Add this
+import { BadgeMint } from '../entities/BadgeMint'; // Add this
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -12,7 +15,7 @@ export const AppDataSource = new DataSource({
   database: config.database.database,
   synchronize: config.server.nodeEnv === 'development',
   logging: config.server.nodeEnv === 'development',
-  entities: [User, Verification], // Add Verification here
+  entities: [User, Verification, Issuer, BadgeType, BadgeMint], // Add new entities
   migrations: ['src/migrations/**/*.ts'],
   subscribers: [],
   extra: {
@@ -20,7 +23,7 @@ export const AppDataSource = new DataSource({
   },
 });
 
-// ... rest of the file remains the same
+
 
 export const initializeDatabase = async (): Promise<void> => {
   try {

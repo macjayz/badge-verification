@@ -6,7 +6,8 @@ import { initializeDatabase } from './db/datasource';
 import { authRoutes } from './routes/auth.routes';
 import { healthRoutes } from './routes/health.routes';
 import { protectedRoutes } from './routes/protected.routes';
-import { didRoutes } from './routes/did.routes'; // Add this import
+import { didRoutes } from './routes/did.routes';
+import { webhookRoutes } from './routes/webhook.routes'; // Add this import
 import { logger } from './utils/logger';
 
 const app = express();
@@ -21,7 +22,8 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/protected', protectedRoutes);
-app.use('/api/did', didRoutes); // Add DID routes
+app.use('/api/did', didRoutes);
+app.use('/api/webhooks', webhookRoutes); // Add webhook routes
 app.use('/health', healthRoutes);
 
 // Error handling middleware
@@ -47,7 +49,8 @@ const startServer = async () => {
       logger.info(`Health check: http://localhost:${config.server.port}/health`);
       logger.info(`Auth endpoints: http://localhost:${config.server.port}/api/auth`);
       logger.info(`Protected endpoints: http://localhost:${config.server.port}/api/protected`);
-      logger.info(`DID endpoints: http://localhost:${config.server.port}/api/did`); // Add this line
+      logger.info(`DID endpoints: http://localhost:${config.server.port}/api/did`);
+      logger.info(`Webhook endpoints: http://localhost:${config.server.port}/api/webhooks`); // Add this line
     });
   } catch (error) {
     logger.error('Failed to start server:', error);
