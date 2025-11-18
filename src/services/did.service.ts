@@ -120,20 +120,28 @@ export class DIDService {
   }
 
   // New method: Check adapter health
-  async checkAdapterHealth(provider: string): Promise<boolean> {
+  // In src/services/did.service.ts - update the health check method
+async checkAdapterHealth(provider: string): Promise<boolean> {
     const adapter = this.getAdapter(provider);
     if (!adapter) return false;
-
+  
     try {
-      // Simple health check for real adapters
-      if (adapter instanceof PolygonIDRealAdapter || adapter instanceof IdOSRealAdapter) {
-        const testResult = await adapter.initVerification({
-          wallet: '0x0000000000000000000000000000000000000000',
-          callbackUrl: 'http://localhost:3000/test-callback'
-        });
-        return testResult.success !== false; // Consider it healthy if it doesn't explicitly fail
+      // Check if adapter is available (configured properly)
+      if (!adapter.isAvailable()) {
+        return false;
       }
-      return true; // Stub adapters are always healthy
+      
+      // For health check, create a minimal valid request
+      const testRequest = {
+        wallet: '0x0000000000000000000000000000000000000000',
+        callbackUrl: 'http://localhost:3000/test-callback',
+        provider: provider // Add the required provider field
+      };
+      
+      // Try to call initVerification with test data
+      // This will test if the adapter is properly configured
+      const result = await adapter.initVerification(testRequest);
+      return result.success !== false; // Consider healthy if it doesn't explicitly fail
     } catch (error) {
       logger.warn(`Health check failed for ${provider}:`, error);
       return false;

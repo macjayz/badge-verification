@@ -58,4 +58,7 @@ export class BadgeType {
 
   @OneToMany(() => BadgeMint, badgeMint => badgeMint.badgeType)
   mints?: BadgeMint[];
+
+  @Column({ type: 'int', nullable: true })
+  contractBadgeTypeId?: number; // Maps to the badgeTypeId in the smart contract
 }
