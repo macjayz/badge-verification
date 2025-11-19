@@ -1,3 +1,4 @@
+// src/index.ts - UPDATE THIS SECTION
 import 'reflect-metadata';
 import express from 'express';
 import cors from 'cors';
@@ -11,7 +12,8 @@ import { webhookRoutes } from './routes/webhook.routes';
 import { issuerRoutes } from './routes/issuer.routes';
 import { eligibilityRoutes } from './routes/eligibility.routes';
 import { mintingRoutes } from './routes/minting.routes';
-import { dashboardRoutes } from './routes/dashboard.routes'; // ADD THIS LINE
+import { dashboardRoutes } from './routes/dashboard.routes';
+import { errorHandler } from './middleware/error.middleware'; // ADD THIS IMPORT
 import { logger } from './utils/logger';
 
 const app = express();
@@ -31,18 +33,23 @@ app.use('/api/webhooks', webhookRoutes);
 app.use('/api/issuer', issuerRoutes);
 app.use('/api/eligibility', eligibilityRoutes);
 app.use('/api/minting', mintingRoutes);
-app.use('/api/dashboard', dashboardRoutes); // ADD THIS LINE
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/health', healthRoutes);
 
-// Error handling middleware
-app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  logger.error('Unhandled error:', error);
-  res.status(500).json({ error: 'Internal server error' });
-});
+// ADD ERROR HANDLER MIDDLEWARE (must be after all routes)
+app.use(errorHandler);
 
-// 404 handler
+// 404 handler (must be after error handler)
 app.use('*', (req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+  res.status(404).json({
+    success: false,
+    error: {
+      code: 'ROUTE_NOT_FOUND',
+      message: `Route ${req.method} ${req.originalUrl} not found`,
+      timestamp: new Date().toISOString(),
+      suggestion: 'Check the API documentation for available endpoints'
+    }
+  });
 });
 
 const startServer = async () => {
@@ -55,14 +62,8 @@ const startServer = async () => {
       logger.info(`Server running on port ${config.server.port}`);
       logger.info(`Environment: ${config.server.nodeEnv}`);
       logger.info(`Health check: http://localhost:${config.server.port}/health`);
-      logger.info(`Auth endpoints: http://localhost:${config.server.port}/api/auth`);
-      logger.info(`Protected endpoints: http://localhost:${config.server.port}/api/protected`);
-      logger.info(`DID endpoints: http://localhost:${config.server.port}/api/did`);
-      logger.info(`Webhook endpoints: http://localhost:${config.server.port}/api/webhooks`);
-      logger.info(`Issuer endpoints: http://localhost:${config.server.port}/api/issuer`);
-      logger.info(`Eligibility endpoints: http://localhost:${config.server.port}/api/eligibility`);
-      logger.info(`Minting endpoints: http://localhost:${config.server.port}/api/minting`);
-      logger.info(`Dashboard endpoints: http://localhost:${config.server.port}/api/dashboard`); // ADD THIS LINE
+      logger.info(`Enhanced error handling: ACTIVE`);
+      // ... rest of your logging
     });
   } catch (error) {
     logger.error('Failed to start server:', error);

@@ -1,5 +1,12 @@
+// src/services/web3.service.ts
 import { ethers } from 'ethers';
 import { logger } from '../utils/logger';
+import { 
+  BlockchainError, 
+  MintingError, 
+  ConfigurationError,
+  ValidationError 
+} from '../utils/errors'; // ADD THIS IMPORT
 
 // ABI for the BadgeSBT contract
 const BADGE_SBT_ABI = [
@@ -45,17 +52,40 @@ export class Web3Service {
       logger.info(`Web3 service initialized for contract: ${contractAddress}`);
     } catch (error) {
       logger.error('Web3 service initialization failed:', error);
+      throw new ConfigurationError(
+        'Web3Service',
+        `Failed to initialize: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
   async mintBadge(to: string, badgeTypeId: number): Promise<MintResult> {
+    // Validate inputs
+    if (!ethers.isAddress(to)) {
+      throw new ValidationError('Invalid wallet address format', {
+        address: to,
+        suggestion: 'Ensure the address is a valid Ethereum address'
+      });
+    }
+
+    if (badgeTypeId <= 0) {
+      throw new ValidationError('Invalid badge type ID', {
+        badgeTypeId,
+        suggestion: 'Badge type ID must be a positive integer'
+      });
+    }
+
     // If not configured, return mock data for development
     if (!this.isConfigured || !this.contract) {
+      logger.warn('Web3 service not configured - using mock mode for minting');
       return this.mockMintBadge(to, badgeTypeId);
     }
 
     try {
       logger.info(`Minting badge type ${badgeTypeId} for ${to}`);
+      
+      // Check contract connection
+      await this.verifyContractConnection();
       
       // Estimate gas first
       const gasEstimate = await this.contract.mintBadge.estimateGas(to, badgeTypeId);
@@ -67,11 +97,29 @@ export class Web3Service {
       
       logger.info(`Mint transaction submitted: ${tx.hash}`);
       
-      // Wait for confirmation
-      const receipt = await tx.wait();
+      // Wait for confirmation (2 blocks)
+      const receipt = await tx.wait(2);
       
       if (!receipt) {
-        throw new Error('Transaction receipt not available');
+        throw new MintingError(
+          'Transaction receipt not available - transaction may have been dropped',
+          tx.hash,
+          { to, badgeTypeId }
+        );
+      }
+      
+      if (receipt.status === 0) {
+        throw new MintingError(
+          'Transaction reverted on-chain',
+          receipt.transactionHash,
+          {
+            to,
+            badgeTypeId,
+            blockNumber: receipt.blockNumber,
+            gasUsed: receipt.gasUsed,
+            suggestion: 'Check if the badge type exists and wallet can receive tokens'
+          }
+        );
       }
       
       // Find the BadgeMinted event to get tokenId
@@ -91,6 +139,7 @@ export class Web3Service {
       } else {
         // Fallback: use a generated token ID
         tokenId = Date.now() % 1000000;
+        logger.warn(`BadgeMinted event not found, using generated tokenId: ${tokenId}`);
       }
       
       const result: MintResult = {
@@ -104,45 +153,145 @@ export class Web3Service {
       logger.info(`Badge minted successfully: Token ${tokenId} for ${to}`);
       return result;
       
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Web3 mint failed:', error);
-      throw new Error(`Blockchain operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      // Handle specific blockchain errors
+      if (error.code === 'INSUFFICIENT_FUNDS') {
+        throw new MintingError(
+          'Insufficient funds for transaction gas',
+          error.transactionHash,
+          {
+            to,
+            badgeTypeId,
+            suggestion: 'Add ETH to your wallet for gas fees'
+          }
+        );
+      }
+      
+      if (error.code === 'CALL_EXCEPTION') {
+        throw new MintingError(
+          'Smart contract call failed',
+          error.transactionHash,
+          {
+            to,
+            badgeTypeId,
+            reason: error.reason,
+            suggestion: 'Check badge type configuration and contract permissions'
+          }
+        );
+      }
+      
+      if (error.code === 'NETWORK_ERROR' || error.code === 'TIMEOUT') {
+        throw new BlockchainError(
+          'Blockchain network unreachable',
+          {
+            to,
+            badgeTypeId,
+            originalError: error.message,
+            suggestion: 'Check your RPC endpoint and network connection'
+          }
+        );
+      }
+      
+      if (error.code === 'NONCE_EXPIRED') {
+        throw new MintingError(
+          'Transaction nonce expired',
+          error.transactionHash,
+          {
+            to,
+            badgeTypeId,
+            suggestion: 'Try the operation again with a fresh nonce'
+          }
+        );
+      }
+      
+      throw new BlockchainError(
+        `Minting transaction failed: ${error.message}`,
+        { to, badgeTypeId, originalError: error.message }
+      );
     }
   }
 
   async hasBadge(wallet: string, badgeTypeId: number): Promise<boolean> {
+    if (!ethers.isAddress(wallet)) {
+      throw new ValidationError('Invalid wallet address format', { wallet });
+    }
+
     if (!this.isConfigured || !this.contract) {
-      // Mock response for development
+      logger.warn('Web3 service not configured - using mock mode for badge check');
       return Math.random() > 0.5;
     }
 
     try {
+      await this.verifyContractConnection();
       return await this.contract.hasBadge(wallet, badgeTypeId);
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Check badge ownership failed:', error);
-      return false;
+      throw new BlockchainError(
+        `Failed to check badge ownership: ${error.message}`,
+        { wallet, badgeTypeId }
+      );
     }
   }
 
   async getWalletBadges(wallet: string): Promise<number[]> {
+    if (!ethers.isAddress(wallet)) {
+      throw new ValidationError('Invalid wallet address format', { wallet });
+    }
+
     if (!this.isConfigured || !this.contract) {
-      // Mock response for development
+      logger.warn('Web3 service not configured - using mock mode for wallet badges');
       return [1, 2, 3].filter(() => Math.random() > 0.7);
     }
 
     try {
+      await this.verifyContractConnection();
       const tokenIds = await this.contract.getWalletBadges(wallet);
       return tokenIds.map((id: bigint) => Number(id));
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Get wallet badges failed:', error);
-      return [];
+      throw new BlockchainError(
+        `Failed to get wallet badges: ${error.message}`,
+        { wallet }
+      );
     }
   }
 
   async getTransactionReceipt(transactionHash: string): Promise<ethers.TransactionReceipt | null> {
-    if (!this.isConfigured || !this.provider) return null;
+    if (!this.isConfigured || !this.provider) {
+      logger.warn('Web3 service not configured - cannot get transaction receipt');
+      return null;
+    }
     
-    return this.provider.getTransactionReceipt(transactionHash);
+    try {
+      return await this.provider.getTransactionReceipt(transactionHash);
+    } catch (error: any) {
+      logger.error('Get transaction receipt failed:', error);
+      throw new BlockchainError(
+        `Failed to get transaction receipt: ${error.message}`,
+        { transactionHash }
+      );
+    }
+  }
+
+  private async verifyContractConnection(): Promise<void> {
+    if (!this.contract || !this.provider) {
+      throw new ConfigurationError(
+        'Web3Service',
+        'Contract or provider not initialized - check environment variables'
+      );
+    }
+
+    try {
+      // Test contract connection by calling a view function
+      await this.contract.owner();
+    } catch (error: any) {
+      throw new ConfigurationError(
+        'Web3Service',
+        `Contract connection failed: ${error.message}`
+      );
+    }
   }
 
   private getRpcUrl(): string {
@@ -155,7 +304,16 @@ export class Web3Service {
       '31337': 'http://localhost:8545' // Hardhat local network
     };
     
-    return rpcUrls[chainId] || rpcUrls['31337'];
+    const rpcUrl = rpcUrls[chainId] || rpcUrls['31337'];
+    
+    if (!rpcUrl) {
+      throw new ConfigurationError(
+        'Web3Service',
+        `No RPC URL configured for chain ID ${chainId}`
+      );
+    }
+    
+    return rpcUrl;
   }
 
   private mockMintBadge(to: string, badgeTypeId: number): MintResult {
@@ -178,5 +336,46 @@ export class Web3Service {
       contractAddress: process.env.CONTRACT_ADDRESS || '0xMockContractAddress',
       gasUsed: BigInt(50000 + Math.floor(Math.random() * 100000))
     };
+  }
+
+  // Health check method
+  async healthCheck(): Promise<{ healthy: boolean; details: any }> {
+    if (!this.isConfigured) {
+      return {
+        healthy: false,
+        details: {
+          configured: false,
+          message: 'Web3 service not configured - using mock mode'
+        }
+      };
+    }
+
+    try {
+      await this.verifyContractConnection();
+      const network = await this.provider!.getNetwork();
+      const blockNumber = await this.provider!.getBlockNumber();
+      
+      return {
+        healthy: true,
+        details: {
+          configured: true,
+          network: {
+            chainId: Number(network.chainId),
+            name: network.name
+          },
+          blockNumber,
+          contractAddress: await this.contract!.getAddress()
+        }
+      };
+    } catch (error: any) {
+      return {
+        healthy: false,
+        details: {
+          configured: true,
+          error: error.message,
+          message: 'Web3 service connection failed'
+        }
+      };
+    }
   }
 }

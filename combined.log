@@ -617,3 +617,239 @@
 {"level":"info","message":"Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-19T13:06:38.469Z"}
 {"level":"info","message":"Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-19T13:06:38.470Z"}
 {"level":"error","message":"JWT verification failed: jwt malformed","name":"JsonWebTokenError","service":"badge-backend","stack":"JsonWebTokenError: jwt malformed\n    at Object.module.exports [as verify] (/Users/mac/Documents/badge-backend/node_modules/jsonwebtoken/verify.js:70:17)\n    at JWTService.verifyToken (/Users/mac/Documents/badge-backend/src/services/jwt.service.ts:27:18)\n    at authenticateToken (/Users/mac/Documents/badge-backend/src/middleware/auth.middleware.ts:20:30)\n    at Layer.handle [as handle_request] (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/route.js:149:13)\n    at Route.dispatch (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/route.js:119:3)\n    at Layer.handle [as handle_request] (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/layer.js:95:5)\n    at /Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:284:15\n    at router.process_params (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:280:10)","timestamp":"2025-11-19T13:07:05.088Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T13:26:22.685Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T13:26:22.751Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T13:26:22.764Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T13:26:22.906Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T13:26:22.907Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T13:26:22.907Z"}
+{"level":"info","message":"Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-19T13:26:22.907Z"}
+{"level":"info","message":"Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-19T13:26:22.907Z"}
+{"level":"info","message":"DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-19T13:26:22.907Z"}
+{"level":"info","message":"Webhook endpoints: http://localhost:3001/api/webhooks","service":"badge-backend","timestamp":"2025-11-19T13:26:22.907Z"}
+{"level":"info","message":"Issuer endpoints: http://localhost:3001/api/issuer","service":"badge-backend","timestamp":"2025-11-19T13:26:22.907Z"}
+{"level":"info","message":"Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-19T13:26:22.907Z"}
+{"level":"info","message":"Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-19T13:26:22.907Z"}
+{"level":"info","message":"Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-19T13:26:22.907Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T13:30:15.660Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T13:30:15.723Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T13:30:15.738Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T13:30:15.877Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T13:30:15.877Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T13:30:15.877Z"}
+{"level":"info","message":"Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-19T13:30:15.877Z"}
+{"level":"info","message":"Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-19T13:30:15.877Z"}
+{"level":"info","message":"DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-19T13:30:15.877Z"}
+{"level":"info","message":"Webhook endpoints: http://localhost:3001/api/webhooks","service":"badge-backend","timestamp":"2025-11-19T13:30:15.878Z"}
+{"level":"info","message":"Issuer endpoints: http://localhost:3001/api/issuer","service":"badge-backend","timestamp":"2025-11-19T13:30:15.878Z"}
+{"level":"info","message":"Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-19T13:30:15.878Z"}
+{"level":"info","message":"Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-19T13:30:15.878Z"}
+{"level":"info","message":"Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-19T13:30:15.878Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T13:39:20.752Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T13:39:20.844Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T13:39:20.861Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T13:39:20.983Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T13:39:20.984Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T13:39:20.985Z"}
+{"level":"info","message":"Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-19T13:39:20.985Z"}
+{"level":"info","message":"Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-19T13:39:20.985Z"}
+{"level":"info","message":"DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-19T13:39:20.985Z"}
+{"level":"info","message":"Webhook endpoints: http://localhost:3001/api/webhooks","service":"badge-backend","timestamp":"2025-11-19T13:39:20.986Z"}
+{"level":"info","message":"Issuer endpoints: http://localhost:3001/api/issuer","service":"badge-backend","timestamp":"2025-11-19T13:39:20.986Z"}
+{"level":"info","message":"Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-19T13:39:20.986Z"}
+{"level":"info","message":"Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-19T13:39:20.986Z"}
+{"level":"info","message":"Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-19T13:39:20.987Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T13:39:57.435Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T13:39:57.510Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T13:39:57.524Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T13:39:57.638Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T13:39:57.638Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T13:39:57.639Z"}
+{"level":"info","message":"Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-19T13:39:57.639Z"}
+{"level":"info","message":"Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-19T13:39:57.639Z"}
+{"level":"info","message":"DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-19T13:39:57.639Z"}
+{"level":"info","message":"Webhook endpoints: http://localhost:3001/api/webhooks","service":"badge-backend","timestamp":"2025-11-19T13:39:57.639Z"}
+{"level":"info","message":"Issuer endpoints: http://localhost:3001/api/issuer","service":"badge-backend","timestamp":"2025-11-19T13:39:57.639Z"}
+{"level":"info","message":"Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-19T13:39:57.639Z"}
+{"level":"info","message":"Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-19T13:39:57.639Z"}
+{"level":"info","message":"Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-19T13:39:57.639Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T13:40:28.330Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T13:40:28.528Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T13:40:28.555Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T13:40:28.678Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T13:40:28.678Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T13:40:28.679Z"}
+{"level":"info","message":"Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-19T13:40:28.679Z"}
+{"level":"info","message":"Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-19T13:40:28.679Z"}
+{"level":"info","message":"DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-19T13:40:28.679Z"}
+{"level":"info","message":"Webhook endpoints: http://localhost:3001/api/webhooks","service":"badge-backend","timestamp":"2025-11-19T13:40:28.679Z"}
+{"level":"info","message":"Issuer endpoints: http://localhost:3001/api/issuer","service":"badge-backend","timestamp":"2025-11-19T13:40:28.679Z"}
+{"level":"info","message":"Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-19T13:40:28.679Z"}
+{"level":"info","message":"Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-19T13:40:28.679Z"}
+{"level":"info","message":"Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-19T13:40:28.679Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T13:41:07.750Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T13:41:07.818Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T13:41:07.837Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T13:41:07.974Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T13:41:07.974Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T13:41:07.974Z"}
+{"level":"info","message":"Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-19T13:41:07.974Z"}
+{"level":"info","message":"Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-19T13:41:07.974Z"}
+{"level":"info","message":"DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-19T13:41:07.974Z"}
+{"level":"info","message":"Webhook endpoints: http://localhost:3001/api/webhooks","service":"badge-backend","timestamp":"2025-11-19T13:41:07.975Z"}
+{"level":"info","message":"Issuer endpoints: http://localhost:3001/api/issuer","service":"badge-backend","timestamp":"2025-11-19T13:41:07.975Z"}
+{"level":"info","message":"Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-19T13:41:07.975Z"}
+{"level":"info","message":"Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-19T13:41:07.975Z"}
+{"level":"info","message":"Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-19T13:41:07.975Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T13:41:36.765Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T13:41:36.854Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T13:41:36.871Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T13:41:37.055Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T13:41:37.055Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T13:41:37.055Z"}
+{"level":"info","message":"Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-19T13:41:37.055Z"}
+{"level":"info","message":"Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-19T13:41:37.056Z"}
+{"level":"info","message":"DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-19T13:41:37.056Z"}
+{"level":"info","message":"Webhook endpoints: http://localhost:3001/api/webhooks","service":"badge-backend","timestamp":"2025-11-19T13:41:37.056Z"}
+{"level":"info","message":"Issuer endpoints: http://localhost:3001/api/issuer","service":"badge-backend","timestamp":"2025-11-19T13:41:37.056Z"}
+{"level":"info","message":"Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-19T13:41:37.056Z"}
+{"level":"info","message":"Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-19T13:41:37.056Z"}
+{"level":"info","message":"Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-19T13:41:37.056Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T13:42:44.317Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T13:42:44.384Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T13:42:44.401Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T13:42:44.508Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T13:42:44.508Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T13:42:44.508Z"}
+{"level":"info","message":"Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-19T13:42:44.508Z"}
+{"level":"info","message":"Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-19T13:42:44.508Z"}
+{"level":"info","message":"DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-19T13:42:44.508Z"}
+{"level":"info","message":"Webhook endpoints: http://localhost:3001/api/webhooks","service":"badge-backend","timestamp":"2025-11-19T13:42:44.508Z"}
+{"level":"info","message":"Issuer endpoints: http://localhost:3001/api/issuer","service":"badge-backend","timestamp":"2025-11-19T13:42:44.508Z"}
+{"level":"info","message":"Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-19T13:42:44.508Z"}
+{"level":"info","message":"Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-19T13:42:44.509Z"}
+{"level":"info","message":"Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-19T13:42:44.509Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T13:46:06.553Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T13:46:06.620Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T13:46:06.632Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T13:46:06.759Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T13:46:06.759Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T13:46:06.759Z"}
+{"level":"info","message":"Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-19T13:46:06.759Z"}
+{"level":"info","message":"Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-19T13:46:06.759Z"}
+{"level":"info","message":"DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-19T13:46:06.760Z"}
+{"level":"info","message":"Webhook endpoints: http://localhost:3001/api/webhooks","service":"badge-backend","timestamp":"2025-11-19T13:46:06.760Z"}
+{"level":"info","message":"Issuer endpoints: http://localhost:3001/api/issuer","service":"badge-backend","timestamp":"2025-11-19T13:46:06.760Z"}
+{"level":"info","message":"Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-19T13:46:06.760Z"}
+{"level":"info","message":"Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-19T13:46:06.760Z"}
+{"level":"info","message":"Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-19T13:46:06.760Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T13:46:35.321Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T13:46:35.432Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T13:46:35.447Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T13:46:35.552Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T13:46:35.552Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T13:46:35.552Z"}
+{"level":"info","message":"Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-19T13:46:35.552Z"}
+{"level":"info","message":"Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-19T13:46:35.552Z"}
+{"level":"info","message":"DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-19T13:46:35.552Z"}
+{"level":"info","message":"Webhook endpoints: http://localhost:3001/api/webhooks","service":"badge-backend","timestamp":"2025-11-19T13:46:35.552Z"}
+{"level":"info","message":"Issuer endpoints: http://localhost:3001/api/issuer","service":"badge-backend","timestamp":"2025-11-19T13:46:35.552Z"}
+{"level":"info","message":"Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-19T13:46:35.552Z"}
+{"level":"info","message":"Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-19T13:46:35.552Z"}
+{"level":"info","message":"Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-19T13:46:35.552Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T14:13:21.694Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T14:13:21.772Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T14:13:21.882Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T14:13:22.729Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T14:13:22.730Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T14:13:22.730Z"}
+{"level":"info","message":"Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-19T14:13:22.730Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T14:14:03.892Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T14:14:03.962Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T14:14:04.001Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T14:14:04.145Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T14:14:04.145Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T14:14:04.145Z"}
+{"level":"info","message":"Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-19T14:14:04.145Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T14:14:06.980Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T14:14:07.028Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T14:14:07.042Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T14:14:07.114Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T14:14:07.115Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T14:14:07.115Z"}
+{"level":"info","message":"Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-19T14:14:07.115Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T14:31:49.649Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T14:31:49.718Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T14:31:49.772Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T14:31:51.040Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T14:31:51.041Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T14:31:51.041Z"}
+{"level":"info","message":"Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-19T14:31:51.041Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T14:32:26.760Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T14:32:26.845Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T14:32:26.860Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T14:32:27.043Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T14:32:27.043Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T14:32:27.043Z"}
+{"level":"info","message":"Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-19T14:32:27.043Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T14:32:49.016Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T14:32:49.084Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T14:32:49.097Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T14:32:49.249Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T14:32:49.249Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T14:32:49.249Z"}
+{"level":"info","message":"Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-19T14:32:49.249Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T14:50:02.526Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T14:50:03.590Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T14:50:04.193Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T14:50:04.386Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T14:50:04.387Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T14:50:04.387Z"}
+{"level":"info","message":"Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-19T14:50:04.387Z"}
+{"code":"VALIDATION_ERROR","error":"Cannot mint badge: Badge type 'non_existent_badge' not found or inactive","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Cannot mint badge: Badge type 'non_existent_badge' not found or inactive\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:34:13\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-11-19T14:57:42.598Z","url":"/api/minting/initiate","userAgent":"curl/7.53.1"}
+{"code":"VALIDATION_ERROR","error":"Badge type key is required","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Badge type key is required\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:171:13\n    at /Users/mac/Documents/badge-backend/src/middleware/error.middleware.ts:53:19\n    at Layer.handle [as handle_request] (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/route.js:149:13)\n    at Route.dispatch (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/route.js:119:3)\n    at Layer.handle [as handle_request] (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/layer.js:95:5)\n    at /Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:284:15\n    at router.process_params (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:280:10)\n    at authenticateToken (/Users/mac/Documents/badge-backend/src/middleware/auth.middleware.ts:30:3)","timestamp":"2025-11-19T14:58:02.459Z","url":"/api/minting/check-eligibility","userAgent":"curl/7.53.1"}
+{"code":"UNKNOWN_ERROR","error":"invalid input syntax for type uuid: \"invalid_mint_id\"","ip":"::1","level":"error","message":"Error occurred:","method":"GET","service":"badge-backend","stack":"QueryFailedError: invalid input syntax for type uuid: \"invalid_mint_id\"\n    at PostgresQueryRunner.query (/Users/mac/Documents/badge-backend/src/driver/postgres/PostgresQueryRunner.ts:325:19)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at SelectQueryBuilder.loadRawResults (/Users/mac/Documents/badge-backend/src/query-builder/SelectQueryBuilder.ts:3868:25)\n    at SelectQueryBuilder.getRawMany (/Users/mac/Documents/badge-backend/src/query-builder/SelectQueryBuilder.ts:1627:29)\n    at SelectQueryBuilder.executeEntitiesAndRawResults (/Users/mac/Documents/badge-backend/src/query-builder/SelectQueryBuilder.ts:3530:26)\n    at SelectQueryBuilder.getRawAndEntities (/Users/mac/Documents/badge-backend/src/query-builder/SelectQueryBuilder.ts:1671:29)\n    at SelectQueryBuilder.getOne (/Users/mac/Documents/badge-backend/src/query-builder/SelectQueryBuilder.ts:1698:25)\n    at MintingService.getMintStatus (/Users/mac/Documents/badge-backend/src/services/minting.service.ts:204:18)\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:80:18","timestamp":"2025-11-19T14:58:54.300Z","url":"/api/minting/status/invalid_mint_id","userAgent":"curl/7.53.1"}
+{"level":"info","message":"Initiating invalid_provider verification for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266","service":"badge-backend","timestamp":"2025-11-19T14:59:05.977Z"}
+{"code":"VALIDATION_ERROR","details":{"suggestion":"Use one of the supported providers: polygonid, idos","supportedProviders":["polygonid","idos"]},"level":"error","message":"Initiate invalid_provider verification error: Unsupported DID provider: invalid_provider","name":"ValidationError","service":"badge-backend","stack":"ValidationError: Unsupported DID provider: invalid_provider\n    at DIDService.getAdapter (/Users/mac/Documents/badge-backend/src/services/did.service.ts:56:13)\n    at DIDService.initVerification (/Users/mac/Documents/badge-backend/src/services/did.service.ts:93:26)\n    at VerificationService.initiateDIDVerification (/Users/mac/Documents/badge-backend/src/services/verification.service.ts:224:42)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at initiateVerification (/Users/mac/Documents/badge-backend/src/controllers/did.controller.ts:238:22)","statusCode":400,"timestamp":"2025-11-19T14:59:06.020Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: dao-voter","service":"badge-backend","timestamp":"2025-11-19T14:59:19.875Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: verified-creator","service":"badge-backend","timestamp":"2025-11-19T14:59:19.885Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-19T14:59:19.890Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T15:01:23.346Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T15:01:23.423Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T15:01:23.446Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T15:01:23.583Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T15:01:23.583Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T15:01:23.584Z"}
+{"level":"info","message":"Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-19T15:01:23.584Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T15:05:38.202Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T15:05:38.283Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T15:05:38.298Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T15:05:38.463Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T15:05:38.463Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T15:05:38.463Z"}
+{"level":"info","message":"Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-19T15:05:38.463Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T15:06:26.715Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T15:06:26.786Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T15:06:26.802Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T15:06:26.907Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T15:06:26.908Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T15:06:26.908Z"}
+{"level":"info","message":"Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-19T15:06:26.908Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T15:06:29.334Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T15:06:29.411Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T15:06:29.422Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T15:06:29.512Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T15:06:29.512Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T15:06:29.512Z"}
+{"level":"info","message":"Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-19T15:06:29.512Z"}
+{"level":"info","message":"Initiating invalid_provider verification for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266","service":"badge-backend","timestamp":"2025-11-19T15:06:57.140Z"}
+{"code":"VALIDATION_ERROR","error":"Unsupported DID provider: invalid_provider","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Unsupported DID provider: invalid_provider\n    at DIDService.getAdapter (/Users/mac/Documents/badge-backend/src/services/did.service.ts:56:13)\n    at DIDService.initVerification (/Users/mac/Documents/badge-backend/src/services/did.service.ts:93:26)\n    at VerificationService.initiateDIDVerification (/Users/mac/Documents/badge-backend/src/services/verification.service.ts:224:42)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at /Users/mac/Documents/badge-backend/src/controllers/did.controller.ts:197:20","timestamp":"2025-11-19T15:06:57.185Z","url":"/api/did/invalid_provider/init","userAgent":"curl/7.53.1"}
+{"code":"VALIDATION_ERROR","error":"Unsupported DID provider: invalid_provider","ip":"::1","level":"error","message":"Error occurred:","method":"GET","service":"badge-backend","stack":"ValidationError: Unsupported DID provider: invalid_provider\n    at DIDService.getAdapter (/Users/mac/Documents/badge-backend/src/services/did.service.ts:56:13)\n    at /Users/mac/Documents/badge-backend/src/controllers/did.controller.ts:43:32\n    at /Users/mac/Documents/badge-backend/src/middleware/error.middleware.ts:53:19\n    at Layer.handle [as handle_request] (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/route.js:149:13)\n    at Route.dispatch (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/route.js:119:3)\n    at Layer.handle [as handle_request] (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/layer.js:95:5)\n    at /Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:284:15\n    at param (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:365:14)\n    at param (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:376:14)","timestamp":"2025-11-19T15:07:17.681Z","url":"/api/did/health/invalid_provider","userAgent":"curl/7.53.1"}
+{"code":"NOT_FOUND_ERROR","error":"Verification session with ID invalid_session_id not found","ip":"::1","level":"error","message":"Error occurred:","method":"GET","service":"badge-backend","stack":"NotFoundError: Verification session with ID invalid_session_id not found\n    at /Users/mac/Documents/badge-backend/src/controllers/did.controller.ts:296:13\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-11-19T15:07:23.566Z","url":"/api/did/session/invalid_session_id","userAgent":"curl/7.53.1"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-19T15:10:37.848Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-19T15:10:38.067Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-19T15:10:38.132Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-19T15:10:38.258Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T15:10:38.258Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T15:10:38.258Z"}
+{"level":"info","message":"Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-19T15:10:38.258Z"}

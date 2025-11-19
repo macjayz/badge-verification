@@ -1,109 +1,121 @@
+// src/controllers/minting.controller.ts
 import { Request, Response } from 'express';
 import { mintingService } from '../services/minting.service';
 import { logger } from '../utils/logger';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
+import { asyncHandler } from '../middleware/error.middleware';
+import { 
+  ValidationError, 
+  AuthenticationError,
+  NotFoundError 
+} from '../utils/errors';
 
 export class MintingController {
-  async initiateMint(req: AuthenticatedRequest, res: Response) {
-    try {
-      const { badgeTypeKey, verificationId } = req.body;
-      const wallet = req.user?.wallet;
+  
+  initiateMint = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { badgeTypeKey, verificationId } = req.body;
+    const wallet = req.user?.wallet;
 
-      if (!wallet || !badgeTypeKey) {
-        return res.status(400).json({
-          success: false,
-          error: 'Wallet and badge type key are required'
-        });
-      }
+    if (!wallet) {
+      throw new AuthenticationError('User wallet not found in session');
+    }
 
-      // Check if user can mint this badge
-      const canMint = await mintingService.canMintBadge(wallet, badgeTypeKey);
-      
-      if (!canMint.canMint) {
-        return res.status(400).json({
-          success: false,
-          error: canMint.reason,
-          existingMint: canMint.existingMint
-        });
-      }
-
-      const result = await mintingService.initiateMint(wallet, badgeTypeKey, verificationId);
-
-      if (!result.success) {
-        return res.status(400).json({
-          success: false,
-          error: result.error
-        });
-      }
-
-      res.json({
-        success: true,
-        mintId: result.mintId,
-        message: 'Mint initiated successfully'
-      });
-
-    } catch (error) {
-      logger.error('Initiate mint error:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to initiate mint'
+    if (!badgeTypeKey) {
+      throw new ValidationError('Badge type key is required', {
+        field: 'badgeTypeKey',
+        required: true
       });
     }
-  }
 
-  async getMintStatus(req: Request, res: Response) {
-    try {
-      const { mintId } = req.params;
-      
-      const mint = await mintingService.getMintStatus(mintId);
-
-      if (!mint) {
-        return res.status(404).json({
-          success: false,
-          error: 'Mint not found'
-        });
-      }
-
-      res.json({
-        success: true,
-        mint: {
-          id: mint.id,
-          wallet: mint.wallet,
-          status: mint.metadata?.status || 'unknown',
-          tokenId: mint.tokenId,
-          transactionHash: mint.transactionHash,
-          badgeType: mint.badgeType,
-          isRevoked: mint.isRevoked,
-          createdAt: mint.createdAt,
-          updatedAt: mint.updatedAt,
-          metadata: mint.metadata
+    // Check if user can mint this badge
+    const canMint = await mintingService.canMintBadge(wallet, badgeTypeKey);
+    
+    if (!canMint.canMint) {
+      throw new ValidationError(
+        `Cannot mint badge: ${canMint.reason}`,
+        {
+          badgeTypeKey,
+          wallet,
+          existingMint: canMint.existingMint,
+          suggestion: canMint.suggestion || 'Check your eligibility or contact support'
         }
-      });
+      );
+    }
 
-    } catch (error) {
-      logger.error('Get mint status error:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to get mint status'
+    const result = await mintingService.initiateMint(wallet, badgeTypeKey, verificationId);
+
+    if (!result.success) {
+      throw new ValidationError(
+        result.error || 'Mint initiation failed',
+        { badgeTypeKey, wallet }
+      );
+    }
+
+    res.json({
+      success: true,
+      data: {
+        mintId: result.mintId,
+        transactionHash: result.transactionHash,
+        message: 'Mint initiated successfully',
+        nextSteps: [
+          'Transaction submitted to blockchain',
+          'Wait for confirmation (usually 1-2 minutes)',
+          'Check mint status using the mintId'
+        ]
+      }
+    });
+  });
+
+  getMintStatus = asyncHandler(async (req: Request, res: Response) => {
+    const { mintId } = req.params;
+    
+    if (!mintId) {
+      throw new ValidationError('Mint ID is required', {
+        field: 'mintId',
+        required: true,
+        suggestion: 'Provide a valid mint ID from the initiation response'
       });
     }
-  }
 
-  async getUserMints(req: AuthenticatedRequest, res: Response) {
-    try {
-      const wallet = req.user?.wallet;
+    const mint = await mintingService.getMintStatus(mintId);
 
-      if (!wallet) {
-        return res.status(400).json({
-          success: false,
-          error: 'Wallet address required'
-        });
+    if (!mint) {
+      throw new NotFoundError('Mint record', mintId);
+    }
+
+    res.json({
+      success: true,
+      data: {
+        id: mint.id,
+        wallet: mint.wallet,
+        status: mint.metadata?.status || 'unknown',
+        tokenId: mint.tokenId,
+        transactionHash: mint.transactionHash,
+        badgeType: mint.badgeType,
+        isRevoked: mint.isRevoked,
+        createdAt: mint.createdAt,
+        updatedAt: mint.updatedAt,
+        metadata: mint.metadata,
+        // Add helpful status information
+        statusInfo: this.getStatusInfo(mint.metadata?.status)
       }
+    });
+  });
 
-      const mints = await mintingService.getUserMints(wallet);
+  getUserMints = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const wallet = req.user?.wallet;
 
-      res.json({
-        success: true,
+    if (!wallet) {
+      throw new AuthenticationError('User wallet not found in session');
+    }
+
+    const mints = await mintingService.getUserMints(wallet);
+
+    res.json({
+      success: true,
+      data: {
+        wallet,
+        totalMints: mints.length,
         mints: mints.map(mint => ({
           id: mint.id,
           wallet: mint.wallet,
@@ -113,117 +125,144 @@ export class MintingController {
           badgeType: mint.badgeType,
           isRevoked: mint.isRevoked,
           createdAt: mint.createdAt,
-          updatedAt: mint.updatedAt
+          updatedAt: mint.updatedAt,
+          statusInfo: this.getStatusInfo(mint.metadata?.status)
         }))
-      });
-
-    } catch (error) {
-      logger.error('Get user mints error:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to get user mints'
-      });
-    }
-  }
-
-  async getActiveBadges(req: AuthenticatedRequest, res: Response) {
-    try {
-      const wallet = req.user?.wallet;
-
-      if (!wallet) {
-        return res.status(400).json({
-          success: false,
-          error: 'Wallet address required'
-        });
       }
+    });
+  });
 
-      const activeBadges = await mintingService.getActiveUserBadges(wallet);
+  getActiveBadges = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const wallet = req.user?.wallet;
 
-      res.json({
-        success: true,
+    if (!wallet) {
+      throw new AuthenticationError('User wallet not found in session');
+    }
+
+    const activeBadges = await mintingService.getActiveUserBadges(wallet);
+
+    res.json({
+      success: true,
+      data: {
+        wallet,
+        totalBadges: activeBadges.length,
         badges: activeBadges.map(mint => ({
           id: mint.id,
           tokenId: mint.tokenId,
           transactionHash: mint.transactionHash,
           badgeType: mint.badgeType,
           mintedAt: mint.createdAt,
-          transactionUrl: mint.metadata?.transactionUrl
+          transactionUrl: mint.metadata?.transactionUrl,
+          badgeMetadata: mint.metadata?.badgeMetadata
         }))
-      });
+      }
+    });
+  });
 
-    } catch (error) {
-      logger.error('Get active badges error:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to get active badges'
+  checkMintEligibility = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { badgeTypeKey } = req.body;
+    const wallet = req.user?.wallet;
+
+    if (!wallet) {
+      throw new AuthenticationError('User wallet not found in session');
+    }
+
+    if (!badgeTypeKey) {
+      throw new ValidationError('Badge type key is required', {
+        field: 'badgeTypeKey',
+        required: true
       });
     }
-  }
 
-  async checkMintEligibility(req: AuthenticatedRequest, res: Response) {
-    try {
-      const { badgeTypeKey } = req.body;
-      const wallet = req.user?.wallet;
+    const canMint = await mintingService.canMintBadge(wallet, badgeTypeKey);
 
-      if (!wallet || !badgeTypeKey) {
-        return res.status(400).json({
-          success: false,
-          error: 'Wallet and badge type key are required'
-        });
-      }
-
-      const canMint = await mintingService.canMintBadge(wallet, badgeTypeKey);
-
-      res.json({
-        success: true,
+    res.json({
+      success: true,
+      data: {
         canMint: canMint.canMint,
         reason: canMint.reason,
-        existingMint: canMint.existingMint
-      });
+        existingMint: canMint.existingMint,
+        suggestion: canMint.suggestion,
+        wallet,
+        badgeTypeKey,
+        timestamp: new Date().toISOString()
+      }
+    });
+  });
 
-    } catch (error) {
-      logger.error('Check mint eligibility error:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to check mint eligibility'
+  revokeBadge = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { mintId, reason } = req.body;
+
+    if (!mintId) {
+      throw new ValidationError('Mint ID is required', {
+        field: 'mintId',
+        required: true
       });
     }
-  }
 
-  async revokeBadge(req: AuthenticatedRequest, res: Response) {
-    try {
-      const { mintId, reason } = req.body;
-
-      if (!mintId || !reason) {
-        return res.status(400).json({
-          success: false,
-          error: 'Mint ID and reason are required'
-        });
-      }
-
-      // TODO: Add authorization check - only issuer should be able to revoke
-
-      const success = await mintingService.revokeBadge(mintId, reason);
-
-      if (!success) {
-        return res.status(400).json({
-          success: false,
-          error: 'Failed to revoke badge'
-        });
-      }
-
-      res.json({
-        success: true,
-        message: 'Badge revoked successfully'
-      });
-
-    } catch (error) {
-      logger.error('Revoke badge error:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to revoke badge'
+    if (!reason) {
+      throw new ValidationError('Revocation reason is required', {
+        field: 'reason',
+        required: true,
+        suggestion: 'Provide a clear reason for revocation (e.g., "violation of terms", "user request")'
       });
     }
+
+    // TODO: Add authorization check - only issuer should be able to revoke
+    // For now, this is a placeholder for authorization
+    const isAuthorized = true; // Replace with actual authorization logic
+    
+    if (!isAuthorized) {
+      throw new AuthenticationError('Not authorized to revoke badges');
+    }
+
+    const success = await mintingService.revokeBadge(mintId, reason);
+
+    if (!success) {
+      throw new ValidationError('Failed to revoke badge', {
+        mintId,
+        reason,
+        suggestion: 'Check if the mint ID exists and the badge is not already revoked'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        message: 'Badge revoked successfully',
+        mintId,
+        reason,
+        revokedAt: new Date().toISOString()
+      }
+    });
+  });
+
+  // Helper method to provide status information
+  private getStatusInfo(status: string): any {
+    const statusInfo: { [key: string]: any } = {
+      'pending': {
+        description: 'Transaction submitted to blockchain',
+        expectedWait: '1-2 minutes',
+        nextStep: 'Wait for blockchain confirmation'
+      },
+      'confirmed': {
+        description: 'Transaction confirmed on blockchain',
+        nextStep: 'Badge is now active in your wallet'
+      },
+      'failed': {
+        description: 'Transaction failed',
+        nextStep: 'Check transaction details and try again'
+      },
+      'reverted': {
+        description: 'Transaction reverted on blockchain',
+        nextStep: 'Contact support for assistance'
+      }
+    };
+
+    return statusInfo[status] || {
+      description: 'Unknown status',
+      nextStep: 'Contact support for assistance'
+    };
   }
 }
 
