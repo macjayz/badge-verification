@@ -11,7 +11,8 @@ import { webhookRoutes } from './routes/webhook.routes';
 import { issuerRoutes } from './routes/issuer.routes';
 import { eligibilityRoutes } from './routes/eligibility.routes';
 import { mintingRoutes } from './routes/minting.routes';
-import { logger } from './utils/logger'; // FIXED: Remove the extra ../
+import { dashboardRoutes } from './routes/dashboard.routes'; // ADD THIS LINE
+import { logger } from './utils/logger';
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use('/api/webhooks', webhookRoutes);
 app.use('/api/issuer', issuerRoutes);
 app.use('/api/eligibility', eligibilityRoutes);
 app.use('/api/minting', mintingRoutes);
+app.use('/api/dashboard', dashboardRoutes); // ADD THIS LINE
 app.use('/health', healthRoutes);
 
 // Error handling middleware
@@ -60,6 +62,7 @@ const startServer = async () => {
       logger.info(`Issuer endpoints: http://localhost:${config.server.port}/api/issuer`);
       logger.info(`Eligibility endpoints: http://localhost:${config.server.port}/api/eligibility`);
       logger.info(`Minting endpoints: http://localhost:${config.server.port}/api/minting`);
+      logger.info(`Dashboard endpoints: http://localhost:${config.server.port}/api/dashboard`); // ADD THIS LINE
     });
   } catch (error) {
     logger.error('Failed to start server:', error);
