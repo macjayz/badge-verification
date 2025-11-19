@@ -1,8 +1,14 @@
+// src/services/did.service.ts
 import { PolygonIDStubAdapter } from '../adapters/did/PolygonIDStubAdapter';
 import { IdOSStubAdapter } from '../adapters/did/IdOSStubAdapter';
 import { PolygonIDRealAdapter } from '../adapters/did/PolygonIDRealAdapter';
 import { IdOSRealAdapter } from '../adapters/did/IdOSRealAdapter';
 import { logger } from '../utils/logger';
+import { 
+  DIDProviderError, 
+  ValidationError, 
+  ConfigurationError
+} from '../utils/errors'; // ADD THIS IMPORT
 
 export class DIDService {
   private adapters: Map<string, any> = new Map();
@@ -15,14 +21,21 @@ export class DIDService {
     const useRealAdapters = process.env.USE_REAL_ADAPTERS === 'true';
     
     if (useRealAdapters) {
-      // Register real adapters
-      const polygonIDAdapter = new PolygonIDRealAdapter();
-      const idOSAdapter = new IdOSRealAdapter();
+      try {
+        // Register real adapters
+        const polygonIDAdapter = new PolygonIDRealAdapter();
+        const idOSAdapter = new IdOSRealAdapter();
 
-      this.adapters.set(polygonIDAdapter.getName(), polygonIDAdapter);
-      this.adapters.set(idOSAdapter.getName(), idOSAdapter);
+        this.adapters.set(polygonIDAdapter.getName(), polygonIDAdapter);
+        this.adapters.set(idOSAdapter.getName(), idOSAdapter);
 
-      logger.info(`DID Service initialized with REAL adapters: ${Array.from(this.adapters.keys()).join(', ')}`);
+        logger.info(`DID Service initialized with REAL adapters: ${Array.from(this.adapters.keys()).join(', ')}`);
+      } catch (error: any) {
+        throw new ConfigurationError(
+          'DIDService',
+          `Failed to initialize real adapters: ${error.message}`
+        );
+      }
     } else {
       // Register stub adapters (current behavior)
       const polygonIDAdapter = new PolygonIDStubAdapter();
@@ -36,15 +49,27 @@ export class DIDService {
   }
 
   getAdapter(provider: string): any | null {
-    const adapter = this.adapters.get(provider.toLowerCase());
+    const normalizedProvider = provider.toLowerCase();
+    const adapter = this.adapters.get(normalizedProvider);
+    
     if (!adapter) {
-      logger.warn(`DID adapter not found for provider: ${provider}`);
-      return null;
+      throw new ValidationError(
+        `Unsupported DID provider: ${provider}`,
+        { 
+          supportedProviders: Array.from(this.adapters.keys()),
+          suggestion: `Use one of the supported providers: ${Array.from(this.adapters.keys()).join(', ')}`
+        }
+      );
     }
 
     if (!adapter.isAvailable()) {
-      logger.warn(`DID adapter not available for provider: ${provider}`);
-      return null;
+      throw new DIDProviderError(
+        provider,
+        'Adapter not available or not configured',
+        {
+          suggestion: 'Check adapter configuration and environment variables'
+        }
+      );
     }
 
     return adapter;
@@ -57,13 +82,15 @@ export class DIDService {
   }
 
   async initVerification(provider: string, request: any): Promise<any> {
-    const adapter = this.getAdapter(provider);
-    if (!adapter) {
-      return {
-        success: false,
-        error: `DID provider '${provider}' not available`
-      };
+    // Validate request
+    if (!request?.wallet) {
+      throw new ValidationError('Wallet address is required for verification', {
+        field: 'wallet',
+        required: true
+      });
     }
+
+    const adapter = this.getAdapter(provider);
 
     try {
       logger.info(`Initializing DID verification for ${provider}, wallet: ${request.wallet}`);
@@ -73,26 +100,32 @@ export class DIDService {
         logger.info(`DID verification initiated successfully for ${provider}, session: ${result.sessionId}`);
       } else {
         logger.warn(`DID verification initiation failed for ${provider}: ${result.error}`);
+        throw new DIDProviderError(
+          provider,
+          result.error || 'Verification initiation failed',
+          { wallet: request.wallet }
+        );
       }
       
       return result;
-    } catch (error) {
+    } catch (error: any) {
+      if (error instanceof DIDProviderError) throw error;
+      
       logger.error(`Error initializing DID verification for ${provider}:`, error);
-      return {
-        success: false,
-        error: `Internal server error: ${error instanceof Error ? error.message : 'Unknown error'}`
-      };
+      throw new DIDProviderError(
+        provider,
+        `Failed to initialize verification: ${error.message}`,
+        { wallet: request.wallet }
+      );
     }
   }
 
   async handleCallback(provider: string, payload: any, sessionId?: string): Promise<any> {
-    const adapter = this.getAdapter(provider);
-    if (!adapter) {
-      return {
-        success: false,
-        error: `DID provider '${provider}' not available`
-      };
+    if (!payload) {
+      throw new ValidationError('Callback payload is required');
     }
+
+    const adapter = this.getAdapter(provider);
 
     try {
       logger.info(`Handling DID callback for ${provider}, session: ${sessionId}`);
@@ -102,63 +135,106 @@ export class DIDService {
         logger.info(`DID verification successful for ${provider}, DID: ${result.did}`);
       } else {
         logger.warn(`DID verification failed for ${provider}: ${result.error}`);
+        throw new DIDProviderError(
+          provider,
+          result.error || 'Verification rejected by provider',
+          { sessionId }
+        );
       }
       
       return result;
-    } catch (error) {
+    } catch (error: any) {
+      if (error instanceof DIDProviderError) throw error;
+      
       logger.error(`Error handling DID callback for ${provider}:`, error);
-      return {
-        success: false,
-        error: `Internal server error: ${error instanceof Error ? error.message : 'Unknown error'}`
-      };
+      throw new DIDProviderError(
+        provider,
+        `Callback handling failed: ${error.message}`,
+        { sessionId }
+      );
     }
   }
 
   registerAdapter(adapter: any): void {
+    if (!adapter || !adapter.getName) {
+      throw new ValidationError('Invalid adapter provided');
+    }
+
     this.adapters.set(adapter.getName(), adapter);
     logger.info(`Registered new DID adapter: ${adapter.getName()}`);
   }
 
-  // New method: Check adapter health
-  // In src/services/did.service.ts - update the health check method
-async checkAdapterHealth(provider: string): Promise<boolean> {
-    const adapter = this.getAdapter(provider);
-    if (!adapter) return false;
-  
+  async checkAdapterHealth(provider: string): Promise<{ healthy: boolean; details: any }> {
     try {
+      const adapter = this.getAdapter(provider);
+      
       // Check if adapter is available (configured properly)
       if (!adapter.isAvailable()) {
-        return false;
+        return {
+          healthy: false,
+          details: {
+            available: false,
+            message: 'Adapter not available or not configured'
+          }
+        };
       }
       
       // For health check, create a minimal valid request
       const testRequest = {
         wallet: '0x0000000000000000000000000000000000000000',
         callbackUrl: 'http://localhost:3000/test-callback',
-        provider: provider // Add the required provider field
+        provider: provider
       };
       
       // Try to call initVerification with test data
-      // This will test if the adapter is properly configured
       const result = await adapter.initVerification(testRequest);
-      return result.success !== false; // Consider healthy if it doesn't explicitly fail
-    } catch (error) {
+      
+      return {
+        healthy: result.success !== false,
+        details: {
+          available: true,
+          testResult: result.success ? 'healthy' : 'unhealthy',
+          adapterType: adapter.constructor.name
+        }
+      };
+    } catch (error: any) {
       logger.warn(`Health check failed for ${provider}:`, error);
-      return false;
+      return {
+        healthy: false,
+        details: {
+          available: false,
+          error: error.message,
+          message: `Health check failed: ${error.message}`
+        }
+      };
     }
   }
 
-  // New method: Get adapter details
   getAdapterDetails(provider: string): any {
-    const adapter = this.getAdapter(provider);
-    if (!adapter) return null;
+    try {
+      const adapter = this.getAdapter(provider);
+      
+      return {
+        name: adapter.getName(),
+        type: adapter instanceof PolygonIDRealAdapter || adapter instanceof PolygonIDStubAdapter ? 'polygonid' : 'idos',
+        isReal: adapter instanceof PolygonIDRealAdapter || adapter instanceof IdOSRealAdapter,
+        isAvailable: adapter.isAvailable(),
+        adapterClass: adapter.constructor.name
+      };
+    } catch (error) {
+      return {
+        name: provider,
+        isAvailable: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
 
-    return {
-      name: adapter.getName(),
-      type: adapter instanceof PolygonIDRealAdapter || adapter instanceof PolygonIDStubAdapter ? 'polygonid' : 'idos',
-      isReal: adapter instanceof PolygonIDRealAdapter || adapter instanceof IdOSRealAdapter,
-      isAvailable: adapter.isAvailable()
-    };
+  // Get all adapters status
+  getAllAdaptersStatus(): any[] {
+    return Array.from(this.adapters.keys()).map(provider => 
+      this.getAdapterDetails(provider)
+    );
   }
 }
 

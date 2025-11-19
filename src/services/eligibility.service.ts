@@ -1,8 +1,14 @@
+// src/services/eligibility.service.ts
 import { AppDataSource } from '../db/datasource';
 import { BadgeType, BadgeRules } from '../entities/BadgeType';
 import { Verification } from '../entities/Verification';
 import { verificationService } from './verification.service';
 import { logger } from '../utils/logger';
+import { 
+  EligibilityError, 
+  ValidationError, 
+  NotFoundError 
+} from '../utils/errors'; // ADD THIS IMPORT
 
 // Create repositories directly in this file
 const badgeTypeRepository = AppDataSource.getRepository(BadgeType);
@@ -23,6 +29,13 @@ export interface EligibilityResult {
 export class EligibilityService {
   async checkEligibility(wallet: string, badgeKey: string): Promise<EligibilityResult> {
     try {
+      // Validate inputs
+      if (!wallet || !badgeKey) {
+        throw new ValidationError('Wallet and badge key are required', {
+          fields: { wallet: !wallet, badgeKey: !badgeKey }
+        });
+      }
+
       logger.info(`Checking eligibility for wallet: ${wallet}, badge: ${badgeKey}`);
 
       // Get badge type and rules
@@ -32,16 +45,39 @@ export class EligibilityService {
       });
 
       if (!badgeType) {
-        throw new Error(`Badge type not found: ${badgeKey}`);
+        throw new NotFoundError('Badge type', badgeKey);
+      }
+
+      if (!badgeType.isActive) {
+        throw new EligibilityError(
+          badgeKey,
+          'Badge type is currently inactive',
+          { 
+            badgeName: badgeType.name,
+            suggestion: 'Contact the issuer for more information'
+          }
+        );
       }
 
       const rules = badgeType.rules;
+      
+      // Validate rules structure
+      if (!rules?.primary || !Array.isArray(rules.primary)) {
+        throw new EligibilityError(
+          badgeKey,
+          'Invalid badge rules configuration',
+          { 
+            badgeName: badgeType.name,
+            suggestion: 'Contact issuer to fix badge configuration'
+          }
+        );
+      }
       
       // Check primary requirements (DID verification)
       const primaryResults = await this.checkPrimaryRequirements(wallet, rules.primary, rules.logic);
       
       // Check secondary requirements (social/on-chain)
-      const secondaryResults = await this.checkSecondaryRequirements(wallet, rules.secondary, rules.logic);
+      const secondaryResults = await this.checkSecondaryRequirements(wallet, rules.secondary || [], rules.logic);
 
       // Determine overall eligibility
       const primaryEligible = this.evaluatePrimaryLogic(primaryResults, rules.logic);
@@ -54,7 +90,8 @@ export class EligibilityService {
         primaryResults, 
         secondaryResults, 
         rules,
-        primaryEligible
+        primaryEligible,
+        badgeType.name
       );
 
       return {
@@ -70,8 +107,16 @@ export class EligibilityService {
       };
 
     } catch (error) {
+      if (error instanceof EligibilityError || error instanceof ValidationError || error instanceof NotFoundError) {
+        throw error;
+      }
+      
       logger.error(`Eligibility check error for ${wallet}, badge ${badgeKey}:`, error);
-      throw error;
+      throw new EligibilityError(
+        badgeKey,
+        `Unexpected error during eligibility check: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { wallet, badgeKey }
+      );
     }
   }
 
@@ -83,23 +128,32 @@ export class EligibilityService {
     const results = [];
 
     for (const provider of primaryProviders) {
-      // Check for active verifications from this provider
-      const activeVerifications = await verificationService.getActiveVerifications(wallet, provider);
-      const validVerification = activeVerifications.find(v => v.canBeUsed());
+      try {
+        // Check for active verifications from this provider
+        const activeVerifications = await verificationService.getActiveVerifications(wallet, provider);
+        const validVerification = activeVerifications.find(v => v.canBeUsed());
 
-      if (validVerification) {
+        if (validVerification) {
+          results.push({
+            provider,
+            verified: true,
+            did: validVerification.did
+          });
+          logger.debug(`Primary requirement satisfied: ${provider} for ${wallet}`);
+        } else {
+          results.push({
+            provider,
+            verified: false
+          });
+          logger.debug(`Primary requirement missing: ${provider} for ${wallet}`);
+        }
+      } catch (error: any) {
+        logger.error(`Error checking primary requirement ${provider} for ${wallet}:`, error);
         results.push({
           provider,
-          verified: true,
-          did: validVerification.did
+          verified: false,
+          error: error.message
         });
-        logger.debug(`Primary requirement satisfied: ${provider} for ${wallet}`);
-      } else {
-        results.push({
-          provider,
-          verified: false
-        });
-        logger.debug(`Primary requirement missing: ${provider} for ${wallet}`);
       }
     }
 
@@ -113,12 +167,13 @@ export class EligibilityService {
   ): Promise<Array<{ method: string; verified: boolean; details?: any }>> {
     const results = [];
 
-    for (const rule of secondaryRules) {
+    for (const rule of secondaryRules || []) {
       try {
         const verificationResult = await this.verifySecondaryRule(wallet, rule);
         results.push({
           method: rule.method,
           verified: verificationResult.verified,
+          required: rule.required !== false, // default to true if not specified
           details: verificationResult.details
         });
 
@@ -128,12 +183,16 @@ export class EligibilityService {
           logger.debug(`Secondary requirement failed: ${rule.method} for ${wallet}`);
         }
 
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Error checking secondary rule ${rule.method} for ${wallet}:`, error);
         results.push({
           method: rule.method,
           verified: false,
-          details: { error: error instanceof Error ? error.message : 'Unknown error' }
+          required: rule.required !== false,
+          details: { 
+            error: error instanceof Error ? error.message : 'Unknown error',
+            suggestion: 'Verification service temporarily unavailable'
+          }
         });
       }
     }
@@ -161,30 +220,51 @@ export class EligibilityService {
         return await this.mockOnChainGovernanceCheck(wallet, rule.params);
       
       default:
-        logger.warn(`Unknown secondary verification method: ${rule.method}`);
-        return { verified: false, details: { error: 'Unknown verification method' } };
+        throw new EligibilityError(
+          'unknown',
+          `Unsupported verification method: ${rule.method}`,
+          { 
+            method: rule.method,
+            suggestion: 'Contact issuer to update badge requirements'
+          }
+        );
     }
   }
 
   // Mock implementations - will be replaced with real adapters
   private async mockTwitterFollowCheck(wallet: string, params: any): Promise<{ verified: boolean; details?: any }> {
+    if (!params?.account) {
+      throw new ValidationError('Twitter account parameter is required for follow check', {
+        params,
+        suggestion: 'Check badge configuration - Twitter account must be specified'
+      });
+    }
+
     // Mock: 70% success rate for testing
     const verified = Math.random() > 0.3;
     return {
       verified,
       details: {
-        account: params?.account || 'unknown',
+        account: params.account,
+        requiredAction: `Follow @${params.account} on Twitter`,
         checkedAt: new Date().toISOString(),
-        mock: true
+        mock: true,
+        note: 'This is a mock implementation - will be replaced with real Twitter API'
       }
     };
   }
 
   private async mockOnChainActivityCheck(wallet: string, params: any): Promise<{ verified: boolean; details?: any }> {
-    // Mock: Check if wallet has required transactions
     const minTransactions = params?.minTransactions || 1;
     const beforeDate = params?.beforeDate ? new Date(params.beforeDate) : new Date();
     
+    if (minTransactions < 0) {
+      throw new ValidationError('Minimum transactions must be a positive number', {
+        minTransactions,
+        suggestion: 'Check badge configuration - minTransactions must be >= 0'
+      });
+    }
+
     // Mock: Random transaction count between 0-20
     const transactionCount = Math.floor(Math.random() * 21);
     const verified = transactionCount >= minTransactions;
@@ -195,16 +275,24 @@ export class EligibilityService {
         transactionCount,
         minRequired: minTransactions,
         beforeDate: beforeDate.toISOString(),
-        mock: true
+        requirement: `Minimum ${minTransactions} on-chain transaction(s)`,
+        mock: true,
+        note: 'This is a mock implementation - will be replaced with real blockchain data'
       }
     };
   }
 
   private async mockSnapshotVotesCheck(wallet: string, params: any): Promise<{ verified: boolean; details?: any }> {
-    // Mock: Check Snapshot voting history
     const minVotes = params?.minVotes || 1;
     const space = params?.space || 'daospace.eth';
     
+    if (minVotes < 0) {
+      throw new ValidationError('Minimum votes must be a positive number', {
+        minVotes,
+        suggestion: 'Check badge configuration - minVotes must be >= 0'
+      });
+    }
+
     // Mock: Random vote count between 0-5
     const voteCount = Math.floor(Math.random() * 6);
     const verified = voteCount >= minVotes;
@@ -215,15 +303,23 @@ export class EligibilityService {
         voteCount,
         minRequired: minVotes,
         space,
-        mock: true
+        requirement: `Minimum ${minVotes} vote(s) in ${space} Snapshot space`,
+        mock: true,
+        note: 'This is a mock implementation - will be replaced with real Snapshot API'
       }
     };
   }
 
   private async mockOnChainGovernanceCheck(wallet: string, params: any): Promise<{ verified: boolean; details?: any }> {
-    // Mock: Check on-chain governance participation
     const minVotes = params?.minVotes || 1;
     
+    if (minVotes < 0) {
+      throw new ValidationError('Minimum governance votes must be a positive number', {
+        minVotes,
+        suggestion: 'Check badge configuration - minVotes must be >= 0'
+      });
+    }
+
     // Mock: Random governance participation
     const hasParticipated = Math.random() > 0.5;
     const verified = hasParticipated;
@@ -233,7 +329,9 @@ export class EligibilityService {
       details: {
         hasParticipated,
         minRequired: minVotes,
-        mock: true
+        requirement: `Participate in on-chain governance`,
+        mock: true,
+        note: 'This is a mock implementation - will be replaced with real governance data'
       }
     };
   }
@@ -257,51 +355,75 @@ export class EligibilityService {
   ): boolean {
     if (results.length === 0) return true;
 
+    // For secondary requirements, only required ones matter for eligibility
+    const requiredResults = results.filter(result => result.required !== false);
+
+    if (requiredResults.length === 0) return true;
+
     if (logic === 'AND') {
-      return results.every(result => result.verified);
+      return requiredResults.every(result => result.verified);
     } else { // OR logic
-      return results.some(result => result.verified);
+      return requiredResults.some(result => result.verified);
     }
   }
 
   private buildEligibilityDetails(
     primaryResults: Array<{ provider: string; verified: boolean }>,
-    secondaryResults: Array<{ method: string; verified: boolean; details?: any }>,
+    secondaryResults: Array<{ method: string; verified: boolean; required?: boolean; details?: any }>,
     rules: BadgeRules,
-    primaryEligible: boolean
+    primaryEligible: boolean,
+    badgeName: string
   ): { reasons: string[]; missingRequirements: string[] } {
     const reasons: string[] = [];
     const missingRequirements: string[] = [];
 
-    // Primary requirements - only show missing if using AND logic or not eligible
-    if (rules.logic === 'AND' || !primaryEligible) {
-      primaryResults.forEach(result => {
-        if (result.verified) {
-          reasons.push(`Verified with ${result.provider}`);
-        } else {
-          missingRequirements.push(`Missing ${result.provider} verification`);
-        }
+    // Primary requirements analysis
+    const successfulPrimary = primaryResults.filter(r => r.verified);
+    const failedPrimary = primaryResults.filter(r => !r.verified);
+
+    if (rules.logic === 'AND') {
+      // For AND logic, all primary must pass
+      successfulPrimary.forEach(result => {
+        reasons.push(`Identity verified with ${result.provider}`);
+      });
+      failedPrimary.forEach(result => {
+        missingRequirements.push(`Missing ${result.provider} identity verification`);
       });
     } else {
-      // For OR logic and eligible, only show the successful ones
-      primaryResults.forEach(result => {
-        if (result.verified) {
-          reasons.push(`Verified with ${result.provider}`);
-        }
-      });
+      // For OR logic, at least one primary must pass
+      if (successfulPrimary.length > 0) {
+        reasons.push(`Identity verified with ${successfulPrimary.map(r => r.provider).join(' or ')}`);
+      } else {
+        missingRequirements.push(`Missing identity verification (need one of: ${primaryResults.map(r => r.provider).join(', ')})`);
+      }
     }
 
-    // Secondary requirements
+    // Secondary requirements analysis
     secondaryResults.forEach((result, index) => {
-      const rule = rules.secondary[index];
+      const rule = rules.secondary?.[index];
+      const isRequired = rule?.required !== false;
+
       if (result.verified) {
-        reasons.push(`Satisfied ${result.method} requirement`);
-      } else if (rule.required) {
-        missingRequirements.push(`Missing required ${result.method}`);
+        reasons.push(`✓ ${result.method} requirement satisfied`);
+      } else if (isRequired) {
+        const requirementText = result.details?.requirement || result.method;
+        missingRequirements.push(`✗ ${requirementText}`);
+        
+        // Add specific suggestions if available
+        if (result.details?.requiredAction) {
+          missingRequirements.push(`  → ${result.details.requiredAction}`);
+        }
       } else {
-        reasons.push(`Optional ${result.method} not satisfied`);
+        reasons.push(`○ Optional ${result.method} not satisfied`);
       }
     });
+
+    // Add overall summary
+    if (primaryEligible && missingRequirements.length === 0) {
+      reasons.unshift(`Eligible for ${badgeName}`);
+    } else if (!primaryEligible) {
+      missingRequirements.unshift('Identity verification requirements not met');
+    }
 
     return { reasons, missingRequirements };
   }
@@ -310,11 +432,28 @@ export class EligibilityService {
     wallet: string;
     eligibleBadges: EligibilityResult[];
     ineligibleBadges: EligibilityResult[];
+    summary: {
+      total: number;
+      eligible: number;
+      ineligible: number;
+      successRate: number;
+    };
   }> {
+    if (!wallet) {
+      throw new ValidationError('Wallet address is required', {
+        field: 'wallet',
+        required: true
+      });
+    }
+
     const allBadgeTypes = await badgeTypeRepository.find({
       where: { isActive: true },
       relations: ['issuer']
     });
+
+    if (allBadgeTypes.length === 0) {
+      throw new NotFoundError('Active badge types');
+    }
 
     const results: EligibilityResult[] = [];
     
@@ -325,7 +464,18 @@ export class EligibilityService {
         results.push(result);
       } catch (error) {
         logger.error(`Error checking eligibility for badge ${badge.key}:`, error);
-        // Continue with other badges even if one fails
+        // Create error result for failed checks
+        results.push({
+          eligible: false,
+          badgeKey: badge.key,
+          badgeName: badge.name,
+          reasons: ['Eligibility check failed'],
+          missingRequirements: ['System error - please try again later'],
+          proofs: {
+            primary: [],
+            secondary: []
+          }
+        });
       }
     }
 
@@ -335,7 +485,13 @@ export class EligibilityService {
     return {
       wallet,
       eligibleBadges,
-      ineligibleBadges
+      ineligibleBadges,
+      summary: {
+        total: results.length,
+        eligible: eligibleBadges.length,
+        ineligible: ineligibleBadges.length,
+        successRate: results.length > 0 ? (eligibleBadges.length / results.length) * 100 : 0
+      }
     };
   }
 }
