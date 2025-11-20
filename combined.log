@@ -853,3 +853,10 @@
 {"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-19T15:10:38.258Z"}
 {"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-19T15:10:38.258Z"}
 {"level":"info","message":"Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-19T15:10:38.258Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-20T08:22:36.914Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-20T08:22:36.980Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-20T08:22:37.004Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-20T08:22:37.176Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-20T08:22:37.176Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-20T08:22:37.176Z"}
+{"level":"info","message":"Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T08:22:37.176Z"}
