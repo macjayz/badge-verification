@@ -6,7 +6,7 @@ import {
   MintingError, 
   ConfigurationError,
   ValidationError 
-} from '../utils/errors'; // ADD THIS IMPORT
+} from '../utils/errors';
 
 // ABI for the BadgeSBT contract
 const BADGE_SBT_ABI = [
@@ -32,9 +32,18 @@ export class Web3Service {
   private wallet?: ethers.Wallet;
   private contract?: ethers.Contract;
   private isConfigured: boolean = false;
+  private useRealAdapters: boolean = false;
   
   constructor() {
     try {
+      this.useRealAdapters = process.env.USE_REAL_ADAPTERS === 'true';
+      
+      // If we're not using real adapters, skip blockchain setup entirely
+      if (!this.useRealAdapters) {
+        logger.info('Web3 service running in stub mode - using mock transactions');
+        return;
+      }
+      
       const rpcUrl = this.getRpcUrl();
       const privateKey = process.env.DEPLOYER_PRIVATE_KEY;
       const contractAddress = process.env.CONTRACT_ADDRESS;
@@ -75,9 +84,9 @@ export class Web3Service {
       });
     }
 
-    // If not configured, return mock data for development
-    if (!this.isConfigured || !this.contract) {
-      logger.warn('Web3 service not configured - using mock mode for minting');
+    // If not configured or using stub mode, return mock data for development
+    if (!this.isConfigured || !this.contract || !this.useRealAdapters) {
+      logger.info('Web3 service using mock mode for minting');
       return this.mockMintBadge(to, badgeTypeId);
     }
 
@@ -218,8 +227,8 @@ export class Web3Service {
       throw new ValidationError('Invalid wallet address format', { wallet });
     }
 
-    if (!this.isConfigured || !this.contract) {
-      logger.warn('Web3 service not configured - using mock mode for badge check');
+    if (!this.isConfigured || !this.contract || !this.useRealAdapters) {
+      logger.info('Web3 service using mock mode for badge check');
       return Math.random() > 0.5;
     }
 
@@ -240,8 +249,8 @@ export class Web3Service {
       throw new ValidationError('Invalid wallet address format', { wallet });
     }
 
-    if (!this.isConfigured || !this.contract) {
-      logger.warn('Web3 service not configured - using mock mode for wallet badges');
+    if (!this.isConfigured || !this.contract || !this.useRealAdapters) {
+      logger.info('Web3 service using mock mode for wallet badges');
       return [1, 2, 3].filter(() => Math.random() > 0.7);
     }
 
@@ -259,8 +268,8 @@ export class Web3Service {
   }
 
   async getTransactionReceipt(transactionHash: string): Promise<ethers.TransactionReceipt | null> {
-    if (!this.isConfigured || !this.provider) {
-      logger.warn('Web3 service not configured - cannot get transaction receipt');
+    if (!this.isConfigured || !this.provider || !this.useRealAdapters) {
+      logger.info('Web3 service using mock mode - cannot get transaction receipt');
       return null;
     }
     
@@ -276,6 +285,11 @@ export class Web3Service {
   }
 
   private async verifyContractConnection(): Promise<void> {
+    // If we're in stub mode, don't try to verify contract connection
+    if (!this.useRealAdapters) {
+      return;
+    }
+
     if (!this.contract || !this.provider) {
       throw new ConfigurationError(
         'Web3Service',
@@ -340,12 +354,13 @@ export class Web3Service {
 
   // Health check method
   async healthCheck(): Promise<{ healthy: boolean; details: any }> {
-    if (!this.isConfigured) {
+    if (!this.isConfigured || !this.useRealAdapters) {
       return {
-        healthy: false,
+        healthy: true,
         details: {
           configured: false,
-          message: 'Web3 service not configured - using mock mode'
+          mode: 'mock',
+          message: 'Web3 service running in stub mode - using mock transactions'
         }
       };
     }
@@ -359,6 +374,7 @@ export class Web3Service {
         healthy: true,
         details: {
           configured: true,
+          mode: 'real',
           network: {
             chainId: Number(network.chainId),
             name: network.name
@@ -372,6 +388,7 @@ export class Web3Service {
         healthy: false,
         details: {
           configured: true,
+          mode: 'real',
           error: error.message,
           message: 'Web3 service connection failed'
         }
