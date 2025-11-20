@@ -1,0 +1,317 @@
+<!-- public/websocket-demo.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Demo - Badge Backend</title>
+    <style>
+        /* All the CSS from previous response */
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .status { padding: 15px; margin: 10px 0; border-radius: 8px; font-weight: bold; }
+        .connected { background: #d4edda; border: 2px solid #28a745; color: #155724; }
+        .disconnected { background: #f8d7da; border: 2px solid #dc3545; color: #721c24; }
+        .connecting { background: #fff3cd; border: 2px solid #ffc107; color: #856404; }
+        .message { background: #e9ecef; border: 1px solid #dee2e6; margin: 8px 0; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 14px; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .success { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        .controls { background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #e9ecef; }
+        button { margin: 5px; padding: 10px 16px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; transition: background 0.2s; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-primary:hover { background: #0056b3; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #1e7e34; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        .btn-warning:hover { background: #e0a800; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #545b62; }
+        textarea { width: 100%; height: 120px; margin: 10px 0; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-family: monospace; font-size: 14px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+        .stat-card { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #e9ecef; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #007bff; }
+        .stat-label { font-size: 14px; color: #6c757d; margin-top: 5px; }
+        .channels { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
+        .channel { background: #e9ecef; padding: 8px 15px; border-radius: 20px; font-size: 14px; }
+        .channel.active { background: #007bff; color: white; }
+        #messages { max-height: 500px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; background: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Badge Backend - WebSocket Demo</h1>
+        <p>Test real-time updates for minting, verification, and system events.</p>
+        
+        <div id="status" class="status disconnected">
+            🔴 Disconnected - Click "Connect" to start
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="clientCount">0</div>
+                <div class="stat-label">Connected Clients</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="messageCount">0</div>
+                <div class="stat-label">Messages Received</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="subscriptionCount">0</div>
+                <div class="stat-label">Active Subscriptions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="uptime">0s</div>
+                <div class="stat-label">Connection Uptime</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>🔌 Connection</h3>
+            <button class="btn-success" onclick="connect()">🟢 Connect</button>
+            <button class="btn-danger" onclick="disconnect()">🔴 Disconnect</button>
+            <button class="btn-secondary" onclick="ping()">📡 Ping Server</button>
+            
+            <div style="margin-top: 15px;">
+                <input type="text" id="walletInput" placeholder="Wallet address (optional)" style="padding: 8px; width: 300px; border: 1px solid #ced4da; border-radius: 5px;">
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>📡 Subscriptions</h3>
+            <button class="btn-primary" onclick="subscribe('minting')">🪙 Minting Events</button>
+            <button class="btn-primary" onclick="subscribe('verification')">🔐 Verification Events</button>
+            <button class="btn-primary" onclick="subscribe('transactions')">⛓️ Transaction Events</button>
+            <button class="btn-primary" onclick="subscribe('system')">🖥️ System Events</button>
+            <button class="btn-warning" onclick="unsubscribeAll()">🗑️ Unsubscribe All</button>
+            
+            <div class="channels" id="activeChannels">
+                <div class="channel">No active subscriptions</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>✉️ Custom Messages</h3>
+            <textarea id="customMessage">{
+    "type": "ping",
+    "payload": {
+        "message": "Hello WebSocket!"
+    }
+}</textarea>
+            <button class="btn-primary" onclick="sendCustomMessage()">📤 Send Message</button>
+        </div>
+
+        <div>
+            <h3>📨 Messages</h3>
+            <button class="btn-secondary" onclick="clearMessages()">🧹 Clear Messages</button>
+            <div id="messages"></div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let messageCount = 0;
+        let connectionStartTime = null;
+        let activeSubscriptions = new Set();
+        const statusEl = document.getElementById('status');
+        const messagesEl = document.getElementById('messages');
+        const clientCountEl = document.getElementById('clientCount');
+        const messageCountEl = document.getElementById('messageCount');
+        const subscriptionCountEl = document.getElementById('subscriptionCount');
+        const uptimeEl = document.getElementById('uptime');
+        const activeChannelsEl = document.getElementById('activeChannels');
+        const walletInput = document.getElementById('walletInput');
+
+        function connect() {
+            const wallet = walletInput.value.trim() || 'demo_user_' + Math.random().toString(36).substr(2, 5);
+            
+            statusEl.className = 'status connecting';
+            statusEl.innerHTML = '🟡 Connecting...';
+            
+            try {
+                // Use the same port as your backend (3001)
+                ws = new WebSocket(`ws://localhost:3001/ws?wallet=${encodeURIComponent(wallet)}`);
+                
+                ws.onopen = () => {
+                    statusEl.className = 'status connected';
+                    statusEl.innerHTML = `🟢 Connected as <strong>${wallet}</strong>`;
+                    connectionStartTime = Date.now();
+                    startUptimeCounter();
+                    addMessage('system', { event: 'connected', wallet, timestamp: new Date().toISOString() }, 'success');
+                };
+                
+                ws.onclose = (event) => {
+                    statusEl.className = 'status disconnected';
+                    statusEl.innerHTML = `🔴 Disconnected ${event.code === 1000 ? '(normal)' : '(unexpected)'}`;
+                    stopUptimeCounter();
+                    addMessage('system', { event: 'disconnected', code: event.code, reason: event.reason }, 'error');
+                };
+                
+                ws.onerror = (error) => {
+                    addMessage('error', { type: 'connection_error', error: error.type }, 'error');
+                };
+                
+                ws.onmessage = (event) => {
+                    messageCount++;
+                    messageCountEl.textContent = messageCount;
+                    
+                    try {
+                        const message = JSON.parse(event.data);
+                        
+                        // Handle subscription updates
+                        if (message.type === 'subscription_confirmed') {
+                            if (message.payload.subscribed) {
+                                message.payload.subscribed.forEach(channel => {
+                                    activeSubscriptions.add(channel);
+                                });
+                            }
+                            updateSubscriptionDisplay();
+                        } else if (message.type === 'unsubscription_confirmed') {
+                            activeSubscriptions.clear();
+                            if (message.payload.channels) {
+                                message.payload.channels.forEach(channel => {
+                                    activeSubscriptions.add(channel);
+                                });
+                            }
+                            updateSubscriptionDisplay();
+                        }
+                        
+                        addMessage(message.type, message);
+                    } catch (e) {
+                        addMessage('raw', event.data);
+                    }
+                };
+            } catch (error) {
+                statusEl.className = 'status disconnected';
+                statusEl.innerHTML = '🔴 Failed to connect';
+                addMessage('error', { error: 'Failed to create WebSocket connection' }, 'error');
+            }
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close(1000, 'User disconnected');
+                ws = null;
+            }
+            activeSubscriptions.clear();
+            updateSubscriptionDisplay();
+        }
+
+        function subscribe(channel) {
+            sendMessage({
+                type: 'subscribe',
+                payload: { channels: [channel] }
+            });
+        }
+
+        function unsubscribeAll() {
+            sendMessage({
+                type: 'unsubscribe',
+                payload: { channels: [] }
+            });
+        }
+
+        function ping() {
+            sendMessage({
+                type: 'ping',
+                payload: { 
+                    timestamp: new Date().toISOString(),
+                    user: walletInput.value.trim() || 'anonymous'
+                }
+            });
+        }
+
+        function sendCustomMessage() {
+            const textarea = document.getElementById('customMessage');
+            try {
+                const message = JSON.parse(textarea.value);
+                sendMessage(message);
+            } catch (e) {
+                alert('Invalid JSON: ' + e.message);
+            }
+        }
+
+        function sendMessage(message) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    ...message,
+                    timestamp: new Date().toISOString()
+                }));
+            } else {
+                alert('WebSocket not connected. Please connect first.');
+            }
+        }
+
+        function clearMessages() {
+            messagesEl.innerHTML = '';
+            messageCount = 0;
+            messageCountEl.textContent = '0';
+        }
+
+        function updateSubscriptionDisplay() {
+            activeChannelsEl.innerHTML = '';
+            if (activeSubscriptions.size === 0) {
+                activeChannelsEl.innerHTML = '<div class="channel">No active subscriptions</div>';
+            } else {
+                Array.from(activeSubscriptions).forEach(channel => {
+                    const channelEl = document.createElement('div');
+                    channelEl.className = 'channel active';
+                    channelEl.textContent = channel;
+                    activeChannelsEl.appendChild(channelEl);
+                });
+            }
+            subscriptionCountEl.textContent = activeSubscriptions.size;
+        }
+
+        function addMessage(type, data, className = '') {
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${className}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const messageData = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+            
+            messageEl.innerHTML = `
+                <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 5px;">
+                    <strong style="color: #007bff;">${type.toUpperCase()}</strong>
+                    <small style="color: #6c757d; margin-left: auto;">${timestamp}</small>
+                </div>
+                <pre style="margin: 0; white-space: pre-wrap; font-size: 12px;">${messageData}</pre>
+            `;
+            
+            messagesEl.appendChild(messageEl);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        let uptimeInterval = null;
+        function startUptimeCounter() {
+            stopUptimeCounter();
+            uptimeInterval = setInterval(() => {
+                if (connectionStartTime) {
+                    const seconds = Math.floor((Date.now() - connectionStartTime) / 1000);
+                    uptimeEl.textContent = `${seconds}s`;
+                }
+            }, 1000);
+        }
+
+        function stopUptimeCounter() {
+            if (uptimeInterval) {
+                clearInterval(uptimeInterval);
+                uptimeInterval = null;
+            }
+            uptimeEl.textContent = '0s';
+        }
+
+        // Simulate server stats updates
+        setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                // Simulate client count changes
+                clientCountEl.textContent = Math.floor(1 + Math.random() * 5);
+            } else {
+                clientCountEl.textContent = '0';
+            }
+        }, 5000);
+
+        // Auto-connect on page load for demo purposes
+        setTimeout(connect, 1000);
+    </script>
+</body>
+</html>

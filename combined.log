@@ -874,3 +874,409 @@
 {"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-20T08:29:03.770Z"}
 {"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-20T08:29:03.770Z"}
 {"level":"info","message":"Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T08:29:03.770Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-20T08:57:40.584Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-20T08:57:40.654Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-20T08:57:40.670Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-20T08:57:40.842Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-20T08:57:40.842Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-20T08:57:40.842Z"}
+{"level":"info","message":"Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T08:57:40.842Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-20T08:58:51.599Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-20T08:58:51.671Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-20T08:58:51.684Z"}
+{"level":"info","message":"Server running on port 3001","service":"badge-backend","timestamp":"2025-11-20T08:58:51.782Z"}
+{"level":"info","message":"Environment: development","service":"badge-backend","timestamp":"2025-11-20T08:58:51.784Z"}
+{"level":"info","message":"Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-20T08:58:51.784Z"}
+{"level":"info","message":"Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T08:58:51.785Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-20T09:11:26.125Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-20T09:11:26.186Z"}
+{"level":"info","message":"WebSocket server initialized","service":"badge-backend","timestamp":"2025-11-20T09:11:26.190Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-20T09:11:26.203Z"}
+{"level":"info","message":"🚀 Server running on port 3001","service":"badge-backend","timestamp":"2025-11-20T09:11:26.325Z"}
+{"level":"info","message":"🔌 WebSocket server available at ws://localhost:3001/ws","service":"badge-backend","timestamp":"2025-11-20T09:11:26.326Z"}
+{"level":"info","message":"📊 WebSocket demo available at http://localhost:3001/websocket-demo.html","service":"badge-backend","timestamp":"2025-11-20T09:11:26.326Z"}
+{"level":"info","message":"🌐 Environment: development","service":"badge-backend","timestamp":"2025-11-20T09:11:26.326Z"}
+{"level":"info","message":"🔒 Allowed origins: http://localhost:3000, http://localhost:3001, http://localhost:5173","service":"badge-backend","timestamp":"2025-11-20T09:11:26.326Z"}
+{"level":"info","message":"📡 Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-20T09:11:26.326Z"}
+{"level":"info","message":"🔑 Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-20T09:11:26.326Z"}
+{"level":"info","message":"🛡️ Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-20T09:11:26.326Z"}
+{"level":"info","message":"🆔 DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-20T09:11:26.326Z"}
+{"level":"info","message":"🎯 Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-20T09:11:26.326Z"}
+{"level":"info","message":"🪙 Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-20T09:11:26.326Z"}
+{"level":"info","message":"📈 Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-20T09:11:26.326Z"}
+{"level":"info","message":"✅ Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T09:11:26.326Z"}
+{"level":"info","message":"🔔 WebSocket real-time updates: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T09:11:26.326Z"}
+{"level":"info","message":"WebSocket client connected: client_1763629937870_rp0snjr81","service":"badge-backend","timestamp":"2025-11-20T09:12:17.871Z"}
+{"level":"info","message":"WebSocket client client_1763629937870_rp0snjr81 authenticated as wallet: demo_user_okeak","service":"badge-backend","timestamp":"2025-11-20T09:12:17.873Z"}
+{"level":"info","message":"WebSocket client connected: client_1763630961663_irfoqbkg2","service":"badge-backend","timestamp":"2025-11-20T09:29:21.667Z"}
+{"level":"info","message":"WebSocket client client_1763630961663_irfoqbkg2 authenticated as wallet: demo_user_nhtur","service":"badge-backend","timestamp":"2025-11-20T09:29:21.686Z"}
+{"level":"info","message":"WebSocket client connected: client_1763630963771_pufa7xoft","service":"badge-backend","timestamp":"2025-11-20T09:29:23.771Z"}
+{"level":"info","message":"WebSocket client client_1763630963771_pufa7xoft authenticated as wallet: demo_user_qm8tn","service":"badge-backend","timestamp":"2025-11-20T09:29:23.772Z"}
+{"level":"info","message":"WebSocket client connected: client_1763630967041_cde3bjdk7","service":"badge-backend","timestamp":"2025-11-20T09:29:27.042Z"}
+{"level":"info","message":"WebSocket client client_1763630967041_cde3bjdk7 authenticated as wallet: demo_user_vchgm","service":"badge-backend","timestamp":"2025-11-20T09:29:27.045Z"}
+{"level":"info","message":"WebSocket client disconnected: client_1763630967041_cde3bjdk7","service":"badge-backend","timestamp":"2025-11-20T09:29:33.567Z"}
+{"level":"info","message":"WebSocket client connected: client_1763630974857_uwmolyd56","service":"badge-backend","timestamp":"2025-11-20T09:29:34.857Z"}
+{"level":"info","message":"WebSocket client client_1763630974857_uwmolyd56 authenticated as wallet: demo_user_8067n","service":"badge-backend","timestamp":"2025-11-20T09:29:34.861Z"}
+{"level":"info","message":"Client client_1763630974857_uwmolyd56 subscribed to channels: minting","service":"badge-backend","timestamp":"2025-11-20T09:31:11.094Z"}
+{"level":"info","message":"Client client_1763630974857_uwmolyd56 subscribed to channels: verification","service":"badge-backend","timestamp":"2025-11-20T09:31:41.353Z"}
+{"level":"info","message":"Client client_1763630974857_uwmolyd56 subscribed to channels: transactions","service":"badge-backend","timestamp":"2025-11-20T09:31:58.349Z"}
+{"level":"info","message":"Client client_1763630974857_uwmolyd56 unsubscribed from channels: all","service":"badge-backend","timestamp":"2025-11-20T09:32:15.884Z"}
+{"level":"info","message":"WebSocket client disconnected: client_1763629937870_rp0snjr81","service":"badge-backend","timestamp":"2025-11-20T09:32:59.242Z"}
+{"level":"info","message":"WebSocket client disconnected: client_1763630974857_uwmolyd56","service":"badge-backend","timestamp":"2025-11-20T09:32:59.248Z"}
+{"level":"info","message":"WebSocket client disconnected: client_1763630963771_pufa7xoft","service":"badge-backend","timestamp":"2025-11-20T09:32:59.250Z"}
+{"level":"info","message":"WebSocket client disconnected: client_1763630961663_irfoqbkg2","service":"badge-backend","timestamp":"2025-11-20T09:32:59.252Z"}
+{"level":"info","message":"WebSocket client connected: client_1763631181218_6g49f4z2a","service":"badge-backend","timestamp":"2025-11-20T09:33:01.220Z"}
+{"level":"info","message":"WebSocket client client_1763631181218_6g49f4z2a authenticated as wallet: demo_user_we142","service":"badge-backend","timestamp":"2025-11-20T09:33:01.225Z"}
+{"level":"info","message":"Client client_1763631181218_6g49f4z2a subscribed to channels: minting","service":"badge-backend","timestamp":"2025-11-20T09:56:59.129Z"}
+{"level":"info","message":"WebSocket client disconnected: client_1763631181218_6g49f4z2a","service":"badge-backend","timestamp":"2025-11-20T09:57:02.447Z"}
+{"level":"info","message":"WebSocket client connected: client_1763632624751_hkd0ul8h8","service":"badge-backend","timestamp":"2025-11-20T09:57:04.751Z"}
+{"level":"info","message":"WebSocket client client_1763632624751_hkd0ul8h8 authenticated as wallet: demo_user_hql79","service":"badge-backend","timestamp":"2025-11-20T09:57:04.758Z"}
+{"level":"info","message":"SIGTERM received, starting graceful shutdown","service":"badge-backend","timestamp":"2025-11-20T09:58:04.219Z"}
+{"level":"info","message":"Starting graceful shutdown...","service":"badge-backend","timestamp":"2025-11-20T09:58:04.224Z"}
+{"level":"info","message":"Server closed successfully","service":"badge-backend","timestamp":"2025-11-20T10:12:05.850Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-20T10:12:07.458Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-20T10:12:07.643Z"}
+{"level":"info","message":"WebSocket server initialized","service":"badge-backend","timestamp":"2025-11-20T10:12:07.649Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-20T10:12:07.660Z"}
+{"level":"info","message":"🚀 Server running on port 3001","service":"badge-backend","timestamp":"2025-11-20T10:12:07.808Z"}
+{"level":"info","message":"🔌 WebSocket server available at ws://localhost:3001/ws","service":"badge-backend","timestamp":"2025-11-20T10:12:07.809Z"}
+{"level":"info","message":"📊 WebSocket demo available at http://localhost:3001/websocket-demo.html","service":"badge-backend","timestamp":"2025-11-20T10:12:07.809Z"}
+{"level":"info","message":"🌐 Environment: development","service":"badge-backend","timestamp":"2025-11-20T10:12:07.809Z"}
+{"level":"info","message":"🔒 Allowed origins: http://localhost:3000, http://localhost:3001, http://localhost:5173","service":"badge-backend","timestamp":"2025-11-20T10:12:07.809Z"}
+{"level":"info","message":"📡 Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-20T10:12:07.809Z"}
+{"level":"info","message":"🔑 Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-20T10:12:07.809Z"}
+{"level":"info","message":"🛡️ Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-20T10:12:07.809Z"}
+{"level":"info","message":"🆔 DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-20T10:12:07.809Z"}
+{"level":"info","message":"🎯 Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-20T10:12:07.809Z"}
+{"level":"info","message":"🪙 Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-20T10:12:07.809Z"}
+{"level":"info","message":"📈 Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-20T10:12:07.809Z"}
+{"level":"info","message":"✅ Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T10:12:07.809Z"}
+{"level":"info","message":"🔔 WebSocket real-time updates: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T10:12:07.809Z"}
+{"level":"info","message":"🎪 Demo events: ACTIVE (random minting events every 5-15 seconds)","service":"badge-backend","timestamp":"2025-11-20T10:12:07.809Z"}
+{"level":"info","message":"Starting WebSocket demo events","service":"badge-backend","timestamp":"2025-11-20T10:12:10.651Z"}
+{"level":"info","message":"🎪 WebSocket demo events started","service":"badge-backend","timestamp":"2025-11-20T10:12:10.652Z"}
+{"level":"info","message":"WebSocket client connected: client_1763633534460_87wp4yjv9","service":"badge-backend","timestamp":"2025-11-20T10:12:14.461Z"}
+{"level":"info","message":"WebSocket client client_1763633534460_87wp4yjv9 authenticated as wallet: demo_user_gzt9v","service":"badge-backend","timestamp":"2025-11-20T10:12:14.463Z"}
+{"level":"info","message":"Client client_1763633534460_87wp4yjv9 subscribed to channels: minting","service":"badge-backend","timestamp":"2025-11-20T10:12:22.311Z"}
+{"level":"info","message":"WebSocket client connected: client_1763633625044_7qetpo8wl","service":"badge-backend","timestamp":"2025-11-20T10:13:45.045Z"}
+{"level":"info","message":"WebSocket client client_1763633625044_7qetpo8wl authenticated as wallet: demo_user_dv5qj","service":"badge-backend","timestamp":"2025-11-20T10:13:45.054Z"}
+{"level":"info","message":"WebSocket client disconnected: client_1763633534460_87wp4yjv9","service":"badge-backend","timestamp":"2025-11-20T10:13:48.858Z"}
+{"level":"info","message":"WebSocket client disconnected: client_1763633625044_7qetpo8wl","service":"badge-backend","timestamp":"2025-11-20T10:13:48.862Z"}
+{"level":"info","message":"WebSocket client connected: client_1763633630245_i0yvla7p4","service":"badge-backend","timestamp":"2025-11-20T10:13:50.245Z"}
+{"level":"info","message":"WebSocket client client_1763633630245_i0yvla7p4 authenticated as wallet: demo_user_lfvxt","service":"badge-backend","timestamp":"2025-11-20T10:13:50.246Z"}
+{"code":"VALIDATION_ERROR","error":"Cannot mint badge: Already have badge 'verified-creator'","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Cannot mint badge: Already have badge 'verified-creator'\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:34:13\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-11-20T10:14:30.438Z","url":"/api/minting/initiate","userAgent":"curl/7.53.1"}
+{"code":"VALIDATION_ERROR","error":"Cannot mint badge: Already have badge 'early-supporter'","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Cannot mint badge: Already have badge 'early-supporter'\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:34:13\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-11-20T10:21:58.471Z","url":"/api/minting/initiate","userAgent":"curl/7.53.1"}
+{"code":"VALIDATION_ERROR","error":"Cannot mint badge: Already have badge 'dao-voter'","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Cannot mint badge: Already have badge 'dao-voter'\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:34:13\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-11-20T10:22:35.735Z","url":"/api/minting/initiate","userAgent":"curl/7.53.1"}
+{"level":"info","message":"Badge revoked: 4c1a08c5-6af5-452b-941e-b685ca2ece43 for reason: Testing WebSocket real-time events","service":"badge-backend","timestamp":"2025-11-20T10:30:45.148Z"}
+{"level":"info","message":"WebSocket client disconnected: client_1763633630245_i0yvla7p4","service":"badge-backend","timestamp":"2025-11-20T10:31:00.564Z"}
+{"level":"info","message":"WebSocket client connected: client_1763634665347_gk2am5x7a","service":"badge-backend","timestamp":"2025-11-20T10:31:05.350Z"}
+{"level":"info","message":"WebSocket client client_1763634665347_gk2am5x7a authenticated as wallet: demo_user_nh7yk","service":"badge-backend","timestamp":"2025-11-20T10:31:05.360Z"}
+{"level":"info","message":"WebSocket client connected: client_1763634669237_yq529uv3e","service":"badge-backend","timestamp":"2025-11-20T10:31:09.240Z"}
+{"level":"info","message":"WebSocket client client_1763634669237_yq529uv3e authenticated as wallet: demo_user_6dx3k","service":"badge-backend","timestamp":"2025-11-20T10:31:09.244Z"}
+{"level":"info","message":"Client client_1763634669237_yq529uv3e subscribed to channels: minting","service":"badge-backend","timestamp":"2025-11-20T10:31:25.301Z"}
+{"level":"info","message":"Client client_1763634669237_yq529uv3e subscribed to channels: transactions","service":"badge-backend","timestamp":"2025-11-20T10:31:39.127Z"}
+{"level":"info","message":"Client client_1763634669237_yq529uv3e subscribed to channels: transactions","service":"badge-backend","timestamp":"2025-11-20T10:32:20.695Z"}
+{"level":"info","message":"Client client_1763634669237_yq529uv3e subscribed to channels: system","service":"badge-backend","timestamp":"2025-11-20T10:32:25.709Z"}
+{"level":"info","message":"Client client_1763634669237_yq529uv3e subscribed to channels: transactions","service":"badge-backend","timestamp":"2025-11-20T10:32:27.140Z"}
+{"code":"VALIDATION_ERROR","error":"Badge is already revoked","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Badge is already revoked\n    at MintingService.revokeBadge (/Users/mac/Documents/badge-backend/src/services/minting.service.ts:411:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:219:21","timestamp":"2025-11-20T10:33:23.792Z","url":"/api/minting/revoke","userAgent":"curl/7.53.1"}
+{"level":"info","message":"WebSocket client disconnected: client_1763634669237_yq529uv3e","service":"badge-backend","timestamp":"2025-11-20T10:35:25.883Z"}
+{"level":"info","message":"WebSocket client disconnected: client_1763634665347_gk2am5x7a","service":"badge-backend","timestamp":"2025-11-20T10:35:25.894Z"}
+{"level":"info","message":"WebSocket client connected: client_1763634927728_2y79xcwyt","service":"badge-backend","timestamp":"2025-11-20T10:35:27.729Z"}
+{"level":"info","message":"WebSocket client client_1763634927728_2y79xcwyt authenticated as wallet: demo_user_d6wji","service":"badge-backend","timestamp":"2025-11-20T10:35:27.735Z"}
+{"level":"info","message":"WebSocket client connected: client_1763634931892_3p89xm0zx","service":"badge-backend","timestamp":"2025-11-20T10:35:31.893Z"}
+{"level":"info","message":"WebSocket client client_1763634931892_3p89xm0zx authenticated as wallet: demo_user_jun0j","service":"badge-backend","timestamp":"2025-11-20T10:35:31.894Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: dao-voter","service":"badge-backend","timestamp":"2025-11-20T10:35:40.476Z"}
+{"code":"VALIDATION_ERROR","error":"Cannot mint badge: Not eligible for badge: Identity verification requirements not met, Missing identity verification (need one of: polygonid, idos)","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Cannot mint badge: Not eligible for badge: Identity verification requirements not met, Missing identity verification (need one of: polygonid, idos)\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:34:13\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-11-20T10:35:40.498Z","url":"/api/minting/initiate","userAgent":"curl/7.53.1"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: dao-voter","service":"badge-backend","timestamp":"2025-11-20T10:36:50.632Z"}
+{"code":"VALIDATION_ERROR","error":"Cannot mint badge: Not eligible for badge: Identity verification requirements not met, Missing identity verification (need one of: polygonid, idos)","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Cannot mint badge: Not eligible for badge: Identity verification requirements not met, Missing identity verification (need one of: polygonid, idos)\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:34:13\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-11-20T10:36:50.640Z","url":"/api/minting/initiate","userAgent":"curl/7.53.1"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: dao-voter","service":"badge-backend","timestamp":"2025-11-20T10:38:07.663Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: verified-creator","service":"badge-backend","timestamp":"2025-11-20T10:38:07.674Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-20T10:38:07.678Z"}
+{"level":"info","message":"Initiating polygonid verification for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266","service":"badge-backend","timestamp":"2025-11-20T10:39:23.785Z"}
+{"level":"info","message":"Initializing DID verification for polygonid, wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266","service":"badge-backend","timestamp":"2025-11-20T10:39:23.824Z"}
+{"level":"info","message":"DID verification initiated successfully for polygonid, session: session_1763635164826_p90d097","service":"badge-backend","timestamp":"2025-11-20T10:39:24.826Z"}
+{"level":"info","message":"Created verification session: session_1763635164826_p90d097 for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, provider: polygonid","service":"badge-backend","timestamp":"2025-11-20T10:39:24.890Z"}
+{"level":"info","message":"Handling polygonid callback, session: session_1763635164826_p90d097","service":"badge-backend","timestamp":"2025-11-20T10:42:26.127Z"}
+{"level":"info","message":"Handling DID callback for polygonid, session: session_1763635164826_p90d097","service":"badge-backend","timestamp":"2025-11-20T10:42:26.158Z"}
+{"level":"info","message":"DID verification successful for polygonid, DID: did:mock:polygonid:known","service":"badge-backend","timestamp":"2025-11-20T10:42:27.663Z"}
+{"level":"info","message":"Updated user DID: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 -> did:mock:polygonid:known","service":"badge-backend","timestamp":"2025-11-20T10:42:27.712Z"}
+{"level":"info","message":"Verification completed successfully: 5d38e3b9-ca6d-494b-a24d-49697f5426a6, DID: did:mock:polygonid:known","service":"badge-backend","timestamp":"2025-11-20T10:42:27.713Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: dao-voter","service":"badge-backend","timestamp":"2025-11-20T10:43:59.818Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: verified-creator","service":"badge-backend","timestamp":"2025-11-20T10:43:59.829Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-20T10:43:59.833Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: dao-voter","service":"badge-backend","timestamp":"2025-11-20T10:45:10.040Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: dao-voter","service":"badge-backend","timestamp":"2025-11-20T10:45:10.059Z"}
+{"level":"info","message":"Minting badge type NaN for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266","service":"badge-backend","timestamp":"2025-11-20T10:45:10.108Z"}
+{"code":"CONFIGURATION_ERROR","details":{"service":"Web3Service"},"level":"error","message":"Web3 mint failed: Web3Service configuration error: Contract connection failed: could not decode result data (value=\"0x\", info={ \"method\": \"owner\", \"signature\": \"owner()\" }, code=BAD_DATA, version=6.15.0)","name":"ConfigurationError","service":"badge-backend","stack":"ConfigurationError: Web3Service configuration error: Contract connection failed: could not decode result data (value=\"0x\", info={ \"method\": \"owner\", \"signature\": \"owner()\" }, code=BAD_DATA, version=6.15.0)\n    at Web3Service.verifyContractConnection (/Users/mac/Documents/badge-backend/src/services/web3.service.ts:290:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at Web3Service.mintBadge (/Users/mac/Documents/badge-backend/src/services/web3.service.ts:88:7)\n    at MintingService.initiateMint (/Users/mac/Documents/badge-backend/src/services/minting.service.ts:208:22)\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:45:20","statusCode":500,"timestamp":"2025-11-20T10:45:10.236Z"}
+{"code":"MINTING_ERROR","details":{"badgeTypeKey":"dao-voter","mintId":"538e4a11-ed60-4f47-badf-6e09741032cf","wallet":"0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"},"level":"error","message":"Error initiating mint for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge dao-voter: Minting failed: Blockchain minting failed: Minting transaction failed: Web3Service configuration error: Contract connection failed: could not decode result data (value=\"0x\", info={ \"method\": \"owner\", \"signature\": \"owner()\" }, code=BAD_DATA, version=6.15.0)","name":"MintingError","service":"badge-backend","stack":"MintingError: Minting failed: Blockchain minting failed: Minting transaction failed: Web3Service configuration error: Contract connection failed: could not decode result data (value=\"0x\", info={ \"method\": \"owner\", \"signature\": \"owner()\" }, code=BAD_DATA, version=6.15.0)\n    at MintingService.initiateMint (/Users/mac/Documents/badge-backend/src/services/minting.service.ts:247:15)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:45:20","statusCode":502,"timestamp":"2025-11-20T10:45:10.244Z"}
+{"code":"MINTING_ERROR","error":"Minting failed: Blockchain minting failed: Minting transaction failed: Web3Service configuration error: Contract connection failed: could not decode result data (value=\"0x\", info={ \"method\": \"owner\", \"signature\": \"owner()\" }, code=BAD_DATA, version=6.15.0)","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"MintingError: Minting failed: Blockchain minting failed: Minting transaction failed: Web3Service configuration error: Contract connection failed: could not decode result data (value=\"0x\", info={ \"method\": \"owner\", \"signature\": \"owner()\" }, code=BAD_DATA, version=6.15.0)\n    at MintingService.initiateMint (/Users/mac/Documents/badge-backend/src/services/minting.service.ts:247:15)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:45:20","timestamp":"2025-11-20T10:45:10.244Z","url":"/api/minting/initiate","userAgent":"curl/7.53.1"}
+{"level":"info","message":"WebSocket client connected: client_1763635654539_kpdyumg3j","service":"badge-backend","timestamp":"2025-11-20T10:47:34.541Z"}
+{"level":"info","message":"WebSocket client client_1763635654539_kpdyumg3j authenticated as wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266","service":"badge-backend","timestamp":"2025-11-20T10:47:34.547Z"}
+{"code":"VALIDATION_ERROR","error":"Cannot mint badge: Already have badge 'dao-voter'","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Cannot mint badge: Already have badge 'dao-voter'\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:34:13\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-11-20T10:48:01.690Z","url":"/api/minting/initiate","userAgent":"curl/7.53.1"}
+{"level":"info","message":"Badge revoked: 538e4a11-ed60-4f47-badf-6e09741032cf for reason: Testing WebSocket real-time events","service":"badge-backend","timestamp":"2025-11-20T10:49:00.876Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: dao-voter","service":"badge-backend","timestamp":"2025-11-20T10:49:56.852Z"}
+{"code":"VALIDATION_ERROR","error":"Cannot mint badge: Not eligible for badge: ✗ Minimum 1 vote(s) in daoname.eth Snapshot space","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Cannot mint badge: Not eligible for badge: ✗ Minimum 1 vote(s) in daoname.eth Snapshot space\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:34:13\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-11-20T10:49:56.865Z","url":"/api/minting/initiate","userAgent":"curl/7.53.1"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: dao-voter","service":"badge-backend","timestamp":"2025-11-20T10:53:20.458Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: verified-creator","service":"badge-backend","timestamp":"2025-11-20T10:53:20.473Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-20T10:53:20.478Z"}
+{"level":"info","message":"WebSocket client disconnected: client_1763635654539_kpdyumg3j","service":"badge-backend","timestamp":"2025-11-20T10:58:34.587Z"}
+{"level":"info","message":"WebSocket client connected: client_1763636315572_y19061c3i","service":"badge-backend","timestamp":"2025-11-20T10:58:35.573Z"}
+{"level":"info","message":"WebSocket client client_1763636315572_y19061c3i authenticated as wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266","service":"badge-backend","timestamp":"2025-11-20T10:58:35.579Z"}
+{"level":"info","message":"Client client_1763636315572_y19061c3i subscribed to channels: minting, transactions, system","service":"badge-backend","timestamp":"2025-11-20T10:58:35.584Z"}
+{"code":"VALIDATION_ERROR","error":"Badge is already revoked","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Badge is already revoked\n    at MintingService.revokeBadge (/Users/mac/Documents/badge-backend/src/services/minting.service.ts:411:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:219:21","timestamp":"2025-11-20T11:01:42.665Z","url":"/api/minting/revoke","userAgent":"curl/7.53.1"}
+{"level":"info","message":"Badge revoked: c908c94a-2cfb-40dd-869a-d04e7b24f4c9 for reason: Testing WebSocket real-time events","service":"badge-backend","timestamp":"2025-11-20T11:06:20.524Z"}
+{"level":"info","message":"SIGTERM received, starting graceful shutdown","service":"badge-backend","timestamp":"2025-11-20T11:28:43.100Z"}
+{"level":"info","message":"Starting graceful shutdown...","service":"badge-backend","timestamp":"2025-11-20T11:28:43.149Z"}
+{"level":"info","message":"Stopped WebSocket demo events","service":"badge-backend","timestamp":"2025-11-20T11:28:43.161Z"}
+{"level":"info","message":"SIGINT received, starting graceful shutdown","service":"badge-backend","timestamp":"2025-11-20T11:30:58.135Z"}
+{"level":"info","message":"Starting graceful shutdown...","service":"badge-backend","timestamp":"2025-11-20T11:30:58.146Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-20T11:31:03.794Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-20T11:31:04.022Z"}
+{"level":"info","message":"WebSocket server initialized","service":"badge-backend","timestamp":"2025-11-20T11:31:04.079Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-20T11:31:04.091Z"}
+{"level":"info","message":"🚀 Server running on port 3001","service":"badge-backend","timestamp":"2025-11-20T11:31:04.340Z"}
+{"level":"info","message":"🔌 WebSocket server available at ws://localhost:3001/ws","service":"badge-backend","timestamp":"2025-11-20T11:31:04.341Z"}
+{"level":"info","message":"📊 WebSocket demo available at http://localhost:3001/websocket-demo.html","service":"badge-backend","timestamp":"2025-11-20T11:31:04.341Z"}
+{"level":"info","message":"🌐 Environment: development","service":"badge-backend","timestamp":"2025-11-20T11:31:04.341Z"}
+{"level":"info","message":"🔒 Allowed origins: http://localhost:3000, http://localhost:3001, http://localhost:5173","service":"badge-backend","timestamp":"2025-11-20T11:31:04.341Z"}
+{"level":"info","message":"📡 Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-20T11:31:04.341Z"}
+{"level":"info","message":"🔑 Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-20T11:31:04.341Z"}
+{"level":"info","message":"🛡️ Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-20T11:31:04.341Z"}
+{"level":"info","message":"🆔 DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-20T11:31:04.341Z"}
+{"level":"info","message":"🎯 Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-20T11:31:04.341Z"}
+{"level":"info","message":"🪙 Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-20T11:31:04.341Z"}
+{"level":"info","message":"📈 Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-20T11:31:04.341Z"}
+{"level":"info","message":"✅ Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T11:31:04.341Z"}
+{"level":"info","message":"🔔 WebSocket real-time updates: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T11:31:04.341Z"}
+{"level":"info","message":"🎪 Demo events: ACTIVE (random minting events every 5-15 seconds)","service":"badge-backend","timestamp":"2025-11-20T11:31:04.341Z"}
+{"level":"info","message":"Starting WebSocket demo events","service":"badge-backend","timestamp":"2025-11-20T11:31:07.091Z"}
+{"level":"info","message":"🎪 WebSocket demo events started","service":"badge-backend","timestamp":"2025-11-20T11:31:07.093Z"}
+{"code":"VALIDATION_ERROR","error":"Badge is already revoked","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Badge is already revoked\n    at MintingService.revokeBadge (/Users/mac/Documents/badge-backend/src/services/minting.service.ts:411:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:219:21","timestamp":"2025-11-20T11:31:33.390Z","url":"/api/minting/revoke","userAgent":"curl/7.53.1"}
+{"level":"info","message":"WebSocket client connected: client_1763638299845_79e92enhw","service":"badge-backend","timestamp":"2025-11-20T11:31:39.848Z"}
+{"level":"info","message":"WebSocket client client_1763638299845_79e92enhw authenticated as wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266","service":"badge-backend","timestamp":"2025-11-20T11:31:39.854Z"}
+{"code":"VALIDATION_ERROR","error":"Badge is already revoked","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Badge is already revoked\n    at MintingService.revokeBadge (/Users/mac/Documents/badge-backend/src/services/minting.service.ts:411:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:219:21","timestamp":"2025-11-20T11:31:44.237Z","url":"/api/minting/revoke","userAgent":"curl/7.53.1"}
+{"level":"info","message":"SIGTERM received, starting graceful shutdown","service":"badge-backend","timestamp":"2025-11-20T11:36:07.793Z"}
+{"level":"info","message":"Starting graceful shutdown...","service":"badge-backend","timestamp":"2025-11-20T11:36:07.801Z"}
+{"level":"info","message":"Stopped WebSocket demo events","service":"badge-backend","timestamp":"2025-11-20T11:36:07.801Z"}
+{"level":"info","message":"SIGINT received, starting graceful shutdown","service":"badge-backend","timestamp":"2025-11-20T11:58:51.325Z"}
+{"level":"info","message":"Starting graceful shutdown...","service":"badge-backend","timestamp":"2025-11-20T11:58:51.339Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-20T11:58:56.084Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-20T11:58:56.302Z"}
+{"level":"info","message":"WebSocket server initialized","service":"badge-backend","timestamp":"2025-11-20T11:58:56.412Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-20T11:58:56.422Z"}
+{"level":"info","message":"🚀 Server running on port 3001","service":"badge-backend","timestamp":"2025-11-20T11:58:56.558Z"}
+{"level":"info","message":"🔌 WebSocket server available at ws://localhost:3001/ws","service":"badge-backend","timestamp":"2025-11-20T11:58:56.559Z"}
+{"level":"info","message":"📊 WebSocket demo available at http://localhost:3001/websocket-demo.html","service":"badge-backend","timestamp":"2025-11-20T11:58:56.559Z"}
+{"level":"info","message":"🌐 Environment: development","service":"badge-backend","timestamp":"2025-11-20T11:58:56.559Z"}
+{"level":"info","message":"🔒 Allowed origins: http://localhost:3000, http://localhost:3001, http://localhost:5173","service":"badge-backend","timestamp":"2025-11-20T11:58:56.559Z"}
+{"level":"info","message":"📡 Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-20T11:58:56.559Z"}
+{"level":"info","message":"🔑 Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-20T11:58:56.559Z"}
+{"level":"info","message":"🛡️ Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-20T11:58:56.559Z"}
+{"level":"info","message":"🆔 DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-20T11:58:56.559Z"}
+{"level":"info","message":"🎯 Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-20T11:58:56.559Z"}
+{"level":"info","message":"🪙 Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-20T11:58:56.559Z"}
+{"level":"info","message":"📈 Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-20T11:58:56.559Z"}
+{"level":"info","message":"✅ Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T11:58:56.559Z"}
+{"level":"info","message":"🔔 WebSocket real-time updates: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T11:58:56.559Z"}
+{"level":"info","message":"🎪 Demo events: ACTIVE (random minting events every 5-15 seconds)","service":"badge-backend","timestamp":"2025-11-20T11:58:56.559Z"}
+{"level":"info","message":"Starting WebSocket demo events","service":"badge-backend","timestamp":"2025-11-20T11:58:59.415Z"}
+{"level":"info","message":"🎪 WebSocket demo events started","service":"badge-backend","timestamp":"2025-11-20T11:58:59.416Z"}
+{"level":"info","message":"WebSocket client connected: client_1763639955020_jsn0gqozu","service":"badge-backend","timestamp":"2025-11-20T11:59:15.021Z"}
+{"level":"info","message":"WebSocket client disconnected: client_1763639955020_jsn0gqozu","service":"badge-backend","timestamp":"2025-11-20T12:00:11.483Z"}
+{"level":"info","message":"SIGTERM received, starting graceful shutdown","service":"badge-backend","timestamp":"2025-11-20T12:01:20.556Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-20T12:01:21.674Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-20T12:01:21.774Z"}
+{"level":"info","message":"WebSocket server initialized","service":"badge-backend","timestamp":"2025-11-20T12:01:21.780Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-20T12:01:21.794Z"}
+{"level":"info","message":"🚀 Server running on port 3001","service":"badge-backend","timestamp":"2025-11-20T12:01:21.929Z"}
+{"level":"info","message":"🔌 WebSocket server available at ws://localhost:3001/ws","service":"badge-backend","timestamp":"2025-11-20T12:01:21.929Z"}
+{"level":"info","message":"📊 WebSocket demo available at http://localhost:3001/websocket-demo.html","service":"badge-backend","timestamp":"2025-11-20T12:01:21.930Z"}
+{"level":"info","message":"🌐 Environment: development","service":"badge-backend","timestamp":"2025-11-20T12:01:21.930Z"}
+{"level":"info","message":"🔒 Allowed origins: http://localhost:3000, http://localhost:3001, http://localhost:5173","service":"badge-backend","timestamp":"2025-11-20T12:01:21.930Z"}
+{"level":"info","message":"📡 Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-20T12:01:21.930Z"}
+{"level":"info","message":"🔑 Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-20T12:01:21.930Z"}
+{"level":"info","message":"🛡️ Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-20T12:01:21.930Z"}
+{"level":"info","message":"🆔 DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-20T12:01:21.930Z"}
+{"level":"info","message":"🎯 Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-20T12:01:21.930Z"}
+{"level":"info","message":"🪙 Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-20T12:01:21.930Z"}
+{"level":"info","message":"📈 Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-20T12:01:21.930Z"}
+{"level":"info","message":"✅ Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T12:01:21.930Z"}
+{"level":"info","message":"🔔 WebSocket real-time updates: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T12:01:21.930Z"}
+{"level":"info","message":"🎪 Demo events: ACTIVE (random minting events every 5-15 seconds)","service":"badge-backend","timestamp":"2025-11-20T12:01:21.930Z"}
+{"level":"info","message":"Starting WebSocket demo events","service":"badge-backend","timestamp":"2025-11-20T12:01:24.783Z"}
+{"level":"info","message":"🎪 WebSocket demo events started","service":"badge-backend","timestamp":"2025-11-20T12:01:24.787Z"}
+{"level":"info","message":"SIGTERM received, starting graceful shutdown","service":"badge-backend","timestamp":"2025-11-20T12:04:51.229Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-20T12:04:52.555Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-20T12:04:52.692Z"}
+{"level":"info","message":"WebSocket server initialized","service":"badge-backend","timestamp":"2025-11-20T12:04:52.698Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-20T12:04:52.716Z"}
+{"level":"info","message":"🚀 Server running on port 3001","service":"badge-backend","timestamp":"2025-11-20T12:04:52.843Z"}
+{"level":"info","message":"🔌 WebSocket server available at ws://localhost:3001/ws","service":"badge-backend","timestamp":"2025-11-20T12:04:52.843Z"}
+{"level":"info","message":"📊 WebSocket demo available at http://localhost:3001/websocket-demo.html","service":"badge-backend","timestamp":"2025-11-20T12:04:52.843Z"}
+{"level":"info","message":"🌐 Environment: development","service":"badge-backend","timestamp":"2025-11-20T12:04:52.843Z"}
+{"level":"info","message":"🔒 Allowed origins: http://localhost:3000, http://localhost:3001, http://localhost:5173","service":"badge-backend","timestamp":"2025-11-20T12:04:52.843Z"}
+{"level":"info","message":"📡 Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-20T12:04:52.843Z"}
+{"level":"info","message":"🔑 Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-20T12:04:52.843Z"}
+{"level":"info","message":"🛡️ Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-20T12:04:52.843Z"}
+{"level":"info","message":"🆔 DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-20T12:04:52.843Z"}
+{"level":"info","message":"🎯 Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-20T12:04:52.843Z"}
+{"level":"info","message":"🪙 Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-20T12:04:52.843Z"}
+{"level":"info","message":"📈 Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-20T12:04:52.843Z"}
+{"level":"info","message":"✅ Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T12:04:52.844Z"}
+{"level":"info","message":"🔔 WebSocket real-time updates: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T12:04:52.844Z"}
+{"level":"info","message":"🎪 Demo events: ACTIVE (random minting events every 5-15 seconds)","service":"badge-backend","timestamp":"2025-11-20T12:04:52.844Z"}
+{"level":"info","message":"Starting WebSocket demo events","service":"badge-backend","timestamp":"2025-11-20T12:04:55.703Z"}
+{"level":"info","message":"🎪 WebSocket demo events started","service":"badge-backend","timestamp":"2025-11-20T12:04:55.712Z"}
+{"level":"info","message":"SIGTERM received, starting graceful shutdown","service":"badge-backend","timestamp":"2025-11-20T12:05:30.604Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-20T12:05:31.437Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-20T12:05:31.503Z"}
+{"level":"info","message":"WebSocket server initialized","service":"badge-backend","timestamp":"2025-11-20T12:05:31.508Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-20T12:05:31.517Z"}
+{"level":"info","message":"🚀 Server running on port 3001","service":"badge-backend","timestamp":"2025-11-20T12:05:31.625Z"}
+{"level":"info","message":"🔌 WebSocket server available at ws://localhost:3001/ws","service":"badge-backend","timestamp":"2025-11-20T12:05:31.625Z"}
+{"level":"info","message":"📊 WebSocket demo available at http://localhost:3001/websocket-demo.html","service":"badge-backend","timestamp":"2025-11-20T12:05:31.625Z"}
+{"level":"info","message":"🌐 Environment: development","service":"badge-backend","timestamp":"2025-11-20T12:05:31.625Z"}
+{"level":"info","message":"🔒 Allowed origins: http://localhost:3000, http://localhost:3001, http://localhost:5173","service":"badge-backend","timestamp":"2025-11-20T12:05:31.626Z"}
+{"level":"info","message":"📡 Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-20T12:05:31.626Z"}
+{"level":"info","message":"🔑 Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-20T12:05:31.626Z"}
+{"level":"info","message":"🛡️ Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-20T12:05:31.626Z"}
+{"level":"info","message":"🆔 DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-20T12:05:31.626Z"}
+{"level":"info","message":"🎯 Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-20T12:05:31.626Z"}
+{"level":"info","message":"🪙 Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-20T12:05:31.626Z"}
+{"level":"info","message":"📈 Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-20T12:05:31.626Z"}
+{"level":"info","message":"✅ Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T12:05:31.626Z"}
+{"level":"info","message":"🔔 WebSocket real-time updates: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T12:05:31.626Z"}
+{"level":"info","message":"🎪 Demo events: ACTIVE (random minting events every 5-15 seconds)","service":"badge-backend","timestamp":"2025-11-20T12:05:31.626Z"}
+{"level":"info","message":"Starting WebSocket demo events","service":"badge-backend","timestamp":"2025-11-20T12:05:34.513Z"}
+{"level":"info","message":"🎪 WebSocket demo events started","service":"badge-backend","timestamp":"2025-11-20T12:05:34.517Z"}
+{"level":"info","message":"SIGTERM received, starting graceful shutdown","service":"badge-backend","timestamp":"2025-11-20T12:08:24.774Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-20T12:08:25.719Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-20T12:08:25.808Z"}
+{"level":"info","message":"WebSocket server initialized","service":"badge-backend","timestamp":"2025-11-20T12:08:25.846Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-20T12:08:25.864Z"}
+{"level":"info","message":"🚀 Server running on port 3001","service":"badge-backend","timestamp":"2025-11-20T12:08:25.981Z"}
+{"level":"info","message":"🔌 WebSocket server available at ws://localhost:3001/ws","service":"badge-backend","timestamp":"2025-11-20T12:08:25.981Z"}
+{"level":"info","message":"📊 WebSocket demo available at http://localhost:3001/websocket-demo.html","service":"badge-backend","timestamp":"2025-11-20T12:08:25.981Z"}
+{"level":"info","message":"🌐 Environment: development","service":"badge-backend","timestamp":"2025-11-20T12:08:25.981Z"}
+{"level":"info","message":"🔒 Allowed origins: http://localhost:3000, http://localhost:3001, http://localhost:5173","service":"badge-backend","timestamp":"2025-11-20T12:08:25.981Z"}
+{"level":"info","message":"📡 Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-20T12:08:25.981Z"}
+{"level":"info","message":"🔑 Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-20T12:08:25.981Z"}
+{"level":"info","message":"🛡️ Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-20T12:08:25.981Z"}
+{"level":"info","message":"🆔 DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-20T12:08:25.981Z"}
+{"level":"info","message":"🎯 Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-20T12:08:25.981Z"}
+{"level":"info","message":"🪙 Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-20T12:08:25.981Z"}
+{"level":"info","message":"📈 Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-20T12:08:25.981Z"}
+{"level":"info","message":"✅ Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T12:08:25.981Z"}
+{"level":"info","message":"🔔 WebSocket real-time updates: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T12:08:25.981Z"}
+{"level":"info","message":"🎪 Demo events: ACTIVE (random minting events every 5-15 seconds)","service":"badge-backend","timestamp":"2025-11-20T12:08:25.981Z"}
+{"level":"info","message":"Starting WebSocket demo events","service":"badge-backend","timestamp":"2025-11-20T12:08:28.853Z"}
+{"level":"info","message":"🎪 WebSocket demo events started","service":"badge-backend","timestamp":"2025-11-20T12:08:28.855Z"}
+{"level":"info","message":"WebSocket client connected: client_1763640522206_tnbh5d6vi","service":"badge-backend","timestamp":"2025-11-20T12:08:42.206Z"}
+{"level":"info","message":"WebSocket client client_1763640522206_tnbh5d6vi authenticated as wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266","service":"badge-backend","timestamp":"2025-11-20T12:08:42.207Z"}
+{"level":"info","message":"Client client_1763640522206_tnbh5d6vi subscribed to channels: wallet_events, minting, transactions, system","service":"badge-backend","timestamp":"2025-11-20T12:08:42.208Z"}
+{"level":"info","message":"WebSocket client disconnected: client_1763640522206_tnbh5d6vi","service":"badge-backend","timestamp":"2025-11-20T12:09:31.387Z"}
+{"level":"error","message":"JWT verification failed: jwt malformed","name":"JsonWebTokenError","service":"badge-backend","stack":"JsonWebTokenError: jwt malformed\n    at Object.module.exports [as verify] (/Users/mac/Documents/badge-backend/node_modules/jsonwebtoken/verify.js:70:17)\n    at JWTService.verifyToken (/Users/mac/Documents/badge-backend/src/services/jwt.service.ts:27:18)\n    at authenticateToken (/Users/mac/Documents/badge-backend/src/middleware/auth.middleware.ts:20:30)\n    at Layer.handle [as handle_request] (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:328:13)\n    at /Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:286:9\n    at router.process_params (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:280:10)\n    at router.handle (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:175:3)\n    at router (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:47:12)","timestamp":"2025-11-20T12:09:48.149Z"}
+{"code":"VALIDATION_ERROR","error":"Cannot mint badge: Already have badge 'verified-creator'","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Cannot mint badge: Already have badge 'verified-creator'\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:34:13\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-11-20T12:11:01.867Z","url":"/api/minting/initiate","userAgent":"curl/7.53.1"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-20T12:14:53.259Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: dao-voter","service":"badge-backend","timestamp":"2025-11-20T12:15:04.296Z"}
+{"level":"info","message":"Initiating polygonid verification for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266","service":"badge-backend","timestamp":"2025-11-20T12:19:40.284Z"}
+{"level":"info","message":"Initializing DID verification for polygonid, wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266","service":"badge-backend","timestamp":"2025-11-20T12:19:40.325Z"}
+{"level":"info","message":"DID verification initiated successfully for polygonid, session: session_1763641181327_j0wum9m","service":"badge-backend","timestamp":"2025-11-20T12:19:41.328Z"}
+{"level":"info","message":"Created verification session: session_1763641181327_j0wum9m for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, provider: polygonid","service":"badge-backend","timestamp":"2025-11-20T12:19:41.377Z"}
+{"code":"VALIDATION_ERROR","error":"Session ID is required","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Session ID is required\n    at /Users/mac/Documents/badge-backend/src/controllers/did.controller.ts:222:13\n    at /Users/mac/Documents/badge-backend/src/middleware/error.middleware.ts:53:19\n    at Layer.handle [as handle_request] (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/route.js:149:13)\n    at Route.dispatch (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/route.js:119:3)\n    at Layer.handle [as handle_request] (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/layer.js:95:5)\n    at /Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:284:15\n    at param (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:365:14)\n    at param (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:376:14)\n    at router.process_params (/Users/mac/Documents/badge-backend/node_modules/express/lib/router/index.js:421:3)","timestamp":"2025-11-20T12:20:18.876Z","url":"/api/did/polygonid/callback","userAgent":"curl/7.53.1"}
+{"level":"info","message":"Handling polygonid callback, session: session_1763641181327_j0wum9m","service":"badge-backend","timestamp":"2025-11-20T12:20:56.656Z"}
+{"level":"info","message":"Handling DID callback for polygonid, session: session_1763641181327_j0wum9m","service":"badge-backend","timestamp":"2025-11-20T12:20:56.712Z"}
+{"level":"info","message":"DID verification successful for polygonid, DID: did:mock:polygonid:f39fd6e51aad88f6f4ce6ab8827279cfffb92266","service":"badge-backend","timestamp":"2025-11-20T12:20:58.218Z"}
+{"level":"info","message":"Updated user DID: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 -> did:mock:polygonid:f39fd6e51aad88f6f4ce6ab8827279cfffb92266","service":"badge-backend","timestamp":"2025-11-20T12:20:58.266Z"}
+{"level":"info","message":"Verification completed successfully: 34d1e398-ac94-4b3c-b6d6-63ee3b738687, DID: did:mock:polygonid:f39fd6e51aad88f6f4ce6ab8827279cfffb92266","service":"badge-backend","timestamp":"2025-11-20T12:20:58.266Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-20T12:21:52.343Z"}
+{"level":"info","message":"WebSocket client connected: client_1763641533337_mjds4p2n1","service":"badge-backend","timestamp":"2025-11-20T12:25:33.337Z"}
+{"level":"info","message":"WebSocket client client_1763641533337_mjds4p2n1 authenticated as wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266","service":"badge-backend","timestamp":"2025-11-20T12:25:33.340Z"}
+{"level":"info","message":"Client client_1763641533337_mjds4p2n1 subscribed to channels: wallet_events, minting, transactions, system","service":"badge-backend","timestamp":"2025-11-20T12:25:33.343Z"}
+{"level":"info","message":"WebSocket client disconnected: client_1763641533337_mjds4p2n1","service":"badge-backend","timestamp":"2025-11-20T12:26:33.369Z"}
+{"level":"info","message":"WebSocket client connected: client_1763641681187_t2z0qazp8","service":"badge-backend","timestamp":"2025-11-20T12:28:01.188Z"}
+{"level":"info","message":"WebSocket client client_1763641681187_t2z0qazp8 authenticated as wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266","service":"badge-backend","timestamp":"2025-11-20T12:28:01.191Z"}
+{"level":"info","message":"Client client_1763641681187_t2z0qazp8 subscribed to channels: wallet_events, minting, transactions, system","service":"badge-backend","timestamp":"2025-11-20T12:28:01.193Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-20T12:28:13.490Z"}
+{"level":"info","message":"📢 [WebSocketEvents] Emitting minting_started for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, mint: pending","service":"badge-backend","timestamp":"2025-11-20T12:28:13.502Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-20T12:28:13.504Z"}
+{"level":"error","message":"📢 [WebSocketEvents] Emitting minting_failed for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, mint: eligibility_check, error: Not eligible for badge: ✗ Minimum 1 on-chain transaction(s)","service":"badge-backend","timestamp":"2025-11-20T12:28:13.509Z"}
+{"code":"VALIDATION_ERROR","error":"Not eligible for badge: ✗ Minimum 1 on-chain transaction(s)","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Not eligible for badge: ✗ Minimum 1 on-chain transaction(s)\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:48:13\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-11-20T12:28:13.511Z","url":"/api/minting/initiate","userAgent":"curl/7.53.1"}
+{"level":"info","message":"WebSocket client disconnected: client_1763641681187_t2z0qazp8","service":"badge-backend","timestamp":"2025-11-20T12:28:58.806Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-20T12:29:33.945Z"}
+{"level":"info","message":"📢 [WebSocketEvents] Emitting minting_started for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, mint: pending","service":"badge-backend","timestamp":"2025-11-20T12:29:33.957Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-20T12:29:33.959Z"}
+{"level":"info","message":"📢 [WebSocketEvents] Emitting minting_started for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, mint: 62779d83-6393-4717-9036-a4354c0e83ae","service":"badge-backend","timestamp":"2025-11-20T12:29:33.985Z"}
+{"level":"info","message":"📢 [WebSocketEvents] Emitting blockchain_transaction_starting for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, mint: 62779d83-6393-4717-9036-a4354c0e83ae","service":"badge-backend","timestamp":"2025-11-20T12:29:33.986Z"}
+{"level":"info","message":"Minting badge type 8 for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266","service":"badge-backend","timestamp":"2025-11-20T12:29:33.993Z"}
+{"code":"CONFIGURATION_ERROR","details":{"service":"Web3Service"},"level":"error","message":"Web3 mint failed: Web3Service configuration error: Contract connection failed: could not decode result data (value=\"0x\", info={ \"method\": \"owner\", \"signature\": \"owner()\" }, code=BAD_DATA, version=6.15.0)","name":"ConfigurationError","service":"badge-backend","stack":"ConfigurationError: Web3Service configuration error: Contract connection failed: could not decode result data (value=\"0x\", info={ \"method\": \"owner\", \"signature\": \"owner()\" }, code=BAD_DATA, version=6.15.0)\n    at Web3Service.verifyContractConnection (/Users/mac/Documents/badge-backend/src/services/web3.service.ts:290:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at Web3Service.mintBadge (/Users/mac/Documents/badge-backend/src/services/web3.service.ts:88:7)\n    at MintingService.initiateMint (/Users/mac/Documents/badge-backend/src/services/minting.service.ts:156:22)\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:45:20","statusCode":500,"timestamp":"2025-11-20T12:29:34.096Z"}
+{"level":"error","message":"📢 [WebSocketEvents] Emitting minting_failed for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, mint: 62779d83-6393-4717-9036-a4354c0e83ae, error: Minting transaction failed: Web3Service configuration error: Contract connection failed: could not decode result data (value=\"0x\", info={ \"method\": \"owner\", \"signature\": \"owner()\" }, code=BAD_DATA, version=6.15.0)","service":"badge-backend","timestamp":"2025-11-20T12:29:34.107Z"}
+{"code":"MINTING_ERROR","details":{"badgeTypeKey":"early-supporter","mintId":"62779d83-6393-4717-9036-a4354c0e83ae","wallet":"0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"},"level":"error","message":"Error initiating mint for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge early-supporter: Minting failed: Blockchain minting failed: Minting transaction failed: Web3Service configuration error: Contract connection failed: could not decode result data (value=\"0x\", info={ \"method\": \"owner\", \"signature\": \"owner()\" }, code=BAD_DATA, version=6.15.0)","name":"MintingError","service":"badge-backend","stack":"MintingError: Minting failed: Blockchain minting failed: Minting transaction failed: Web3Service configuration error: Contract connection failed: could not decode result data (value=\"0x\", info={ \"method\": \"owner\", \"signature\": \"owner()\" }, code=BAD_DATA, version=6.15.0)\n    at MintingService.initiateMint (/Users/mac/Documents/badge-backend/src/services/minting.service.ts:174:15)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:45:20","statusCode":502,"timestamp":"2025-11-20T12:29:34.107Z"}
+{"level":"error","message":"📢 [WebSocketEvents] Emitting minting_failed for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, mint: 62779d83-6393-4717-9036-a4354c0e83ae, error: Minting failed: Blockchain minting failed: Minting transaction failed: Web3Service configuration error: Contract connection failed: could not decode result data (value=\"0x\", info={ \"method\": \"owner\", \"signature\": \"owner()\" }, code=BAD_DATA, version=6.15.0)","service":"badge-backend","timestamp":"2025-11-20T12:29:34.107Z"}
+{"code":"MINTING_ERROR","error":"Minting failed: Blockchain minting failed: Minting transaction failed: Web3Service configuration error: Contract connection failed: could not decode result data (value=\"0x\", info={ \"method\": \"owner\", \"signature\": \"owner()\" }, code=BAD_DATA, version=6.15.0)","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"MintingError: Minting failed: Blockchain minting failed: Minting transaction failed: Web3Service configuration error: Contract connection failed: could not decode result data (value=\"0x\", info={ \"method\": \"owner\", \"signature\": \"owner()\" }, code=BAD_DATA, version=6.15.0)\n    at MintingService.initiateMint (/Users/mac/Documents/badge-backend/src/services/minting.service.ts:174:15)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:45:20","timestamp":"2025-11-20T12:29:34.108Z","url":"/api/minting/initiate","userAgent":"curl/7.53.1"}
+{"level":"info","message":"SIGTERM received, starting graceful shutdown","service":"badge-backend","timestamp":"2025-11-20T12:32:25.985Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-20T12:32:27.438Z"}
+{"level":"info","message":"Web3 service initialized for contract: 0x5FbDB2315678afecb367f032d93F642f64180aa3","service":"badge-backend","timestamp":"2025-11-20T12:32:27.503Z"}
+{"level":"info","message":"WebSocket server initialized","service":"badge-backend","timestamp":"2025-11-20T12:32:27.509Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-20T12:32:27.519Z"}
+{"level":"info","message":"🚀 Server running on port 3001","service":"badge-backend","timestamp":"2025-11-20T12:32:27.735Z"}
+{"level":"info","message":"🔌 WebSocket server available at ws://localhost:3001/ws","service":"badge-backend","timestamp":"2025-11-20T12:32:27.735Z"}
+{"level":"info","message":"📊 WebSocket demo available at http://localhost:3001/websocket-demo.html","service":"badge-backend","timestamp":"2025-11-20T12:32:27.736Z"}
+{"level":"info","message":"🌐 Environment: development","service":"badge-backend","timestamp":"2025-11-20T12:32:27.736Z"}
+{"level":"info","message":"🔒 Allowed origins: http://localhost:3000, http://localhost:3001, http://localhost:5173","service":"badge-backend","timestamp":"2025-11-20T12:32:27.736Z"}
+{"level":"info","message":"📡 Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-20T12:32:27.736Z"}
+{"level":"info","message":"🔑 Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-20T12:32:27.736Z"}
+{"level":"info","message":"🛡️ Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-20T12:32:27.736Z"}
+{"level":"info","message":"🆔 DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-20T12:32:27.736Z"}
+{"level":"info","message":"🎯 Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-20T12:32:27.736Z"}
+{"level":"info","message":"🪙 Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-20T12:32:27.736Z"}
+{"level":"info","message":"📈 Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-20T12:32:27.736Z"}
+{"level":"info","message":"✅ Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T12:32:27.736Z"}
+{"level":"info","message":"🔔 WebSocket real-time updates: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T12:32:27.736Z"}
+{"level":"info","message":"🎪 Demo events: ACTIVE (random minting events every 5-15 seconds)","service":"badge-backend","timestamp":"2025-11-20T12:32:27.736Z"}
+{"level":"info","message":"Starting WebSocket demo events","service":"badge-backend","timestamp":"2025-11-20T12:32:30.513Z"}
+{"level":"info","message":"🎪 WebSocket demo events started","service":"badge-backend","timestamp":"2025-11-20T12:32:30.525Z"}
+{"level":"info","message":"SIGTERM received, starting graceful shutdown","service":"badge-backend","timestamp":"2025-11-20T12:37:38.450Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-20T12:37:39.387Z"}
+{"level":"info","message":"Web3 service running in stub mode - using mock transactions","service":"badge-backend","timestamp":"2025-11-20T12:37:39.478Z"}
+{"level":"info","message":"WebSocket server initialized","service":"badge-backend","timestamp":"2025-11-20T12:37:39.486Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-20T12:37:39.495Z"}
+{"level":"info","message":"🚀 Server running on port 3001","service":"badge-backend","timestamp":"2025-11-20T12:37:39.763Z"}
+{"level":"info","message":"🔌 WebSocket server available at ws://localhost:3001/ws","service":"badge-backend","timestamp":"2025-11-20T12:37:39.763Z"}
+{"level":"info","message":"📊 WebSocket demo available at http://localhost:3001/websocket-demo.html","service":"badge-backend","timestamp":"2025-11-20T12:37:39.763Z"}
+{"level":"info","message":"🌐 Environment: development","service":"badge-backend","timestamp":"2025-11-20T12:37:39.763Z"}
+{"level":"info","message":"🔒 Allowed origins: http://localhost:3000, http://localhost:3001, http://localhost:5173","service":"badge-backend","timestamp":"2025-11-20T12:37:39.764Z"}
+{"level":"info","message":"📡 Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-20T12:37:39.764Z"}
+{"level":"info","message":"🔑 Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-20T12:37:39.764Z"}
+{"level":"info","message":"🛡️ Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-20T12:37:39.764Z"}
+{"level":"info","message":"🆔 DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-20T12:37:39.764Z"}
+{"level":"info","message":"🎯 Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-20T12:37:39.764Z"}
+{"level":"info","message":"🪙 Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-20T12:37:39.764Z"}
+{"level":"info","message":"📈 Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-20T12:37:39.764Z"}
+{"level":"info","message":"✅ Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T12:37:39.764Z"}
+{"level":"info","message":"🔔 WebSocket real-time updates: ACTIVE","service":"badge-backend","timestamp":"2025-11-20T12:37:39.764Z"}
+{"level":"info","message":"🎪 Demo events: ACTIVE (random minting events every 5-15 seconds)","service":"badge-backend","timestamp":"2025-11-20T12:37:39.764Z"}
+{"level":"info","message":"Starting WebSocket demo events","service":"badge-backend","timestamp":"2025-11-20T12:37:42.490Z"}
+{"level":"info","message":"🎪 WebSocket demo events started","service":"badge-backend","timestamp":"2025-11-20T12:37:42.492Z"}
+{"code":"VALIDATION_ERROR","error":"Cannot mint badge: Already have badge 'early-supporter'","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Cannot mint badge: Already have badge 'early-supporter'\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:34:13\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-11-20T12:38:06.984Z","url":"/api/minting/initiate","userAgent":"curl/7.53.1"}
+{"level":"info","message":"WebSocket client connected: client_1763642370187_6qrltne61","service":"badge-backend","timestamp":"2025-11-20T12:39:30.187Z"}
+{"level":"info","message":"WebSocket client client_1763642370187_6qrltne61 authenticated as wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266","service":"badge-backend","timestamp":"2025-11-20T12:39:30.188Z"}
+{"level":"info","message":"Client client_1763642370187_6qrltne61 subscribed to channels: wallet_events, minting, transactions, system","service":"badge-backend","timestamp":"2025-11-20T12:39:30.190Z"}
+{"code":"VALIDATION_ERROR","error":"Cannot mint badge: Already have badge 'early-supporter'","ip":"::1","level":"error","message":"Error occurred:","method":"POST","service":"badge-backend","stack":"ValidationError: Cannot mint badge: Already have badge 'early-supporter'\n    at /Users/mac/Documents/badge-backend/src/controllers/minting.controller.ts:34:13\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-11-20T12:39:35.650Z","url":"/api/minting/initiate","userAgent":"curl/7.53.1"}
+{"level":"info","message":"📢 [WebSocketEvents] Emitting mint_status_update for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, mint: 62779d83-6393-4717-9036-a4354c0e83ae, status: revocation_started","service":"badge-backend","timestamp":"2025-11-20T12:40:17.015Z"}
+{"level":"info","message":"📢 [WebSocketEvents] Emitting badge_revoked for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, mint: 62779d83-6393-4717-9036-a4354c0e83ae, reason: Cleaning failed mint for WebSocket testing","service":"badge-backend","timestamp":"2025-11-20T12:40:17.036Z"}
+{"level":"info","message":"Badge revoked: 62779d83-6393-4717-9036-a4354c0e83ae for reason: Cleaning failed mint for WebSocket testing","service":"badge-backend","timestamp":"2025-11-20T12:40:17.036Z"}
+{"level":"info","message":"WebSocket client disconnected: client_1763642370187_6qrltne61","service":"badge-backend","timestamp":"2025-11-20T12:40:30.201Z"}
+{"level":"info","message":"WebSocket client connected: client_1763642434476_0l3ng46rw","service":"badge-backend","timestamp":"2025-11-20T12:40:34.476Z"}
+{"level":"info","message":"WebSocket client client_1763642434476_0l3ng46rw authenticated as wallet: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266","service":"badge-backend","timestamp":"2025-11-20T12:40:34.476Z"}
+{"level":"info","message":"Client client_1763642434476_0l3ng46rw subscribed to channels: wallet_events, minting, transactions, system","service":"badge-backend","timestamp":"2025-11-20T12:40:34.478Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-20T12:40:37.762Z"}
+{"level":"info","message":"📢 [WebSocketEvents] Emitting minting_started for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, mint: pending","service":"badge-backend","timestamp":"2025-11-20T12:40:37.776Z"}
+{"level":"info","message":"Checking eligibility for wallet: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, badge: early-supporter","service":"badge-backend","timestamp":"2025-11-20T12:40:37.782Z"}
+{"level":"info","message":"📢 [WebSocketEvents] Emitting minting_started for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, mint: 8cf38f71-a29d-4751-b11d-1b0c06bfc2a7","service":"badge-backend","timestamp":"2025-11-20T12:40:37.830Z"}
+{"level":"info","message":"📢 [WebSocketEvents] Emitting blockchain_transaction_starting for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, mint: 8cf38f71-a29d-4751-b11d-1b0c06bfc2a7","service":"badge-backend","timestamp":"2025-11-20T12:40:37.830Z"}
+{"level":"info","message":"Web3 service using mock mode for minting","service":"badge-backend","timestamp":"2025-11-20T12:40:37.833Z"}
+{"level":"info","message":"Mock minting badge type 8 for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266","service":"badge-backend","timestamp":"2025-11-20T12:40:37.834Z"}
+{"level":"info","message":"📢 [WebSocketEvents] Emitting blockchain_transaction_submitted for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, tx: 0x20249f46de0b5819cab1a7625e440e4c79c471d835c5306042daa43451d251ef","service":"badge-backend","timestamp":"2025-11-20T12:40:37.834Z"}
+{"level":"info","message":"📢 [WebSocketEvents] Emitting minting_completed for 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266, token: 203640, tx: 0x20249f46de0b5819cab1a7625e440e4c79c471d835c5306042daa43451d251ef","service":"badge-backend","timestamp":"2025-11-20T12:40:37.848Z"}
+{"level":"info","message":"WebSocket client disconnected: client_1763642434476_0l3ng46rw","service":"badge-backend","timestamp":"2025-11-20T12:41:34.490Z"}
