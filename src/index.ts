@@ -45,12 +45,12 @@ app.use('/public', express.static(path.join(__dirname, '../public')));
 webSocketService.initialize(server);
 
 // Start demo events in development mode
-if (config.server.nodeEnv === 'development') {
-  setTimeout(() => {
-    webSocketEventsService.startDemoEvents();
-    logger.info('🎪 WebSocket demo events started');
-  }, 3000);
-}
+// if (config.server.nodeEnv === 'development') {
+//   setTimeout(() => {
+//     webSocketEventsService.startDemoEvents();
+//     logger.info('🎪 WebSocket demo events started');
+//   }, 3000);
+// }
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -116,9 +116,9 @@ function gracefulShutdown() {
   logger.info('Starting graceful shutdown...');
   
   // Stop demo events
-  if (config.server.nodeEnv === 'development') {
-    webSocketEventsService.stopDemoEvents();
-  }
+  // if (config.server.nodeEnv === 'development') {
+  //   webSocketEventsService.stopDemoEvents();
+  // }
   
   server.close((err) => {
     if (err) {
