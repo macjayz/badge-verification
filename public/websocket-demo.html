@@ -1,10 +1,8 @@
-<!-- public/websocket-demo.html -->
 <!DOCTYPE html>
 <html>
 <head>
     <title>WebSocket Demo - Badge Backend</title>
     <style>
-        /* All the CSS from previous response */
         body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
         .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .status { padding: 15px; margin: 10px 0; border-radius: 8px; font-weight: bold; }
@@ -72,7 +70,8 @@
             <button class="btn-secondary" onclick="ping()">📡 Ping Server</button>
             
             <div style="margin-top: 15px;">
-                <input type="text" id="walletInput" placeholder="Wallet address (optional)" style="padding: 8px; width: 300px; border: 1px solid #ced4da; border-radius: 5px;">
+                <label for="walletInput">Wallet Address:</label>
+                <input type="text" id="walletInput" placeholder="Enter your wallet address" style="padding: 8px; width: 400px; border: 1px solid #ced4da; border-radius: 5px; margin-left: 10px;">
             </div>
         </div>
 
@@ -82,6 +81,7 @@
             <button class="btn-primary" onclick="subscribe('verification')">🔐 Verification Events</button>
             <button class="btn-primary" onclick="subscribe('transactions')">⛓️ Transaction Events</button>
             <button class="btn-primary" onclick="subscribe('system')">🖥️ System Events</button>
+            <button class="btn-primary" onclick="subscribe('wallet_events')">👛 Wallet Events</button>
             <button class="btn-warning" onclick="unsubscribeAll()">🗑️ Unsubscribe All</button>
             
             <div class="channels" id="activeChannels">
@@ -121,8 +121,23 @@
         const activeChannelsEl = document.getElementById('activeChannels');
         const walletInput = document.getElementById('walletInput');
 
+        // Pre-fill with test wallet on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            walletInput.value = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
+        });
+
         function connect() {
-            const wallet = walletInput.value.trim() || 'demo_user_' + Math.random().toString(36).substr(2, 5);
+            const wallet = walletInput.value.trim();
+            
+            if (!wallet) {
+                alert('Please enter a wallet address');
+                return;
+            }
+
+            // Disconnect existing connection if any
+            if (ws) {
+                ws.close();
+            }
             
             statusEl.className = 'status connecting';
             statusEl.innerHTML = '🟡 Connecting...';
@@ -136,18 +151,44 @@
                     statusEl.innerHTML = `🟢 Connected as <strong>${wallet}</strong>`;
                     connectionStartTime = Date.now();
                     startUptimeCounter();
-                    addMessage('system', { event: 'connected', wallet, timestamp: new Date().toISOString() }, 'success');
+                    addMessage('system', { 
+                        event: 'connected', 
+                        wallet: wallet,
+                        timestamp: new Date().toISOString() 
+                    }, 'success');
+                    
+                    // Auto-subscribe to common channels with proper format
+                    setTimeout(() => {
+                        sendMessage({
+                            type: 'subscribe',
+                            payload: { 
+                                channels: ['minting', 'transactions', 'system', 'wallet_events'],
+                                wallet: wallet
+                            }
+                        });
+                    }, 500);
                 };
                 
                 ws.onclose = (event) => {
                     statusEl.className = 'status disconnected';
                     statusEl.innerHTML = `🔴 Disconnected ${event.code === 1000 ? '(normal)' : '(unexpected)'}`;
                     stopUptimeCounter();
-                    addMessage('system', { event: 'disconnected', code: event.code, reason: event.reason }, 'error');
+                    addMessage('system', { 
+                        event: 'disconnected', 
+                        code: event.code, 
+                        reason: event.reason 
+                    }, 'error');
+                    activeSubscriptions.clear();
+                    updateSubscriptionDisplay();
                 };
                 
                 ws.onerror = (error) => {
-                    addMessage('error', { type: 'connection_error', error: error.type }, 'error');
+                    statusEl.className = 'status disconnected';
+                    statusEl.innerHTML = '🔴 Connection Error';
+                    addMessage('error', { 
+                        type: 'connection_error', 
+                        error: error.type 
+                    }, 'error');
                 };
                 
                 ws.onmessage = (event) => {
@@ -156,34 +197,44 @@
                     
                     try {
                         const message = JSON.parse(event.data);
+                        console.log('WebSocket message received:', message);
                         
                         // Handle subscription updates
                         if (message.type === 'subscription_confirmed') {
-                            if (message.payload.subscribed) {
+                            if (message.payload && message.payload.subscribed) {
                                 message.payload.subscribed.forEach(channel => {
                                     activeSubscriptions.add(channel);
                                 });
                             }
                             updateSubscriptionDisplay();
+                            addMessage('subscription', message, 'success');
                         } else if (message.type === 'unsubscription_confirmed') {
-                            activeSubscriptions.clear();
-                            if (message.payload.channels) {
+                            if (message.payload && message.payload.channels) {
+                                activeSubscriptions.clear();
                                 message.payload.channels.forEach(channel => {
                                     activeSubscriptions.add(channel);
                                 });
+                            } else {
+                                activeSubscriptions.clear();
                             }
                             updateSubscriptionDisplay();
+                            addMessage('subscription', message, 'success');
+                        } else if (message.type === 'pong') {
+                            addMessage('pong', message, 'success');
+                        } else if (message.type === 'error') {
+                            addMessage('error', message, 'error');
+                        } else {
+                            // Regular message - display it
+                            addMessage(message.type, message);
                         }
-                        
-                        addMessage(message.type, message);
                     } catch (e) {
-                        addMessage('raw', event.data);
+                        addMessage('raw', { data: event.data, error: e.message }, 'error');
                     }
                 };
             } catch (error) {
                 statusEl.className = 'status disconnected';
                 statusEl.innerHTML = '🔴 Failed to connect';
-                addMessage('error', { error: 'Failed to create WebSocket connection' }, 'error');
+                addMessage('error', { error: 'Failed to create WebSocket connection: ' + error.message }, 'error');
             }
         }
 
@@ -197,25 +248,45 @@
         }
 
         function subscribe(channel) {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert('Please connect first before subscribing');
+                return;
+            }
+            
             sendMessage({
                 type: 'subscribe',
-                payload: { channels: [channel] }
+                payload: { 
+                    channels: [channel],
+                    wallet: walletInput.value.trim()
+                }
             });
         }
 
         function unsubscribeAll() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                return;
+            }
+            
             sendMessage({
                 type: 'unsubscribe',
-                payload: { channels: [] }
+                payload: { 
+                    channels: [],
+                    wallet: walletInput.value.trim()
+                }
             });
         }
 
         function ping() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert('Please connect first');
+                return;
+            }
+            
             sendMessage({
                 type: 'ping',
                 payload: { 
                     timestamp: new Date().toISOString(),
-                    user: walletInput.value.trim() || 'anonymous'
+                    user: walletInput.value.trim()
                 }
             });
         }
@@ -236,6 +307,7 @@
                     ...message,
                     timestamp: new Date().toISOString()
                 }));
+                addMessage('sent', message, 'success');
             } else {
                 alert('WebSocket not connected. Please connect first.');
             }
@@ -270,9 +342,9 @@
             const messageData = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
             
             messageEl.innerHTML = `
-                <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 5px;">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 5px;">
                     <strong style="color: #007bff;">${type.toUpperCase()}</strong>
-                    <small style="color: #6c757d; margin-left: auto;">${timestamp}</small>
+                    <small style="color: #6c757d;">${timestamp}</small>
                 </div>
                 <pre style="margin: 0; white-space: pre-wrap; font-size: 12px;">${messageData}</pre>
             `;
@@ -309,9 +381,6 @@
                 clientCountEl.textContent = '0';
             }
         }, 5000);
-
-        // Auto-connect on page load for demo purposes
-        setTimeout(connect, 1000);
     </script>
 </body>
 </html>
