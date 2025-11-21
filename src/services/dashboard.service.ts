@@ -486,27 +486,34 @@ try {
         relations: ['mints', 'issuer']
       });
 
-      const analytics = badgeTypes.map(badgeType => {
-        const mints = badgeType.mints || [];
-        
-        // Count mints by status from metadata
-        const completedMints = mints.filter(mint => mint.metadata?.status === 'success').length;
-        const pendingMints = mints.filter(mint => mint.metadata?.status === 'pending').length;
-        const failedMints = mints.filter(mint => mint.metadata?.status === 'failed').length;
-        const totalMints = mints.length;
+      // FIXED VERSION - in getBadgeAnalytics() method
+const analytics = badgeTypes.map(badgeType => {
+    const mints = badgeType.mints || [];
+    
+    // FIX: Count both 'success' and 'completed' as successful
+    const completedMints = mints.filter(mint => 
+        mint.metadata?.status === 'success' || mint.metadata?.status === 'completed'
+    ).length;
+    
+    const pendingMints = mints.filter(mint => mint.metadata?.status === 'pending').length;
+    const failedMints = mints.filter(mint => mint.metadata?.status === 'failed').length;
+    const totalMints = mints.length;
 
-        return {
-          id: badgeType.id,
-          name: badgeType.name,
-          description: badgeType.description,
-          issuer: badgeType.issuer?.name || 'Unknown',
-          totalMints,
-          completedMints,
-          pendingMints,
-          failedMints,
-          successRate: totalMints > 0 ? (completedMints / totalMints) * 100 : 0
-        };
-      });
+    // Debug logging
+    logger.info(`Badge ${badgeType.name}: total=${totalMints}, completed=${completedMints}, failed=${failedMints}`);
+
+    return {
+        id: badgeType.id,
+        name: badgeType.name,
+        description: badgeType.description,
+        issuer: badgeType.issuer?.name || 'Unknown',
+        totalMints,
+        completedMints,
+        pendingMints,
+        failedMints,
+        successRate: totalMints > 0 ? (completedMints / totalMints) * 100 : 0
+    };
+});
 
       // Overall statistics
       const totalMints = analytics.reduce((sum, badge) => sum + badge.totalMints, 0);
