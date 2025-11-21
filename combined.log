@@ -2647,3 +2647,258 @@
 {"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T17:53:59.637Z"}
 {"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T17:53:59.640Z"}
 {"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T17:53:59.640Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T17:54:29.611Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T17:54:29.662Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T17:54:29.673Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T17:54:29.676Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T17:54:29.679Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T17:54:29.681Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T17:54:29.684Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T17:54:29.684Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T17:54:29.685Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T17:54:29.687Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T17:54:29.687Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T17:55:34.787Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T17:55:34.874Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T17:55:34.878Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T17:55:34.881Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T17:55:34.885Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T17:55:34.887Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T17:55:34.893Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T17:55:34.894Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T17:55:34.894Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T17:55:34.905Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T17:55:34.905Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T17:55:58.825Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T17:55:58.864Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T17:55:58.866Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T17:55:58.867Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T17:55:58.869Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T17:55:58.871Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T17:55:58.877Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T17:55:58.877Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T17:55:58.877Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T17:55:58.879Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T17:55:58.880Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"Server closed successfully","service":"badge-backend","timestamp":"2025-11-21T17:56:18.348Z"}
+{"level":"info","message":"WebSocket client connected: client_1763747779344_x4oprhme9","service":"badge-backend","timestamp":"2025-11-21T17:56:19.345Z"}
+{"level":"info","message":"WebSocket client client_1763747779344_x4oprhme9 authenticated as wallet: admin_dashboard","service":"badge-backend","timestamp":"2025-11-21T17:56:19.350Z"}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T17:56:19.357Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T17:56:19.417Z"}
+{"level":"info","message":"Client client_1763747779344_x4oprhme9 subscribed to channels: minting, transactions, system, admin","service":"badge-backend","timestamp":"2025-11-21T17:56:19.437Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T17:56:19.438Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T17:56:19.440Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T17:56:19.441Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T17:56:19.448Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T17:56:19.454Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T17:56:19.455Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T17:56:19.455Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T17:56:19.456Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T17:56:19.456Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T17:56:49.345Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T17:56:49.382Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T17:56:49.389Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T17:56:49.393Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T17:56:49.395Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T17:56:49.397Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T17:56:49.401Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T17:56:49.401Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T17:56:49.401Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T17:56:49.403Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T17:56:49.404Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T17:57:19.603Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T17:57:19.638Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T17:57:19.641Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T17:57:19.643Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T17:57:19.645Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T17:57:19.646Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T17:57:19.649Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T17:57:19.649Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T17:57:19.649Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T17:57:19.651Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T17:57:19.651Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T17:57:49.572Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T17:57:49.631Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T17:57:49.651Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T17:57:49.655Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T17:57:49.657Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T17:57:49.660Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T17:57:49.666Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T17:57:49.666Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T17:57:49.666Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T17:57:49.669Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T17:57:49.670Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T17:58:19.620Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T17:58:19.658Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T17:58:19.662Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T17:58:19.664Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T17:58:19.666Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T17:58:19.667Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T17:58:19.671Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T17:58:19.672Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T17:58:19.672Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T17:58:19.674Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T17:58:19.675Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T17:58:49.592Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T17:58:49.640Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T17:58:49.642Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T17:58:49.650Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T17:58:49.653Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T17:58:49.654Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T17:58:49.658Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T17:58:49.658Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T17:58:49.660Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T17:58:49.662Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T17:58:49.662Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T17:59:19.627Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T17:59:19.679Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T17:59:19.684Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T17:59:19.685Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T17:59:19.688Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T17:59:19.691Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T17:59:19.694Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T17:59:19.694Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T17:59:19.694Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T17:59:19.695Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T17:59:19.696Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T18:00:02.340Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T18:00:02.400Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T18:00:02.402Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T18:00:02.410Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T18:00:02.411Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T18:00:02.412Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T18:00:02.414Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T18:00:02.414Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T18:00:02.414Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T18:00:02.415Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T18:00:02.415Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T18:00:19.619Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T18:00:19.650Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T18:00:19.655Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T18:00:19.656Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T18:00:19.657Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T18:00:19.658Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T18:00:19.662Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T18:00:19.662Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T18:00:19.662Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T18:00:19.664Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T18:00:19.664Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T18:00:49.632Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T18:00:49.678Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T18:00:49.681Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T18:00:49.683Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T18:00:49.685Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T18:00:49.686Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T18:00:49.687Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T18:00:49.687Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T18:00:49.687Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T18:00:49.688Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T18:00:49.688Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T18:01:47.735Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T18:01:47.768Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T18:01:47.770Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T18:01:47.771Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T18:01:47.773Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T18:01:47.774Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T18:01:47.779Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T18:01:47.779Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T18:01:47.779Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T18:01:47.781Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T18:01:47.781Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"SIGTERM received, starting graceful shutdown","service":"badge-backend","timestamp":"2025-11-21T18:01:55.204Z"}
+{"level":"info","message":"Starting graceful shutdown...","service":"badge-backend","timestamp":"2025-11-21T18:01:55.206Z"}
+{"level":"info","message":"Stopped WebSocket demo events","service":"badge-backend","timestamp":"2025-11-21T18:01:55.206Z"}
+{"level":"info","message":"Server closed successfully","service":"badge-backend","timestamp":"2025-11-21T18:06:05.175Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-21T18:06:06.513Z"}
+{"level":"info","message":"Web3 service running in stub mode - using mock transactions","service":"badge-backend","timestamp":"2025-11-21T18:06:06.555Z"}
+{"level":"info","message":"WebSocket server initialized","service":"badge-backend","timestamp":"2025-11-21T18:06:06.560Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-21T18:06:06.572Z"}
+{"level":"info","message":"🚀 Server running on port 3001","service":"badge-backend","timestamp":"2025-11-21T18:06:06.658Z"}
+{"level":"info","message":"🔌 WebSocket server available at ws://localhost:3001/ws","service":"badge-backend","timestamp":"2025-11-21T18:06:06.659Z"}
+{"level":"info","message":"📊 WebSocket demo available at http://localhost:3001/websocket-demo","service":"badge-backend","timestamp":"2025-11-21T18:06:06.659Z"}
+{"level":"info","message":"📈 Admin dashboard available at http://localhost:3001/admin-dashboard","service":"badge-backend","timestamp":"2025-11-21T18:06:06.659Z"}
+{"level":"info","message":"🌐 Environment: development","service":"badge-backend","timestamp":"2025-11-21T18:06:06.659Z"}
+{"level":"info","message":"🔒 Allowed origins: http://localhost:3000, http://localhost:3001, http://localhost:5173","service":"badge-backend","timestamp":"2025-11-21T18:06:06.668Z"}
+{"level":"info","message":"📡 Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-21T18:06:06.668Z"}
+{"level":"info","message":"🔑 Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-21T18:06:06.668Z"}
+{"level":"info","message":"🛡️ Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-21T18:06:06.668Z"}
+{"level":"info","message":"🆔 DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-21T18:06:06.668Z"}
+{"level":"info","message":"🎯 Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-21T18:06:06.668Z"}
+{"level":"info","message":"🪙 Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-21T18:06:06.668Z"}
+{"level":"info","message":"📈 Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-21T18:06:06.668Z"}
+{"level":"info","message":"✅ Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-21T18:06:06.668Z"}
+{"level":"info","message":"🔔 WebSocket real-time updates: ACTIVE","service":"badge-backend","timestamp":"2025-11-21T18:06:06.668Z"}
+{"level":"info","message":"🎪 Demo events: ACTIVE (random minting events every 5-15 seconds)","service":"badge-backend","timestamp":"2025-11-21T18:06:06.668Z"}
+{"level":"info","message":"WebSocket client connected: client_1763748372303_oh20mxvbx","service":"badge-backend","timestamp":"2025-11-21T18:06:12.303Z"}
+{"level":"info","message":"WebSocket client client_1763748372303_oh20mxvbx authenticated as wallet: admin_dashboard","service":"badge-backend","timestamp":"2025-11-21T18:06:12.304Z"}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T18:06:12.316Z"}
+{"level":"info","message":"Client client_1763748372303_oh20mxvbx subscribed to channels: minting, transactions, system, admin","service":"badge-backend","timestamp":"2025-11-21T18:06:12.501Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T18:06:12.507Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T18:06:12.512Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T18:06:12.517Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T18:06:12.519Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T18:06:12.520Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T18:06:12.523Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T18:06:12.523Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T18:06:12.523Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T18:06:12.525Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T18:06:12.525Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"SIGINT received, starting graceful shutdown","service":"badge-backend","timestamp":"2025-11-21T18:06:20.507Z"}
+{"level":"info","message":"Starting graceful shutdown...","service":"badge-backend","timestamp":"2025-11-21T18:06:20.510Z"}
+{"level":"info","message":"DID Service initialized with STUB adapters: polygonid, idos","service":"badge-backend","timestamp":"2025-11-21T18:06:25.289Z"}
+{"level":"info","message":"Web3 service running in stub mode - using mock transactions","service":"badge-backend","timestamp":"2025-11-21T18:06:25.480Z"}
+{"level":"info","message":"WebSocket server initialized","service":"badge-backend","timestamp":"2025-11-21T18:06:25.592Z"}
+{"level":"info","message":"Redis client connected","service":"badge-backend","timestamp":"2025-11-21T18:06:25.605Z"}
+{"level":"info","message":"🚀 Server running on port 3001","service":"badge-backend","timestamp":"2025-11-21T18:06:25.681Z"}
+{"level":"info","message":"🔌 WebSocket server available at ws://localhost:3001/ws","service":"badge-backend","timestamp":"2025-11-21T18:06:25.681Z"}
+{"level":"info","message":"📊 WebSocket demo available at http://localhost:3001/websocket-demo","service":"badge-backend","timestamp":"2025-11-21T18:06:25.682Z"}
+{"level":"info","message":"📈 Admin dashboard available at http://localhost:3001/admin-dashboard","service":"badge-backend","timestamp":"2025-11-21T18:06:25.682Z"}
+{"level":"info","message":"🌐 Environment: development","service":"badge-backend","timestamp":"2025-11-21T18:06:25.682Z"}
+{"level":"info","message":"🔒 Allowed origins: http://localhost:3000, http://localhost:3001, http://localhost:5173","service":"badge-backend","timestamp":"2025-11-21T18:06:25.682Z"}
+{"level":"info","message":"📡 Health check: http://localhost:3001/health","service":"badge-backend","timestamp":"2025-11-21T18:06:25.682Z"}
+{"level":"info","message":"🔑 Auth endpoints: http://localhost:3001/api/auth","service":"badge-backend","timestamp":"2025-11-21T18:06:25.682Z"}
+{"level":"info","message":"🛡️ Protected endpoints: http://localhost:3001/api/protected","service":"badge-backend","timestamp":"2025-11-21T18:06:25.682Z"}
+{"level":"info","message":"🆔 DID endpoints: http://localhost:3001/api/did","service":"badge-backend","timestamp":"2025-11-21T18:06:25.682Z"}
+{"level":"info","message":"🎯 Eligibility endpoints: http://localhost:3001/api/eligibility","service":"badge-backend","timestamp":"2025-11-21T18:06:25.682Z"}
+{"level":"info","message":"🪙 Minting endpoints: http://localhost:3001/api/minting","service":"badge-backend","timestamp":"2025-11-21T18:06:25.682Z"}
+{"level":"info","message":"📈 Dashboard endpoints: http://localhost:3001/api/dashboard","service":"badge-backend","timestamp":"2025-11-21T18:06:25.682Z"}
+{"level":"info","message":"✅ Enhanced error handling: ACTIVE","service":"badge-backend","timestamp":"2025-11-21T18:06:25.682Z"}
+{"level":"info","message":"🔔 WebSocket real-time updates: ACTIVE","service":"badge-backend","timestamp":"2025-11-21T18:06:25.682Z"}
+{"level":"info","message":"🎪 Demo events: ACTIVE (random minting events every 5-15 seconds)","service":"badge-backend","timestamp":"2025-11-21T18:06:25.682Z"}
+{"level":"info","message":"Server closed successfully","service":"badge-backend","timestamp":"2025-11-21T18:06:31.041Z"}
+{"level":"info","message":"WebSocket client connected: client_1763748391300_og2j36aot","service":"badge-backend","timestamp":"2025-11-21T18:06:31.301Z"}
+{"level":"info","message":"WebSocket client client_1763748391300_og2j36aot authenticated as wallet: admin_dashboard","service":"badge-backend","timestamp":"2025-11-21T18:06:31.302Z"}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T18:06:31.311Z"}
+{"level":"info","message":"Client client_1763748391300_og2j36aot subscribed to channels: minting, transactions, system, admin","service":"badge-backend","timestamp":"2025-11-21T18:06:31.345Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T18:06:31.346Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T18:06:31.353Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T18:06:31.354Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T18:06:31.355Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T18:06:31.357Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T18:06:31.362Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T18:06:31.362Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T18:06:31.362Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T18:06:31.371Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T18:06:31.371Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T18:07:01.302Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T18:07:01.338Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T18:07:01.341Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T18:07:01.343Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T18:07:01.345Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T18:07:01.346Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T18:07:01.350Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T18:07:01.350Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T18:07:01.350Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T18:07:01.352Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T18:07:01.352Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
+{"level":"info","message":"🟡 Starting getAdminStats...","service":"badge-backend","timestamp":"2025-11-21T18:07:31.314Z"}
+{"level":"info","message":"✅ Total mints count:","service":"badge-backend","timestamp":"2025-11-21T18:07:31.341Z"}
+{"level":"info","message":"✅ Successful mints count:","service":"badge-backend","timestamp":"2025-11-21T18:07:31.345Z"}
+{"level":"info","message":"✅ Failed mints count:","service":"badge-backend","timestamp":"2025-11-21T18:07:31.348Z"}
+{"level":"info","message":"✅ Pending mints count:","service":"badge-backend","timestamp":"2025-11-21T18:07:31.351Z"}
+{"level":"info","message":"✅ Active users count:","service":"badge-backend","timestamp":"2025-11-21T18:07:31.357Z"}
+{"level":"info","message":"✅ Badge types count:","service":"badge-backend","timestamp":"2025-11-21T18:07:31.363Z"}
+{"level":"info","message":"✅ Issuers count:","service":"badge-backend","timestamp":"2025-11-21T18:07:31.364Z"}
+{"level":"info","message":"✅ Success rate calculated:","service":"badge-backend","timestamp":"2025-11-21T18:07:31.364Z"}
+{"level":"info","message":"✅ Today mints count:","service":"badge-backend","timestamp":"2025-11-21T18:07:31.368Z"}
+{"activeUsers":3,"failedMints":3,"level":"info","message":"✅ getAdminStats completed successfully:","pendingMints":0,"service":"badge-backend","successRate":42.86,"successfulMints":3,"timestamp":"2025-11-21T18:07:31.368Z","todayMints":0,"totalBadgeTypes":5,"totalIssuers":1,"totalMints":7,"wsConnections":1}
