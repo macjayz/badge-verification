@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard - Badge Backend</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: var(--dark);
+            color: white;
+            padding: 20px;
+        }
+        
+        .sidebar h1 {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: var(--light);
+        }
+        
+        .sidebar nav a {
+            display: block;
+            color: #bdc3c7;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar nav a:hover, 
+        .sidebar nav a.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .stat-card.success { border-left-color: var(--success); }
+        .stat-card.warning { border-left-color: var(--warning); }
+        .stat-card.danger { border-left-color: var(--danger); }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-container, .activity-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .activity-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .activity-item {
+            padding: 10px;
+            border-left: 3px solid var(--primary);
+            margin-bottom: 10px;
+            background: #f8f9fa;
+        }
+        
+        .activity-item.success { border-left-color: var(--success); }
+        .activity-item.warning { border-left-color: var(--warning); }
+        .activity-item.danger { border-left-color: var(--danger); }
+        
+        .activity-time {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        .connection-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            z-index: 1000;
+        }
+        
+        .connected { background: var(--success); color: white; }
+        .disconnected { background: var(--danger); color: white; }
+        .connecting { background: var(--warning); color: white; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-failed { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h1>🎯 Badge Admin</h1>
+            <nav>
+                <a href="#" class="active">📊 Dashboard</a>
+                <a href="#">👥 Users</a>
+                <a href="#">🪙 Badges</a>
+                <a href="#">⚙️ Settings</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h2>Real-time Admin Dashboard</h2>
+                <div id="lastUpdate" class="text-muted">Last update: Just now</div>
+            </div>
+
+            <!-- Statistics Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalMints">0</div>
+                    <div class="stat-label">Total Mints</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-value" id="successfulMints">0</div>
+                    <div class="stat-label">Successful Mints</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-value" id="pendingMints">0</div>
+                    <div class="stat-label">Pending Mints</div>
+                </div>
+                <div class="stat-card danger">
+                    <div class="stat-value" id="failedMints">0</div>
+                    <div class="stat-label">Failed Mints</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="activeUsers">0</div>
+                    <div class="stat-label">Active Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="wsConnections">0</div>
+                    <div class="stat-label">Live Connections</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-value" id="successRate">0%</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="todayMints">0</div>
+                    <div class="stat-label">Today's Mints</div>
+                </div>
+            </div>
+
+            <!-- Charts and Activity -->
+            <div class="charts-grid">
+                <!-- Minting Activity Chart -->
+                <div class="chart-container">
+                    <h3>📈 Minting Activity (Last 24h)</h3>
+                    <div id="mintingChart">
+                        <canvas id="activityChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Real-time Activity -->
+                <div class="activity-container">
+                    <h3>🔄 Live Activity</h3>
+                    <div class="activity-list" id="activityList">
+                        <div class="activity-item">
+                            <div>Waiting for activity...</div>
+                            <div class="activity-time">Just now</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Events Table -->
+            <div class="chart-container">
+                <h3>📋 Recent Minting Activity</h3>
+                <div id="recentEvents">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Wallet</th>
+                                <th>Badge Type</th>
+                                <th>Status</th>
+                                <th>Transaction</th>
+                            </tr>
+                        </thead>
+                        <tbody id="eventsTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #6c757d; padding: 20px;">
+                                    Loading recent mints...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connection Status -->
+    <div id="connectionStatus" class="connection-status disconnected">
+        🔴 Disconnected
+    </div>
+
+    <!-- Include Chart.js for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+      // Dashboard State
+      let ws = null;
+      let stats = {
+          totalMints: 0,
+          successfulMints: 0,
+          pendingMints: 0,
+          failedMints: 0,
+          activeUsers: 0,
+          wsConnections: 0,
+          successRate: 0,
+          todayMints: 0
+      };
+      
+      let activityChart = null;
+      const API_BASE_URL = 'http://localhost:3001/api/dashboard/admin';
+  
+      // Initialize Dashboard
+      document.addEventListener('DOMContentLoaded', function() {
+          initializeCharts();
+          connectWebSocket();
+          loadRealData();
+          startDataRefresh();
+      });
+  
+      // Initialize Charts
+      function initializeCharts() {
+          const ctx = document.getElementById('activityChart').getContext('2d');
+          activityChart = new Chart(ctx, {
+              type: 'line',
+              data: {
+                  labels: [],
+                  datasets: [
+                      {
+                          label: 'Successful Mints',
+                          data: [],
+                          borderColor: '#2ecc71',
+                          backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                          tension: 0.4,
+                          fill: true
+                      },
+                      {
+                          label: 'Failed Mints',
+                          data: [],
+                          borderColor: '#e74c3c',
+                          backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                          tension: 0.4,
+                          fill: true
+                      }
+                  ]
+              },
+              options: {
+                  responsive: true,
+                  plugins: {
+                      legend: {
+                          display: true,
+                          position: 'top'
+                      }
+                  },
+                  scales: {
+                      y: {
+                          beginAtZero: true,
+                          ticks: {
+                              stepSize: 1
+                          }
+                      }
+                  }
+              }
+          });
+      }
+  
+      // WebSocket Connection
+      function connectWebSocket() {
+          const statusEl = document.getElementById('connectionStatus');
+          
+          try {
+              ws = new WebSocket('ws://localhost:3001/ws?wallet=admin_dashboard');
+              statusEl.className = 'connection-status connecting';
+              statusEl.textContent = '🟡 Connecting...';
+  
+              ws.onopen = () => {
+                  statusEl.className = 'connection-status connected';
+                  statusEl.textContent = '🟢 Connected';
+                  
+                  // Subscribe to admin channels
+                  ws.send(JSON.stringify({
+                      type: 'subscribe',
+                      payload: {
+                          channels: ['minting', 'transactions', 'system', 'admin'],
+                          wallet: 'admin_dashboard'
+                      },
+                      timestamp: new Date().toISOString()
+                  }));
+              };
+  
+              ws.onmessage = (event) => {
+                  try {
+                      const message = JSON.parse(event.data);
+                      handleWebSocketMessage(message);
+                  } catch (e) {
+                      console.error('Error parsing message:', e);
+                  }
+              };
+  
+              ws.onerror = (error) => {
+                  statusEl.className = 'connection-status disconnected';
+                  statusEl.textContent = '🔴 Connection Error';
+                  console.error('WebSocket error:', error);
+              };
+  
+              ws.onclose = (event) => {
+                  statusEl.className = 'connection-status disconnected';
+                  statusEl.textContent = '🔴 Disconnected';
+                  
+                  // Attempt reconnect after 5 seconds
+                  setTimeout(connectWebSocket, 5000);
+              };
+  
+          } catch (error) {
+              statusEl.className = 'connection-status disconnected';
+              statusEl.textContent = '🔴 Failed to connect';
+              console.error('WebSocket connection failed:', error);
+          }
+      }
+  
+      // Load Real Data from APIs
+      async function loadRealData() {
+          await Promise.all([
+              loadDashboardStats(),
+              loadRecentMints(),
+              loadMintingActivity()
+          ]);
+      }
+  
+      // Load Dashboard Statistics
+      async function loadDashboardStats() {
+          try {
+              const response = await fetch(`${API_BASE_URL}/stats`);
+              const result = await response.json();
+              
+              if (result.success) {
+                  stats = result.data;
+                  updateStatsDisplay();
+              }
+          } catch (error) {
+              console.error('Error loading dashboard stats:', error);
+          }
+      }
+  
+      // Load Recent Mints for Table
+      async function loadRecentMints() {
+          try {
+              const response = await fetch(`${API_BASE_URL}/recent-mints?limit=15`);
+              const result = await response.json();
+              
+              if (result.success) {
+                  updateRecentEventsTable(result.data.mints);
+              }
+          } catch (error) {
+              console.error('Error loading recent mints:', error);
+          }
+      }
+  
+      // Load Minting Activity for Chart
+      async function loadMintingActivity() {
+          try {
+              const response = await fetch(`${API_BASE_URL}/minting-activity?timeRange=24h`);
+              const result = await response.json();
+              
+              if (result.success && activityChart) {
+                  updateActivityChart(result.data);
+              }
+          } catch (error) {
+              console.error('Error loading minting activity:', error);
+          }
+      }
+  
+      // Handle WebSocket Messages
+      function handleWebSocketMessage(message) {
+          updateLastUpdateTime();
+          
+          switch (message.type) {
+              case 'system_health':
+                  handleSystemHealth(message.payload);
+                  break;
+                  
+              case 'minting_started':
+              case 'minting_completed':
+              case 'minting_failed':
+              case 'badge_revoked':
+                  handleMintingEvent(message);
+                  // Refresh data when important events occur
+                  loadDashboardStats();
+                  loadRecentMints();
+                  break;
+                  
+              case 'subscription_confirmed':
+                  console.log('Subscribed to channels:', message.payload.subscribed);
+                  break;
+                  
+              default:
+                  if (message.type.includes('minting') || message.type.includes('badge')) {
+                      handleMintingEvent(message);
+                  }
+          }
+      }
+  
+      // Handle System Health Updates
+      function handleSystemHealth(healthData) {
+          stats.wsConnections = healthData.websocket?.connections || 0;
+          updateStatsDisplay();
+      }
+  
+      // Handle Minting Events
+      function handleMintingEvent(event) {
+          addActivityItem(event);
+          addRecentEvent(event);
+      }
+  
+      // Update Statistics Display
+      function updateStatsDisplay() {
+          document.getElementById('totalMints').textContent = stats.totalMints.toLocaleString();
+          document.getElementById('successfulMints').textContent = stats.successfulMints.toLocaleString();
+          document.getElementById('pendingMints').textContent = stats.pendingMints.toLocaleString();
+          document.getElementById('failedMints').textContent = stats.failedMints.toLocaleString();
+          document.getElementById('activeUsers').textContent = stats.activeUsers.toLocaleString();
+          document.getElementById('wsConnections').textContent = stats.wsConnections.toLocaleString();
+          document.getElementById('successRate').textContent = stats.successRate.toFixed(1) + '%';
+          document.getElementById('todayMints').textContent = stats.todayMints.toLocaleString();
+      }
+  
+      // Update Recent Events Table with Real Data
+      
+function updateRecentEventsTable(mints) {
+    const tableBody = document.getElementById('eventsTableBody');
+    tableBody.innerHTML = '';
+
+    if (!mints || mints.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align: center; color: #6c757d; padding: 20px;">
+                    No minting activity yet
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    mints.forEach(mint => {
+        const row = document.createElement('tr');
+        
+        let statusBadge = '';
+        switch (mint.status) {
+            case 'pending':
+                statusBadge = '<span class="status-badge status-pending">Pending</span>';
+                break;
+            case 'completed':
+            case 'success':
+                statusBadge = '<span class="status-badge status-completed">Completed</span>';
+                break;
+            case 'failed':
+                statusBadge = '<span class="status-badge status-failed">Failed</span>';
+                break;
+            default:
+                statusBadge = `<span class="status-badge">${mint.status || 'unknown'}</span>`;
+        }
+        
+        const walletDisplay = mint.walletAddress 
+            ? `${mint.walletAddress.substring(0, 10)}...`
+            : 'Unknown';
+        
+        const badgeName = mint.badgeType || 'Unknown Badge';
+        const transactionDisplay = mint.transactionHash 
+            ? `${mint.transactionHash.substring(0, 8)}...`
+            : 'N/A';
+        
+        row.innerHTML = `
+            <td>${new Date(mint.createdAt).toLocaleTimeString()}</td>
+            <td style="font-family: monospace;">${walletDisplay}</td>
+            <td>${badgeName}</td>
+            <td>${statusBadge}</td>
+            <td style="font-family: monospace;">${transactionDisplay}</td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+}
+  
+      // Update Activity Chart with Real Data
+      function updateActivityChart(activityData) {
+          if (!activityChart || !activityData) return;
+  
+          const labels = activityData.data.map(item => {
+              const date = new Date(item.hour);
+              return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          });
+  
+          const successfulData = activityData.data.map(item => item.successful || 0);
+          const failedData = activityData.data.map(item => item.failed || 0);
+  
+          activityChart.data.labels = labels;
+          activityChart.data.datasets[0].data = successfulData;
+          activityChart.data.datasets[1].data = failedData;
+          activityChart.update();
+      }
+  
+      // Add Activity Item (for real-time updates)
+      function addActivityItem(event) {
+          const activityList = document.getElementById('activityList');
+          
+          let statusClass = '';
+          let icon = '🔄';
+          
+          switch (event.type) {
+              case 'minting_started':
+                  statusClass = 'warning';
+                  icon = '🟡';
+                  break;
+              case 'minting_completed':
+                  statusClass = 'success';
+                  icon = '✅';
+                  break;
+              case 'minting_failed':
+                  statusClass = 'danger';
+                  icon = '❌';
+                  break;
+              case 'badge_revoked':
+                  statusClass = 'danger';
+                  icon = '🗑️';
+                  break;
+          }
+          
+          const activityItem = document.createElement('div');
+          activityItem.className = `activity-item ${statusClass}`;
+          
+          const wallet = event.payload?.wallet || event.payload?.user?.walletAddress;
+          const badgeType = event.payload?.badgeTypeKey || event.payload?.badgeTypeInfo?.name;
+          
+          activityItem.innerHTML = `
+              <div><strong>${icon} ${getEventDisplayName(event.type)}</strong></div>
+              ${wallet ? `<div>Wallet: ${wallet.substring(0, 8)}...</div>` : ''}
+              ${badgeType ? `<div>Badge: ${badgeType}</div>` : ''}
+              ${event.payload?.reason ? `<div>Reason: ${event.payload.reason}</div>` : ''}
+              <div class="activity-time">${new Date().toLocaleTimeString()}</div>
+          `;
+          
+          // Add to top of list
+          if (activityList.firstChild) {
+              activityList.insertBefore(activityItem, activityList.firstChild);
+          } else {
+              activityList.appendChild(activityItem);
+          }
+          
+          // Limit to 10 items
+          if (activityList.children.length > 10) {
+              activityList.removeChild(activityList.lastChild);
+          }
+      }
+  
+      // Add Recent Event to Table (for real-time updates)
+      function addRecentEvent(event) {
+          const tableBody = document.getElementById('eventsTableBody');
+          
+          // Clear "no events" message if present
+          if (tableBody.children.length === 1 && tableBody.children[0].colSpan) {
+              tableBody.innerHTML = '';
+          }
+          
+          const row = document.createElement('tr');
+          
+          let statusBadge = '';
+          switch (event.type) {
+              case 'minting_started':
+                  statusBadge = '<span class="status-badge status-pending">Pending</span>';
+                  break;
+              case 'minting_completed':
+                  statusBadge = '<span class="status-badge status-completed">Completed</span>';
+                  break;
+              case 'minting_failed':
+                  statusBadge = '<span class="status-badge status-failed">Failed</span>';
+                  break;
+              case 'badge_revoked':
+                  statusBadge = '<span class="status-badge">Revoked</span>';
+                  break;
+          }
+          
+          const wallet = event.payload?.wallet || event.payload?.user?.walletAddress;
+          const badgeType = event.payload?.badgeTypeKey || event.payload?.badgeTypeInfo?.name;
+          
+          row.innerHTML = `
+              <td>${new Date().toLocaleTimeString()}</td>
+              <td style="font-family: monospace;">${wallet ? wallet.substring(0, 10) + '...' : 'N/A'}</td>
+              <td>${badgeType || 'N/A'}</td>
+              <td>${statusBadge}</td>
+              <td style="font-family: monospace;">${event.payload?.transactionHash ? event.payload.transactionHash.substring(0, 8) + '...' : 'N/A'}</td>
+          `;
+          
+          // Add to top of table
+          if (tableBody.firstChild) {
+              tableBody.insertBefore(row, tableBody.firstChild);
+          } else {
+              tableBody.appendChild(row);
+          }
+          
+          // Limit to 15 events
+          if (tableBody.children.length > 15) {
+              tableBody.removeChild(tableBody.lastChild);
+          }
+      }
+  
+      // Helper Functions
+      function getEventDisplayName(eventType) {
+          const names = {
+              'minting_started': 'Minting Started',
+              'minting_completed': 'Minting Completed',
+              'minting_failed': 'Minting Failed',
+              'badge_revoked': 'Badge Revoked',
+              'minting_success': 'Minting Success',
+              'blockchain_transaction_starting': 'Transaction Starting',
+              'blockchain_transaction_submitted': 'Transaction Submitted'
+          };
+          return names[eventType] || eventType;
+      }
+  
+      function updateLastUpdateTime() {
+          document.getElementById('lastUpdate').textContent = 
+              `Last update: ${new Date().toLocaleTimeString()}`;
+      }
+  
+      // Periodic Data Refresh
+      function startDataRefresh() {
+          // Refresh stats every 30 seconds
+          setInterval(async () => {
+              await loadDashboardStats();
+              
+              if (ws && ws.readyState === WebSocket.OPEN) {
+                  // Send ping to keep connection alive
+                  ws.send(JSON.stringify({
+                      type: 'ping',
+                      payload: { source: 'admin_dashboard' },
+                      timestamp: new Date().toISOString()
+                  }));
+              }
+          }, 30000);
+      }
+  </script>
+</body>
+</html>

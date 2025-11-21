@@ -408,6 +408,34 @@ export class WebSocketEventsService {
   sendDemoMintingEvent(): void {
     webSocketService.sendDemoMintingEvent();
   }
+
+  // Admin-specific events
+sendAdminStatsUpdate(stats: any): void {
+    logger.info(`📢 [WebSocketEvents] Emitting admin_stats_update`);
+    
+    webSocketService.sendToChannel('admin', {
+      type: 'admin_stats_update',
+      payload: {
+        stats,
+        timestamp: new Date().toISOString()
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+  
+  sendAdminAlert(message: string, level: 'info' | 'warning' | 'error' = 'info'): void {
+    logger.info(`📢 [WebSocketEvents] Emitting admin_alert: ${message}`);
+    
+    webSocketService.sendToChannel('admin', {
+      type: 'admin_alert',
+      payload: {
+        message,
+        level,
+        timestamp: new Date().toISOString()
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
 }
 
 export const webSocketEventsService = new WebSocketEventsService();

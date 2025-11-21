@@ -18,6 +18,7 @@ import { mintingRoutes } from './routes/minting.routes';
 import { dashboardRoutes } from './routes/dashboard.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { logger } from './utils/logger';
+import path from 'path';
 
 const app = express();
 const server = createServer(app);
@@ -30,8 +31,15 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files (WebSocket demo and other public assets)
-app.use(express.static('public'));
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Add this right after your static file configuration
+app.use('/public', (req, res, next) => {
+  console.log('Static file request:', req.path);
+  next();
+});
+app.use('/public', express.static(path.join(__dirname, '../public')));
 
 // Initialize WebSocket server
 webSocketService.initialize(server);
@@ -55,9 +63,26 @@ app.use('/api/minting', mintingRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/health', healthRoutes);
 
-// WebSocket demo route (redirect to the static HTML file)
+// HTML Page Routes - FIXED VERSION
 app.get('/websocket-demo', (req, res) => {
-  res.redirect('/websocket-demo.html');
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/websocket-demo.html'));
+});
+
+app.get('/admin-dashboard', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/admin-dashboard.html'));
+});
+
+// Direct file access routes
+app.get('/websocket-demo.html', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/websocket-demo.html'));
+});
+
+app.get('/admin-dashboard.html', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/admin-dashboard.html'));
 });
 
 // Global error handler middleware (must be after all routes)
@@ -115,7 +140,8 @@ const startServer = async () => {
     server.listen(config.server.port, () => {
       logger.info(`🚀 Server running on port ${config.server.port}`);
       logger.info(`🔌 WebSocket server available at ws://localhost:${config.server.port}/ws`);
-      logger.info(`📊 WebSocket demo available at http://localhost:${config.server.port}/websocket-demo.html`);
+      logger.info(`📊 WebSocket demo available at http://localhost:${config.server.port}/websocket-demo`);
+      logger.info(`📈 Admin dashboard available at http://localhost:${config.server.port}/admin-dashboard`);
       logger.info(`🌐 Environment: ${config.server.nodeEnv}`);
       logger.info(`🔒 Allowed origins: ${config.server.allowedOrigins.join(', ')}`);
       logger.info(`📡 Health check: http://localhost:${config.server.port}/health`);

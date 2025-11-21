@@ -1,0 +1,1 @@
+generate the complete summary of this chat, so that i can continue it on a new chat. including the memories of the scripts created and the file path and directories structure. generate everything till the current step which is option A.
