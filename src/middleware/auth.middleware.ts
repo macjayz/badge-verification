@@ -1,3 +1,4 @@
+// src/middleware/auth.middleware.ts
 import { Request, Response, NextFunction } from 'express';
 import { jwtService } from '../services/jwt.service';
 import { logger } from '../utils/logger';
@@ -6,6 +7,7 @@ export interface AuthenticatedRequest extends Request {
   user?: {
     userId: string;
     wallet: string;
+    role?: string; // Added for admin support
   };
 }
 
@@ -24,7 +26,8 @@ export const authenticateToken = (req: AuthenticatedRequest, res: Response, next
 
   req.user = {
     userId: payload.userId,
-    wallet: payload.wallet
+    wallet: payload.wallet,
+    role: payload.role
   };
 
   next();
@@ -39,7 +42,8 @@ export const optionalAuth = (req: AuthenticatedRequest, res: Response, next: Nex
     if (payload) {
       req.user = {
         userId: payload.userId,
-        wallet: payload.wallet
+        wallet: payload.wallet,
+        role: payload.role
       };
     }
   }

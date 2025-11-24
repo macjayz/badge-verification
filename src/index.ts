@@ -16,8 +16,9 @@ import { issuerRoutes } from './routes/issuer.routes';
 import { eligibilityRoutes } from './routes/eligibility.routes';
 import { mintingRoutes } from './routes/minting.routes';
 import { dashboardRoutes } from './routes/dashboard.routes';
+import { adminAuthRoutes } from './routes/admin-auth.routes';
 import { errorHandler } from './middleware/error.middleware';
-import { logger } from './utils/logger';
+import { logger } from './utils/logger'; // FIXED IMPORT PATH
 import path from 'path';
 
 const app = express();
@@ -45,6 +46,7 @@ app.use('/public', express.static(path.join(__dirname, '../public')));
 webSocketService.initialize(server);
 
 // Start demo events in development mode
+// DEMO EVENTS DISABLED - Comment out or remove the following block:
 // if (config.server.nodeEnv === 'development') {
 //   setTimeout(() => {
 //     webSocketEventsService.startDemoEvents();
@@ -61,9 +63,9 @@ app.use('/api/issuer', issuerRoutes);
 app.use('/api/eligibility', eligibilityRoutes);
 app.use('/api/minting', mintingRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/health', healthRoutes);
+app.use('/api/admin/auth', adminAuthRoutes);
 
-// HTML Page Routes - FIXED VERSION
+// HTML Page Routes
 app.get('/websocket-demo', (req, res) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.sendFile(path.join(__dirname, '../public/websocket-demo.html'));
@@ -72,6 +74,11 @@ app.get('/websocket-demo', (req, res) => {
 app.get('/admin-dashboard', (req, res) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.sendFile(path.join(__dirname, '../public/admin-dashboard.html'));
+});
+
+app.get('/admin-login', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/admin-login.html'));
 });
 
 // Direct file access routes
@@ -83,6 +90,11 @@ app.get('/websocket-demo.html', (req, res) => {
 app.get('/admin-dashboard.html', (req, res) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.sendFile(path.join(__dirname, '../public/admin-dashboard.html'));
+});
+
+app.get('/admin-login.html', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/admin-login.html'));
 });
 
 // Global error handler middleware (must be after all routes)
@@ -142,6 +154,7 @@ const startServer = async () => {
       logger.info(`🔌 WebSocket server available at ws://localhost:${config.server.port}/ws`);
       logger.info(`📊 WebSocket demo available at http://localhost:${config.server.port}/websocket-demo`);
       logger.info(`📈 Admin dashboard available at http://localhost:${config.server.port}/admin-dashboard`);
+      logger.info(`🔐 Admin login available at http://localhost:${config.server.port}/admin-login`);
       logger.info(`🌐 Environment: ${config.server.nodeEnv}`);
       logger.info(`🔒 Allowed origins: ${config.server.allowedOrigins.join(', ')}`);
       logger.info(`📡 Health check: http://localhost:${config.server.port}/health`);
@@ -151,11 +164,10 @@ const startServer = async () => {
       logger.info(`🎯 Eligibility endpoints: http://localhost:${config.server.port}/api/eligibility`);
       logger.info(`🪙 Minting endpoints: http://localhost:${config.server.port}/api/minting`);
       logger.info(`📈 Dashboard endpoints: http://localhost:${config.server.port}/api/dashboard`);
+      logger.info(`🔐 Admin auth endpoints: http://localhost:${config.server.port}/api/admin/auth`);
       logger.info(`✅ Enhanced error handling: ACTIVE`);
       logger.info(`🔔 WebSocket real-time updates: ACTIVE`);
-      if (config.server.nodeEnv === 'development') {
-        logger.info(`🎪 Demo events: ACTIVE (random minting events every 5-15 seconds)`);
-      }
+      logger.info(`🔐 Admin authentication: ENABLED`);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);

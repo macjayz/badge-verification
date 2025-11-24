@@ -296,679 +296,607 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
-      // Dashboard State
-      let ws = null;
-      let stats = {
-          totalMints: 0,
-          successfulMints: 0,
-          pendingMints: 0,
-          failedMints: 0,
-          activeUsers: 0,
-          wsConnections: 0,
-          successRate: 0,
-          todayMints: 0
-      };
-      
-      let activityChart = null;
-      const API_BASE_URL = 'http://localhost:3001/api/dashboard/admin';
-  
-      // Initialize Dashboard
-      document.addEventListener('DOMContentLoaded', function() {
-          initializeCharts();
-          connectWebSocket();
-          loadRealData();
-          startDataRefresh();
-      });
-  
-      // Initialize Charts - BETTER VERSION for your data
-// Initialize Charts - WITH REAL DATA
-function initializeCharts() {
-    const ctx = document.getElementById('activityChart').getContext('2d');
-    activityChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: [], // Will be populated with real badge names
-            datasets: [
-                {
-                    label: 'Successful Mints',
-                    data: [], // Will be populated with real data
-                    backgroundColor: '#2ecc71',
-                    borderColor: '#27ae60',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Failed Mints', 
-                    data: [], // Will be populated with real data
-                    backgroundColor: '#e74c3c',
-                    borderColor: '#c0392b',
-                    borderWidth: 1
+        // Authentication setup
+        const ADMIN_AUTH_API = 'http://localhost:3001/api/admin/auth';
+        const API_BASE_URL = 'http://localhost:3001/api/dashboard/admin';
+    
+        // Enhanced fetch function with auth headers
+        async function authFetch(url, options = {}) {
+            const token = localStorage.getItem('adminToken');
+            
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+            
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            
+            const response = await fetch(url, {
+                ...options,
+                headers
+            });
+            
+            if (response.status === 401) {
+                // Unauthorized - redirect to login
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminUser');
+                window.location.href = '/admin-login.html';
+                return null;
+            }
+            
+            return response;
+        }
+    
+        // Authentication check
+        async function checkAuth() {
+            const token = localStorage.getItem('adminToken');
+            const user = localStorage.getItem('adminUser');
+            
+            if (!token || !user) {
+                window.location.href = '/admin-login.html';
+                return false;
+            }
+            
+            try {
+                const response = await authFetch(`${ADMIN_AUTH_API}/verify`);
+                if (!response) return false;
+                
+                const result = await response.json();
+                if (!result.success) {
+                    localStorage.removeItem('adminToken');
+                    localStorage.removeItem('adminUser');
+                    window.location.href = '/admin-login.html';
+                    return false;
                 }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top'
-                },
-                title: {
-                    display: true,
-                    text: 'Badge Minting Performance by Type'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    },
-                    title: {
-                        display: true,
-                        text: 'Number of Mints'
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Badge Types'
-                    }
-                }
+                return true;
+            } catch (error) {
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminUser');
+                window.location.href = '/admin-login.html';
+                return false;
             }
         }
-    });
-}
-
-// Load chart data from RECENT MINTS (same as table) for consistency
-async function loadMintingActivity() {
-    try {
-        console.log('Loading consistent data from recent mints...');
-        const response = await fetch(`${API_BASE_URL}/recent-mints?limit=50`); // Get all mints
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    
+        // Logout function
+        async function logout() {
+            try {
+                await authFetch(`${ADMIN_AUTH_API}/logout`, {
+                    method: 'POST'
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            } finally {
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminUser');
+                window.location.href = '/admin-login.html';
+            }
         }
+    
+        // Dashboard State
+        let ws = null;
+        let stats = {
+            totalMints: 0,
+            successfulMints: 0,
+            pendingMints: 0,
+            failedMints: 0,
+            activeUsers: 0,
+            wsConnections: 0,
+            successRate: 0,
+            todayMints: 0,
+            totalBadgeTypes: 0,
+            totalIssuers: 0
+        };
         
-        const result = await response.json();
-        console.log('Recent mints API response:', result);
-        
-        if (result.success && activityChart && result.data.mints) {
-            updateChartWithRecentMints(result.data.mints);
-        } else {
-            console.error('Failed to load recent mints data');
+        let activityChart = null;
+    
+        // Initialize Dashboard with Authentication
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication first
+            const isAuthenticated = await checkAuth();
+            if (!isAuthenticated) return;
+    
+            // Add logout button to header
+            setupLogout();
+            
+            // Initialize dashboard components
+            initializeCharts();
+            connectWebSocket();
+            loadRealData();
+            startDataRefresh();
+        });
+    
+        // Add logout button to header
+        function setupLogout() {
+            const header = document.querySelector('.header');
+            if (header) {
+                const logoutBtn = document.createElement('button');
+                logoutBtn.textContent = 'Logout';
+                logoutBtn.style.cssText = `
+                    background: #e74c3c;
+                    color: white;
+                    border: none;
+                    padding: 8px 15px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    margin-left: 15px;
+                `;
+                logoutBtn.onclick = logout;
+                header.appendChild(logoutBtn);
+            }
         }
-    } catch (error) {
-        console.error('Error loading recent mints:', error);
-    }
-}
-
-// Calculate badge stats from recent mints data (same as table)
-function updateChartWithRecentMints(mints) {
-    if (!activityChart || !mints.length) return;
-
-    console.log('Calculating badge stats from', mints.length, 'mints');
     
-    // Count mints by badge type and status
-    const badgeStats = {};
-    
-    mints.forEach(mint => {
-        const badgeName = mint.badgeType;
-        if (!badgeStats[badgeName]) {
-            badgeStats[badgeName] = {
-                completed: 0,
-                failed: 0,
-                total: 0
-            };
+        // Initialize Charts
+        function initializeCharts() {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            activityChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Successful Mints',
+                            data: [],
+                            backgroundColor: '#2ecc71',
+                            borderColor: '#27ae60',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Failed Mints',
+                            data: [],
+                            backgroundColor: '#e74c3c',
+                            borderColor: '#c0392b',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Badge Minting Performance by Type'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            },
+                            title: {
+                                display: true,
+                                text: 'Number of Mints'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Badge Types'
+                            }
+                        }
+                    }
+                }
+            });
         }
-        
-        if (mint.status === 'completed' || mint.status === 'success') {
-            badgeStats[badgeName].completed++;
-        } else if (mint.status === 'failed') {
-            badgeStats[badgeName].failed++;
+    
+        // WebSocket Connection
+        function connectWebSocket() {
+            const statusEl = document.getElementById('connectionStatus');
+            
+            try {
+                ws = new WebSocket('ws://localhost:3001/ws?wallet=admin_dashboard');
+                statusEl.className = 'connection-status connecting';
+                statusEl.textContent = '🟡 Connecting...';
+    
+                ws.onopen = () => {
+                    statusEl.className = 'connection-status connected';
+                    statusEl.textContent = '🟢 Connected';
+                    
+                    // Subscribe to admin channels
+                    ws.send(JSON.stringify({
+                        type: 'subscribe',
+                        payload: {
+                            channels: ['minting', 'transactions', 'system', 'admin'],
+                            wallet: 'admin_dashboard'
+                        },
+                        timestamp: new Date().toISOString()
+                    }));
+                };
+    
+                ws.onmessage = (event) => {
+                    try {
+                        const message = JSON.parse(event.data);
+                        handleWebSocketMessage(message);
+                    } catch (e) {
+                        console.error('Error parsing message:', e);
+                    }
+                };
+    
+                ws.onerror = (error) => {
+                    statusEl.className = 'connection-status disconnected';
+                    statusEl.textContent = '🔴 Connection Error';
+                    console.error('WebSocket error:', error);
+                };
+    
+                ws.onclose = (event) => {
+                    statusEl.className = 'connection-status disconnected';
+                    statusEl.textContent = '🔴 Disconnected';
+                    
+                    // Attempt reconnect after 5 seconds
+                    setTimeout(connectWebSocket, 5000);
+                };
+    
+            } catch (error) {
+                statusEl.className = 'connection-status disconnected';
+                statusEl.textContent = '🔴 Failed to connect';
+                console.error('WebSocket connection failed:', error);
+            }
         }
-        
-        badgeStats[badgeName].total++;
-    });
-
-    console.log('Calculated badge stats:', badgeStats);
-
-    const labels = Object.keys(badgeStats).map(name => 
-        name.replace(' Badge', '').replace('DeFi Camp ', '')
-    );
-    const successfulData = Object.values(badgeStats).map(stats => stats.completed);
-    const failedData = Object.values(badgeStats).map(stats => stats.failed);
-
-    activityChart.data.labels = labels;
-    activityChart.data.datasets[0].data = successfulData;
-    activityChart.data.datasets[1].data = failedData;
     
-    const totalMints = mints.length;
-    activityChart.options.plugins.title.text = `Badge Performance (${totalMints} total mints)`;
+        // Load Real Data from APIs
+        async function loadRealData() {
+            await Promise.all([
+                loadDashboardStats(),
+                loadRecentMints(),
+                loadMintingActivity()
+            ]);
+        }
     
-    activityChart.update();
+        // Load Dashboard Statistics
+        async function loadDashboardStats() {
+            try {
+                const response = await authFetch(`${API_BASE_URL}/stats`);
+                if (!response) return;
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    stats = result.data;
+                    updateStatsDisplay();
+                }
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+            }
+        }
     
-    console.log('Chart updated with consistent table data');
-}
-
-// Update Chart with REAL Badge Data
-function updateChartWithRealBadgeData(analyticsData) {
-    if (!activityChart || !analyticsData.badgeTypes) {
-        console.error('No chart or badge data available');
-        return;
-    }
-
-    console.log('Updating chart with real badge data:', analyticsData);
-
-    // Filter to only show badges that have actual mint activity
-    const activeBadges = analyticsData.badgeTypes.filter(badge => badge.totalMints > 0);
+        // Load Recent Mints for Table
+        async function loadRecentMints() {
+            try {
+                const response = await authFetch(`${API_BASE_URL}/recent-mints?limit=15`);
+                if (!response) return;
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateRecentEventsTable(result.data.mints);
+                }
+            } catch (error) {
+                console.error('Error loading recent mints:', error);
+            }
+        }
     
-    if (activeBadges.length === 0) {
-        console.warn('No active badges with mint data');
-        return;
-    }
-
-    const labels = activeBadges.map(badge => {
-        // Shorten long badge names for better display
-        return badge.name.replace(' Badge', '').replace('DeFi Camp ', '');
-    });
+        // Load chart data from RECENT MINTS for consistency
+        async function loadMintingActivity() {
+            try {
+                const response = await authFetch(`${API_BASE_URL}/recent-mints?limit=50`);
+                if (!response) return;
+                
+                const result = await response.json();
+                
+                if (result.success && activityChart && result.data.mints) {
+                    updateChartWithRecentMints(result.data.mints);
+                }
+            } catch (error) {
+                console.error('Error loading recent mints for chart:', error);
+            }
+        }
     
-    const successfulData = activeBadges.map(badge => badge.completedMints);
-    const failedData = activeBadges.map(badge => badge.failedMints);
-
-    // Update the chart with real data
-    activityChart.data.labels = labels;
-    activityChart.data.datasets[0].data = successfulData;
-    activityChart.data.datasets[1].data = failedData;
+        // Calculate badge stats from recent mints data (same as table)
+        function updateChartWithRecentMints(mints) {
+            if (!activityChart || !mints.length) return;
     
-    // Update chart title with real overall stats
-    activityChart.options.plugins.title.text = `Badge Minting Performance (${analyticsData.overall.totalMints} total mints)`;
+            console.log('Calculating badge stats from', mints.length, 'mints');
+            
+            // Count mints by badge type and status
+            const badgeStats = {};
+            
+            mints.forEach(mint => {
+                const badgeName = mint.badgeType;
+                if (!badgeStats[badgeName]) {
+                    badgeStats[badgeName] = {
+                        completed: 0,
+                        failed: 0,
+                        total: 0
+                    };
+                }
+                
+                if (mint.status === 'completed' || mint.status === 'success') {
+                    badgeStats[badgeName].completed++;
+                } else if (mint.status === 'failed') {
+                    badgeStats[badgeName].failed++;
+                }
+                
+                badgeStats[badgeName].total++;
+            });
     
-    activityChart.update();
+            console.log('Calculated badge stats:', badgeStats);
     
-    console.log('Chart updated with REAL data:', {
-        labels: labels,
-        successful: successfulData,
-        failed: failedData
-    });
-}
-  
-      // WebSocket Connection
-      function connectWebSocket() {
-          const statusEl = document.getElementById('connectionStatus');
-          
-          try {
-              ws = new WebSocket('ws://localhost:3001/ws?wallet=admin_dashboard');
-              statusEl.className = 'connection-status connecting';
-              statusEl.textContent = '🟡 Connecting...';
-  
-              ws.onopen = () => {
-                  statusEl.className = 'connection-status connected';
-                  statusEl.textContent = '🟢 Connected';
-                  
-                  // Subscribe to admin channels
-                  ws.send(JSON.stringify({
-                      type: 'subscribe',
-                      payload: {
-                          channels: ['minting', 'transactions', 'system', 'admin'],
-                          wallet: 'admin_dashboard'
-                      },
-                      timestamp: new Date().toISOString()
-                  }));
-              };
-  
-              ws.onmessage = (event) => {
-                  try {
-                      const message = JSON.parse(event.data);
-                      handleWebSocketMessage(message);
-                  } catch (e) {
-                      console.error('Error parsing message:', e);
-                  }
-              };
-  
-              ws.onerror = (error) => {
-                  statusEl.className = 'connection-status disconnected';
-                  statusEl.textContent = '🔴 Connection Error';
-                  console.error('WebSocket error:', error);
-              };
-  
-              ws.onclose = (event) => {
-                  statusEl.className = 'connection-status disconnected';
-                  statusEl.textContent = '🔴 Disconnected';
-                  
-                  // Attempt reconnect after 5 seconds
-                  setTimeout(connectWebSocket, 5000);
-              };
-  
-          } catch (error) {
-              statusEl.className = 'connection-status disconnected';
-              statusEl.textContent = '🔴 Failed to connect';
-              console.error('WebSocket connection failed:', error);
-          }
-      }
-  
-      // Load Real Data from APIs
-      async function loadRealData() {
-          await Promise.all([
-              loadDashboardStats(),
-              loadRecentMints(),
-              loadMintingActivity()
-          ]);
-      }
-  
-      // Load Dashboard Statistics
-      async function loadDashboardStats() {
-          try {
-              const response = await fetch(`${API_BASE_URL}/stats`);
-              const result = await response.json();
-              
-              if (result.success) {
-                  stats = result.data;
-                  updateStatsDisplay();
-              }
-          } catch (error) {
-              console.error('Error loading dashboard stats:', error);
-          }
-      }
-  
-      // Load Recent Mints for Table
-      async function loadRecentMints() {
-          try {
-              const response = await fetch(`${API_BASE_URL}/recent-mints?limit=15`);
-              const result = await response.json();
-              
-              if (result.success) {
-                  updateRecentEventsTable(result.data.mints);
-              }
-          } catch (error) {
-              console.error('Error loading recent mints:', error);
-          }
-      }
-  
-      // Load Minting Activity for Chart - FIXED VERSION
-// Load Minting Activity for Chart - COMPLETE SOLUTION
-async function loadMintingActivity() {
-    try {
-        // Try to get badge analytics data first (more meaningful for your data)
-        const analyticsResponse = await fetch(`${API_BASE_URL}/badge-analytics`);
-        
-        if (analyticsResponse.ok) {
-            const analyticsResult = await analyticsResponse.json();
-            if (analyticsResult.success) {
-                updateChartWithBadgeAnalytics(analyticsResult.data);
+            const labels = Object.keys(badgeStats).map(name => 
+                name.replace(' Badge', '').replace('DeFi Camp ', '')
+            );
+            const successfulData = Object.values(badgeStats).map(stats => stats.completed);
+            const failedData = Object.values(badgeStats).map(stats => stats.failed);
+    
+            activityChart.data.labels = labels;
+            activityChart.data.datasets[0].data = successfulData;
+            activityChart.data.datasets[1].data = failedData;
+            
+            const totalMints = mints.length;
+            activityChart.options.plugins.title.text = `Badge Performance (${totalMints} total mints)`;
+            
+            activityChart.update();
+            
+            console.log('Chart updated with consistent table data');
+        }
+    
+        // Handle WebSocket Messages
+        function handleWebSocketMessage(message) {
+            updateLastUpdateTime();
+            
+            switch (message.type) {
+                case 'system_health':
+                    handleSystemHealth(message.payload);
+                    break;
+                    
+                case 'minting_started':
+                case 'minting_completed':
+                case 'minting_failed':
+                case 'badge_revoked':
+                    handleMintingEvent(message);
+                    // Refresh data when important events occur
+                    loadDashboardStats();
+                    loadRecentMints();
+                    break;
+                    
+                case 'subscription_confirmed':
+                    console.log('Subscribed to channels:', message.payload.subscribed);
+                    break;
+                    
+                default:
+                    if (message.type.includes('minting') || message.type.includes('badge')) {
+                        handleMintingEvent(message);
+                    }
+            }
+        }
+    
+        // Handle System Health Updates
+        function handleSystemHealth(healthData) {
+            stats.wsConnections = healthData.websocket?.connections || 0;
+            updateStatsDisplay();
+        }
+    
+        // Handle Minting Events
+        function handleMintingEvent(event) {
+            addActivityItem(event);
+            addRecentEvent(event);
+        }
+    
+        // Update Statistics Display
+        function updateStatsDisplay() {
+            document.getElementById('totalMints').textContent = stats.totalMints.toLocaleString();
+            document.getElementById('successfulMints').textContent = stats.successfulMints.toLocaleString();
+            document.getElementById('pendingMints').textContent = stats.pendingMints.toLocaleString();
+            document.getElementById('failedMints').textContent = stats.failedMints.toLocaleString();
+            document.getElementById('activeUsers').textContent = stats.activeUsers.toLocaleString();
+            document.getElementById('wsConnections').textContent = stats.wsConnections.toLocaleString();
+            document.getElementById('successRate').textContent = stats.successRate.toFixed(1) + '%';
+            document.getElementById('todayMints').textContent = stats.todayMints.toLocaleString();
+            document.getElementById('totalBadgeTypes').textContent = stats.totalBadgeTypes.toLocaleString();
+            document.getElementById('totalIssuers').textContent = stats.totalIssuers.toLocaleString();
+        }
+    
+        // Update Recent Events Table with Real Data
+        function updateRecentEventsTable(mints) {
+            const tableBody = document.getElementById('eventsTableBody');
+            tableBody.innerHTML = '';
+    
+            if (!mints || mints.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #6c757d; padding: 20px;">
+                            No minting activity yet
+                        </td>
+                    </tr>
+                `;
                 return;
             }
+    
+            mints.forEach(mint => {
+                const row = document.createElement('tr');
+                
+                let statusBadge = '';
+                switch (mint.status) {
+                    case 'pending':
+                        statusBadge = '<span class="status-badge status-pending">Pending</span>';
+                        break;
+                    case 'completed':
+                    case 'success':
+                        statusBadge = '<span class="status-badge status-completed">Completed</span>';
+                        break;
+                    case 'failed':
+                        statusBadge = '<span class="status-badge status-failed">Failed</span>';
+                        break;
+                    default:
+                        statusBadge = `<span class="status-badge">${mint.status || 'unknown'}</span>`;
+                }
+                
+                const walletDisplay = mint.walletAddress 
+                    ? `${mint.walletAddress.substring(0, 10)}...`
+                    : 'Unknown';
+                
+                const badgeName = mint.badgeType || 'Unknown Badge';
+                const transactionDisplay = mint.transactionHash 
+                    ? `${mint.transactionHash.substring(0, 8)}...`
+                    : 'N/A';
+                
+                row.innerHTML = `
+                    <td>${new Date(mint.createdAt).toLocaleTimeString()}</td>
+                    <td style="font-family: monospace;">${walletDisplay}</td>
+                    <td>${badgeName}</td>
+                    <td>${statusBadge}</td>
+                    <td style="font-family: monospace;">${transactionDisplay}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
         }
-        
-        // Fallback to minting activity
-        const response = await fetch(`${API_BASE_URL}/minting-activity?timeRange=7d`);
-        const result = await response.json();
-        
-        if (result.success && activityChart && result.data) {
-            updateActivityChart(result.data);
-        } else {
-            updateChartWithRealStats();
+    
+        // Add Activity Item (for real-time updates)
+        function addActivityItem(event) {
+            const activityList = document.getElementById('activityList');
+            
+            let statusClass = '';
+            let icon = '🔄';
+            
+            switch (event.type) {
+                case 'minting_started':
+                    statusClass = 'warning';
+                    icon = '🟡';
+                    break;
+                case 'minting_completed':
+                    statusClass = 'success';
+                    icon = '✅';
+                    break;
+                case 'minting_failed':
+                    statusClass = 'danger';
+                    icon = '❌';
+                    break;
+                case 'badge_revoked':
+                    statusClass = 'danger';
+                    icon = '🗑️';
+                    break;
+            }
+            
+            const activityItem = document.createElement('div');
+            activityItem.className = `activity-item ${statusClass}`;
+            
+            const wallet = event.payload?.wallet || event.payload?.user?.walletAddress;
+            const badgeType = event.payload?.badgeTypeKey || event.payload?.badgeTypeInfo?.name;
+            
+            activityItem.innerHTML = `
+                <div><strong>${icon} ${getEventDisplayName(event.type)}</strong></div>
+                ${wallet ? `<div>Wallet: ${wallet.substring(0, 8)}...</div>` : ''}
+                ${badgeType ? `<div>Badge: ${badgeType}</div>` : ''}
+                ${event.payload?.reason ? `<div>Reason: ${event.payload.reason}</div>` : ''}
+                <div class="activity-time">${new Date().toLocaleTimeString()}</div>
+            `;
+            
+            // Add to top of list
+            if (activityList.firstChild) {
+                activityList.insertBefore(activityItem, activityList.firstChild);
+            } else {
+                activityList.appendChild(activityItem);
+            }
+            
+            // Limit to 10 items
+            if (activityList.children.length > 10) {
+                activityList.removeChild(activityList.lastChild);
+            }
         }
-    } catch (error) {
-        console.error('Error loading chart data:', error);
-        updateChartWithRealStats();
-    }
-}
-
-// Create chart from badge analytics data
-function updateChartWithBadgeAnalytics(analyticsData) {
-    if (!activityChart || !analyticsData.badgeTypes) return;
     
-    const badgeTypes = analyticsData.badgeTypes.filter(badge => badge.totalMints > 0);
-    const labels = badgeTypes.map(badge => badge.name);
-    const successfulData = badgeTypes.map(badge => badge.completedMints);
-    const failedData = badgeTypes.map(badge => badge.failedMints);
-    
-    activityChart.data.labels = labels;
-    activityChart.data.datasets[0].data = successfulData;
-    activityChart.data.datasets[1].data = failedData;
-    activityChart.update();
-    
-    console.log('Chart updated with badge analytics data');
-}
-
-// Create chart from your real statistics data
-function updateActivityChartWithRealStats() {
-    if (!activityChart) return;
-    
-    // Use your actual mint data to create a meaningful chart
-    const labels = ['Verified Creator', 'Early Supporter', 'DAO Voter'];
-    const successfulData = [1, 1, 1]; // From your badge analytics
-    const failedData = [1, 1, 1]; // From your badge analytics
-    
-    activityChart.data.labels = labels;
-    activityChart.data.datasets[0].data = successfulData;
-    activityChart.data.datasets[1].data = failedData;
-    
-    // Update chart type to bar for better visualization of badge types
-    activityChart.config.type = 'bar';
-    activityChart.options.plugins.title = {
-        display: true,
-        text: 'Badge Minting by Type (Last 7 Days)'
-    };
-    activityChart.options.scales.x.title = {
-        display: true,
-        text: 'Badge Types'
-    };
-    activityChart.options.scales.y.title = {
-        display: true,
-        text: 'Number of Mints'
-    };
-    
-    activityChart.update();
-    console.log('Using real stats data for chart');
-}
-
-// Update Activity Chart with Real Data
-function updateActivityChart(activityData) {
-    if (!activityChart || !activityData || !activityData.data) {
-        console.warn('No activity data available for chart');
-        updateActivityChartWithRealStats();
-        return;
-    }
-
-    console.log('Updating activity chart with data:', activityData);
-
-    // Check if we have valid non-zero data
-    const hasData = activityData.data.some(item => 
-        (item.successful || 0) > 0 || (item.failed || 0) > 0
-    );
-
-    if (!hasData) {
-        console.log('No recent hourly data, showing badge type breakdown instead');
-        updateActivityChartWithRealStats();
-        return;
-    }
-
-    const labels = activityData.data.map(item => {
-        if (!item.hour) return 'Unknown';
-        const date = new Date(item.hour);
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    });
-
-    const successfulData = activityData.data.map(item => item.successful || 0);
-    const failedData = activityData.data.map(item => item.failed || 0);
-
-    activityChart.data.labels = labels;
-    activityChart.data.datasets[0].data = successfulData;
-    activityChart.data.datasets[1].data = failedData;
-    activityChart.update();
-    
-    console.log('Chart updated successfully with hourly data');
-}
-  
-      // Handle WebSocket Messages
-      function handleWebSocketMessage(message) {
-          updateLastUpdateTime();
-          
-          switch (message.type) {
-              case 'system_health':
-                  handleSystemHealth(message.payload);
-                  break;
-                  
-              case 'minting_started':
-              case 'minting_completed':
-              case 'minting_failed':
-              case 'badge_revoked':
-                  handleMintingEvent(message);
-                  // Refresh data when important events occur
-                  loadDashboardStats();
-                  loadRecentMints();
-                  break;
-                  
-              case 'subscription_confirmed':
-                  console.log('Subscribed to channels:', message.payload.subscribed);
-                  break;
-                  
-              default:
-                  if (message.type.includes('minting') || message.type.includes('badge')) {
-                      handleMintingEvent(message);
-                  }
-          }
-      }
-  
-      // Handle System Health Updates
-      function handleSystemHealth(healthData) {
-          stats.wsConnections = healthData.websocket?.connections || 0;
-          updateStatsDisplay();
-      }
-  
-      // Handle Minting Events
-      function handleMintingEvent(event) {
-          addActivityItem(event);
-          addRecentEvent(event);
-      }
-  
-      // Update Statistics Display
-      function updateStatsDisplay() {
-          document.getElementById('totalMints').textContent = stats.totalMints.toLocaleString();
-          document.getElementById('successfulMints').textContent = stats.successfulMints.toLocaleString();
-          document.getElementById('pendingMints').textContent = stats.pendingMints.toLocaleString();
-          document.getElementById('failedMints').textContent = stats.failedMints.toLocaleString();
-          document.getElementById('activeUsers').textContent = stats.activeUsers.toLocaleString();
-          document.getElementById('wsConnections').textContent = stats.wsConnections.toLocaleString();
-          document.getElementById('successRate').textContent = stats.successRate.toFixed(1) + '%';
-          document.getElementById('todayMints').textContent = stats.todayMints.toLocaleString();
-      }
-  
-      // Update Recent Events Table with Real Data
-      
-function updateRecentEventsTable(mints) {
-    const tableBody = document.getElementById('eventsTableBody');
-    tableBody.innerHTML = '';
-
-    if (!mints || mints.length === 0) {
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="5" style="text-align: center; color: #6c757d; padding: 20px;">
-                    No minting activity yet
-                </td>
-            </tr>
-        `;
-        return;
-    }
-
-    mints.forEach(mint => {
-        const row = document.createElement('tr');
-        
-        let statusBadge = '';
-        switch (mint.status) {
-            case 'pending':
-                statusBadge = '<span class="status-badge status-pending">Pending</span>';
-                break;
-            case 'completed':
-            case 'success':
-                statusBadge = '<span class="status-badge status-completed">Completed</span>';
-                break;
-            case 'failed':
-                statusBadge = '<span class="status-badge status-failed">Failed</span>';
-                break;
-            default:
-                statusBadge = `<span class="status-badge">${mint.status || 'unknown'}</span>`;
+        // Add Recent Event to Table (for real-time updates)
+        function addRecentEvent(event) {
+            const tableBody = document.getElementById('eventsTableBody');
+            
+            // Clear "no events" message if present
+            if (tableBody.children.length === 1 && tableBody.children[0].colSpan) {
+                tableBody.innerHTML = '';
+            }
+            
+            const row = document.createElement('tr');
+            
+            let statusBadge = '';
+            switch (event.type) {
+                case 'minting_started':
+                    statusBadge = '<span class="status-badge status-pending">Pending</span>';
+                    break;
+                case 'minting_completed':
+                    statusBadge = '<span class="status-badge status-completed">Completed</span>';
+                    break;
+                case 'minting_failed':
+                    statusBadge = '<span class="status-badge status-failed">Failed</span>';
+                    break;
+                case 'badge_revoked':
+                    statusBadge = '<span class="status-badge">Revoked</span>';
+                    break;
+            }
+            
+            const wallet = event.payload?.wallet || event.payload?.user?.walletAddress;
+            const badgeType = event.payload?.badgeTypeKey || event.payload?.badgeTypeInfo?.name;
+            
+            row.innerHTML = `
+                <td>${new Date().toLocaleTimeString()}</td>
+                <td style="font-family: monospace;">${wallet ? wallet.substring(0, 10) + '...' : 'N/A'}</td>
+                <td>${badgeType || 'N/A'}</td>
+                <td>${statusBadge}</td>
+                <td style="font-family: monospace;">${event.payload?.transactionHash ? event.payload.transactionHash.substring(0, 8) + '...' : 'N/A'}</td>
+            `;
+            
+            // Add to top of table
+            if (tableBody.firstChild) {
+                tableBody.insertBefore(row, tableBody.firstChild);
+            } else {
+                tableBody.appendChild(row);
+            }
+            
+            // Limit to 15 events
+            if (tableBody.children.length > 15) {
+                tableBody.removeChild(tableBody.lastChild);
+            }
         }
-        
-        const walletDisplay = mint.walletAddress 
-            ? `${mint.walletAddress.substring(0, 10)}...`
-            : 'Unknown';
-        
-        const badgeName = mint.badgeType || 'Unknown Badge';
-        const transactionDisplay = mint.transactionHash 
-            ? `${mint.transactionHash.substring(0, 8)}...`
-            : 'N/A';
-        
-        row.innerHTML = `
-            <td>${new Date(mint.createdAt).toLocaleTimeString()}</td>
-            <td style="font-family: monospace;">${walletDisplay}</td>
-            <td>${badgeName}</td>
-            <td>${statusBadge}</td>
-            <td style="font-family: monospace;">${transactionDisplay}</td>
-        `;
-        
-        tableBody.appendChild(row);
-    });
-}
-  
-      // Update Activity Chart with Real Data
-      function updateActivityChart(activityData) {
-          if (!activityChart || !activityData) return;
-  
-          const labels = activityData.data.map(item => {
-              const date = new Date(item.hour);
-              return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          });
-  
-          const successfulData = activityData.data.map(item => item.successful || 0);
-          const failedData = activityData.data.map(item => item.failed || 0);
-  
-          activityChart.data.labels = labels;
-          activityChart.data.datasets[0].data = successfulData;
-          activityChart.data.datasets[1].data = failedData;
-          activityChart.update();
-      }
-  
-      // Add Activity Item (for real-time updates)
-      function addActivityItem(event) {
-          const activityList = document.getElementById('activityList');
-          
-          let statusClass = '';
-          let icon = '🔄';
-          
-          switch (event.type) {
-              case 'minting_started':
-                  statusClass = 'warning';
-                  icon = '🟡';
-                  break;
-              case 'minting_completed':
-                  statusClass = 'success';
-                  icon = '✅';
-                  break;
-              case 'minting_failed':
-                  statusClass = 'danger';
-                  icon = '❌';
-                  break;
-              case 'badge_revoked':
-                  statusClass = 'danger';
-                  icon = '🗑️';
-                  break;
-          }
-          
-          const activityItem = document.createElement('div');
-          activityItem.className = `activity-item ${statusClass}`;
-          
-          const wallet = event.payload?.wallet || event.payload?.user?.walletAddress;
-          const badgeType = event.payload?.badgeTypeKey || event.payload?.badgeTypeInfo?.name;
-          
-          activityItem.innerHTML = `
-              <div><strong>${icon} ${getEventDisplayName(event.type)}</strong></div>
-              ${wallet ? `<div>Wallet: ${wallet.substring(0, 8)}...</div>` : ''}
-              ${badgeType ? `<div>Badge: ${badgeType}</div>` : ''}
-              ${event.payload?.reason ? `<div>Reason: ${event.payload.reason}</div>` : ''}
-              <div class="activity-time">${new Date().toLocaleTimeString()}</div>
-          `;
-          
-          // Add to top of list
-          if (activityList.firstChild) {
-              activityList.insertBefore(activityItem, activityList.firstChild);
-          } else {
-              activityList.appendChild(activityItem);
-          }
-          
-          // Limit to 10 items
-          if (activityList.children.length > 10) {
-              activityList.removeChild(activityList.lastChild);
-          }
-      }
-  
-      // Add Recent Event to Table (for real-time updates)
-      function addRecentEvent(event) {
-          const tableBody = document.getElementById('eventsTableBody');
-          
-          // Clear "no events" message if present
-          if (tableBody.children.length === 1 && tableBody.children[0].colSpan) {
-              tableBody.innerHTML = '';
-          }
-          
-          const row = document.createElement('tr');
-          
-          let statusBadge = '';
-          switch (event.type) {
-              case 'minting_started':
-                  statusBadge = '<span class="status-badge status-pending">Pending</span>';
-                  break;
-              case 'minting_completed':
-                  statusBadge = '<span class="status-badge status-completed">Completed</span>';
-                  break;
-              case 'minting_failed':
-                  statusBadge = '<span class="status-badge status-failed">Failed</span>';
-                  break;
-              case 'badge_revoked':
-                  statusBadge = '<span class="status-badge">Revoked</span>';
-                  break;
-          }
-          
-          const wallet = event.payload?.wallet || event.payload?.user?.walletAddress;
-          const badgeType = event.payload?.badgeTypeKey || event.payload?.badgeTypeInfo?.name;
-          
-          row.innerHTML = `
-              <td>${new Date().toLocaleTimeString()}</td>
-              <td style="font-family: monospace;">${wallet ? wallet.substring(0, 10) + '...' : 'N/A'}</td>
-              <td>${badgeType || 'N/A'}</td>
-              <td>${statusBadge}</td>
-              <td style="font-family: monospace;">${event.payload?.transactionHash ? event.payload.transactionHash.substring(0, 8) + '...' : 'N/A'}</td>
-          `;
-          
-          // Add to top of table
-          if (tableBody.firstChild) {
-              tableBody.insertBefore(row, tableBody.firstChild);
-          } else {
-              tableBody.appendChild(row);
-          }
-          
-          // Limit to 15 events
-          if (tableBody.children.length > 15) {
-              tableBody.removeChild(tableBody.lastChild);
-          }
-      }
-  
-      // Helper Functions
-      function getEventDisplayName(eventType) {
-          const names = {
-              'minting_started': 'Minting Started',
-              'minting_completed': 'Minting Completed',
-              'minting_failed': 'Minting Failed',
-              'badge_revoked': 'Badge Revoked',
-              'minting_success': 'Minting Success',
-              'blockchain_transaction_starting': 'Transaction Starting',
-              'blockchain_transaction_submitted': 'Transaction Submitted'
-          };
-          return names[eventType] || eventType;
-      }
-  
-      function updateLastUpdateTime() {
-          document.getElementById('lastUpdate').textContent = 
-              `Last update: ${new Date().toLocaleTimeString()}`;
-      }
-  
-      // Periodic Data Refresh
-      function startDataRefresh() {
-          // Refresh stats every 30 seconds
-          setInterval(async () => {
-              await loadDashboardStats();
-              
-              if (ws && ws.readyState === WebSocket.OPEN) {
-                  // Send ping to keep connection alive
-                  ws.send(JSON.stringify({
-                      type: 'ping',
-                      payload: { source: 'admin_dashboard' },
-                      timestamp: new Date().toISOString()
-                  }));
-              }
-          }, 30000);
-      }
-  </script>
+    
+        // Helper Functions
+        function getEventDisplayName(eventType) {
+            const names = {
+                'minting_started': 'Minting Started',
+                'minting_completed': 'Minting Completed',
+                'minting_failed': 'Minting Failed',
+                'badge_revoked': 'Badge Revoked',
+                'minting_success': 'Minting Success',
+                'blockchain_transaction_starting': 'Transaction Starting',
+                'blockchain_transaction_submitted': 'Transaction Submitted'
+            };
+            return names[eventType] || eventType;
+        }
+    
+        function updateLastUpdateTime() {
+            document.getElementById('lastUpdate').textContent = 
+                `Last update: ${new Date().toLocaleTimeString()}`;
+        }
+    
+        // Periodic Data Refresh
+        function startDataRefresh() {
+            // Refresh stats every 30 seconds
+            setInterval(async () => {
+                await loadDashboardStats();
+                
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    // Send ping to keep connection alive
+                    ws.send(JSON.stringify({
+                        type: 'ping',
+                        payload: { source: 'admin_dashboard' },
+                        timestamp: new Date().toISOString()
+                    }));
+                }
+            }, 30000);
+        }
+    </script>
 </body>
 </html>

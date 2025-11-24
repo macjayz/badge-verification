@@ -1,3 +1,4 @@
+// src/services/jwt.service.ts
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
 import { logger } from '../utils/logger';
@@ -5,6 +6,7 @@ import { logger } from '../utils/logger';
 export interface JWTPayload {
   userId: string;
   wallet: string;
+  role?: string; // Added for admin support
 }
 
 export class JWTService {
