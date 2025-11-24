@@ -18,7 +18,8 @@ import { mintingRoutes } from './routes/minting.routes';
 import { dashboardRoutes } from './routes/dashboard.routes';
 import { adminAuthRoutes } from './routes/admin-auth.routes';
 import { errorHandler } from './middleware/error.middleware';
-import { logger } from './utils/logger'; // FIXED IMPORT PATH
+import { userManagementRoutes } from './routes/user-management.routes';
+import { logger } from './utils/logger'; 
 import path from 'path';
 
 const app = express();
@@ -35,12 +36,21 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Add this right after your static file configuration
 app.use('/public', (req, res, next) => {
   console.log('Static file request:', req.path);
   next();
 });
 app.use('/public', express.static(path.join(__dirname, '../public')));
+
+app.get('/user-management', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/user-management.html'));
+});
+
+app.get('/user-management.html', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/user-management.html'));
+});
 
 // Initialize WebSocket server
 webSocketService.initialize(server);
@@ -64,6 +74,7 @@ app.use('/api/eligibility', eligibilityRoutes);
 app.use('/api/minting', mintingRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin/auth', adminAuthRoutes);
+app.use('/api/admin/users', userManagementRoutes);
 
 // HTML Page Routes
 app.get('/websocket-demo', (req, res) => {
@@ -168,6 +179,7 @@ const startServer = async () => {
       logger.info(`✅ Enhanced error handling: ACTIVE`);
       logger.info(`🔔 WebSocket real-time updates: ACTIVE`);
       logger.info(`🔐 Admin authentication: ENABLED`);
+      logger.info(`👥 User management endpoints: http://localhost:${config.server.port}/api/admin/users`);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);

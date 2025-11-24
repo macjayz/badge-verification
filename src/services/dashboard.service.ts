@@ -413,71 +413,107 @@ try {
   }
 
   // NEW: User Management Data - FIXED VERSION
-  async getUserManagementData(page: number = 1, limit: number = 20) {
-    try {
-      const [users, total] = await this.userRepository.findAndCount({
-        relations: ['verifications'],
-        order: { createdAt: 'DESC' },
-        skip: (page - 1) * limit,
-        take: limit
-      });
+  // In src/services/dashboard.service.ts - replace the getUserManagementData method
+async getUserManagementData(page: number = 1, limit: number = 20) {
+  try {
+    logger.info('🟡 Starting getUserManagementData...');
 
-      // Get mint counts for each user by wallet address
-      const userMintCounts = await this.badgeMintRepository
-        .createQueryBuilder('mint')
-        .select('mint.wallet', 'wallet')
-        .addSelect('COUNT(*)', 'mintCount')
-        .addSelect(`COUNT(CASE WHEN mint.metadata ->> 'status' = 'success' THEN 1 END)`, 'successCount')
-        .groupBy('mint.wallet')
-        .getRawMany();
+    // First, check if we have any users at all
+    const totalUsers = await this.userRepository.count();
+    logger.info(`Total users in database: ${totalUsers}`);
 
-      const mintCountMap = new Map();
-      userMintCounts.forEach(item => {
-        mintCountMap.set(item.wallet, {
-          totalMints: parseInt(item.mintCount),
-          successMints: parseInt(item.successCount)
-        });
-      });
-
-      const formattedUsers = users.map(user => {
-        // Get the user's wallet address - check different possible property names
-        const walletAddress = (user as any).walletAddress || (user as any).wallet || user.id;
-        
-        const latestVerification = user.verifications && user.verifications.length > 0 
-          ? user.verifications.reduce((latest: any, current: any) => 
-              new Date(current.createdAt) > new Date(latest.createdAt) ? current : latest
-            )
-          : null;
-
-        const mintData = mintCountMap.get(walletAddress) || { totalMints: 0, successMints: 0 };
-
-        return {
-          id: user.id,
-          walletAddress: walletAddress,
-          verificationStatus: latestVerification?.status || 'not_verified',
-          verifiedAt: latestVerification?.createdAt, // Use createdAt if verifiedAt doesn't exist
-          badgesCount: mintData.successMints,
-          totalMints: mintData.totalMints,
-          lastActivity: (user as any).updatedAt || new Date(),
-          isActive: mintData.successMints > 0, // Consider active if they have successful mints
-          createdAt: (user as any).createdAt || new Date()
-        };
-      });
-
+    if (totalUsers === 0) {
+      logger.info('No users found in database');
       return {
-        users: formattedUsers,
+        users: [],
         pagination: {
           page,
           limit,
-          total,
-          totalPages: Math.ceil(total / limit)
+          total: 0,
+          totalPages: 0
         }
       };
-    } catch (error) {
-      logger.error('Get user management error:', error);
-      throw new Error('Failed to get user management data');
     }
+
+    // Get users with pagination and relations
+    const [users, total] = await this.userRepository.findAndCount({
+      relations: ['verifications'],
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit
+    });
+
+    logger.info(`Found ${users.length} users for page ${page}`);
+
+    // Get mint counts for each user by wallet
+    let userMintCounts: any[] = [];
+    try {
+      userMintCounts = await this.badgeMintRepository
+        .createQueryBuilder('mint')
+        .select('mint.wallet', 'wallet')
+        .addSelect('COUNT(*)', 'mintCount')
+        .addSelect(`COUNT(CASE WHEN mint.status = 'completed' THEN 1 END)`, 'successCount')
+        .addSelect(`COUNT(CASE WHEN mint.metadata ->> 'status' = 'completed' THEN 1 END)`, 'successCountMetadata')
+        .groupBy('mint.wallet')
+        .getRawMany();
+      logger.info(`Mint counts for ${userMintCounts.length} wallets`);
+    } catch (error) {
+      logger.error('Error getting mint counts:', error);
+    }
+
+    const mintCountMap = new Map();
+    userMintCounts.forEach(item => {
+      const successCount = parseInt(item.successCount) || parseInt(item.successCountMetadata) || 0;
+      mintCountMap.set(item.wallet, {
+        totalMints: parseInt(item.mintCount) || 0,
+        successMints: successCount
+      });
+    });
+
+    const formattedUsers = users.map(user => {
+      const wallet = user.wallet;
+      const mintData = mintCountMap.get(wallet) || { totalMints: 0, successMints: 0 };
+
+      // Find latest verification
+      const verifications = user.verifications || [];
+      const latestVerification = verifications.length > 0 
+        ? verifications.reduce((latest: any, current: any) => 
+            new Date(current.createdAt) > new Date(latest.createdAt) ? current : latest
+          )
+        : null;
+
+      return {
+        id: user.id,
+        walletAddress: user.wallet, // Map to walletAddress for frontend consistency
+        verificationStatus: latestVerification?.status || 'not_verified',
+        verifiedAt: latestVerification?.createdAt,
+        badgesCount: mintData.successMints,
+        totalMints: mintData.totalMints,
+        lastActivity: user.updatedAt || user.createdAt,
+        isActive: mintData.successMints > 0,
+        createdAt: user.createdAt
+      };
+    });
+
+    const result = {
+      users: formattedUsers,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
+
+    logger.info('✅ getUserManagementData completed successfully');
+    return result;
+
+  } catch (error) {
+    logger.error('🔴 Get user management data error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    throw new Error('Failed to get user management data: ' + errorMessage);
   }
+}
 
   // NEW: Badge Analytics
   async getBadgeAnalytics() {
