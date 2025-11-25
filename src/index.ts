@@ -19,6 +19,7 @@ import { dashboardRoutes } from './routes/dashboard.routes';
 import { adminAuthRoutes } from './routes/admin-auth.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { userManagementRoutes } from './routes/user-management.routes';
+import { badgeManagementRoutes } from './routes/badge-management.routes';
 import { logger } from './utils/logger'; 
 import path from 'path';
 
@@ -75,6 +76,7 @@ app.use('/api/minting', mintingRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/admin/users', userManagementRoutes);
+app.use('/api/admin/badges', badgeManagementRoutes);
 
 // HTML Page Routes
 app.get('/websocket-demo', (req, res) => {
@@ -106,6 +108,16 @@ app.get('/admin-dashboard.html', (req, res) => {
 app.get('/admin-login.html', (req, res) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.sendFile(path.join(__dirname, '../public/admin-login.html'));
+});
+
+app.get('/badge-management', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/badge-management.html'));
+});
+
+app.get('/badge-management.html', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/badge-management.html'));
 });
 
 // Global error handler middleware (must be after all routes)
@@ -180,6 +192,7 @@ const startServer = async () => {
       logger.info(`🔔 WebSocket real-time updates: ACTIVE`);
       logger.info(`🔐 Admin authentication: ENABLED`);
       logger.info(`👥 User management endpoints: http://localhost:${config.server.port}/api/admin/users`);
+      logger.info(`🪙 Badge management available at http://localhost:${config.server.port}/badge-management`);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);

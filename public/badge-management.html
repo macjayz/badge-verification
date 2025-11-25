@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Badge Management - Badge Backend</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: var(--dark);
+            color: white;
+            padding: 20px;
+        }
+        
+        .sidebar h1 {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: var(--light);
+        }
+        
+        .sidebar nav a {
+            display: block;
+            color: #bdc3c7;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar nav a:hover, 
+        .sidebar nav a.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        /* Filters */
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .filter-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .filter-input, .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            min-width: 200px;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .stat-card.success { border-left-color: var(--success); }
+        .stat-card.warning { border-left-color: var(--warning); }
+        .stat-card.danger { border-left-color: var(--danger); }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+        
+        /* Badge Table */
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-active { background: #d4edda; color: #155724; }
+        .status-inactive { background: #f8d7da; color: #721c24; }
+        .status-global { background: #cce7ff; color: #004085; }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+        }
+        
+        /* Loading and Error States */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h1>🎯 Badge Admin</h1>
+            <nav>
+                <a href="/admin-dashboard.html">📊 Dashboard</a>
+                <a href="/user-management.html">👥 Users</a>
+                <a href="/badge-management.html" class="active">🪙 Badges</a>
+                <a href="#">⚙️ Settings</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h2>Badge Management</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="openCreateModal()">+ Create Badge</button>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalBadges">0</div>
+                    <div class="stat-label">Total Badges</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-value" id="activeBadges">0</div>
+                    <div class="stat-label">Active Badges</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalMints">0</div>
+                    <div class="stat-label">Total Mints</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-value" id="successRate">0%</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <div class="filter-group">
+                    <div class="filter-label">Search</div>
+                    <input type="text" id="searchInput" class="filter-input" placeholder="Search by name or key..." oninput="loadBadges()">
+                </div>
+                <div class="filter-group">
+                    <div class="filter-label">Status</div>
+                    <select id="statusFilter" class="filter-select" onchange="loadBadges()">
+                        <option value="">All Status</option>
+                        <option value="active">Active Only</option>
+                        <option value="inactive">Inactive Only</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+
+            <!-- Badges Table -->
+            <div class="table-container">
+                <h3>All Badge Types</h3>
+                <div id="badgesTable">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Key</th>
+                                <th>Issuer</th>
+                                <th>Mints</th>
+                                <th>Success Rate</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="badgesTableBody">
+                            <tr>
+                                <td colspan="7" class="loading">Loading badges...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="pagination" style="margin-top: 15px; text-align: center;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const ADMIN_AUTH_API = 'http://localhost:3001/api/admin/auth';
+        const BADGE_API_URL = 'http://localhost:3001/api/admin/badges';
+
+        // Global State
+        let currentPage = 1;
+
+        // SIMPLE AUTH CHECK - NO COMPLEX REDIRECTS
+        function checkAuth() {
+            const token = localStorage.getItem('adminToken');
+            const user = localStorage.getItem('adminUser');
+            
+            console.log('🔐 Simple auth check:', { 
+                hasToken: !!token, 
+                hasUser: !!user 
+            });
+            
+            if (!token || !user) {
+                console.log('❌ No auth found, forcing login');
+                // Force login without redirect parameter
+                window.location.href = '/admin-login.html';
+                return false;
+            }
+            
+            console.log('✅ Auth found, proceeding');
+            return true;
+        }
+
+        // Simple auth fetch
+        async function authFetch(url, options = {}) {
+            const token = localStorage.getItem('adminToken');
+            
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+            
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            
+            try {
+                const response = await fetch(url, { 
+                    ...options, 
+                    headers 
+                });
+                
+                if (response.status === 401) {
+                    console.log('❌ 401 - Clearing auth and redirecting');
+                    localStorage.removeItem('adminToken');
+                    localStorage.removeItem('adminUser');
+                    window.location.href = '/admin-login.html';
+                    return null;
+                }
+                
+                return response;
+            } catch (error) {
+                console.error('❌ Fetch error:', error);
+                throw error;
+            }
+        }
+
+        // Load Badges
+        async function loadBadges() {
+            if (!checkAuth()) return;
+            
+            const search = document.getElementById('searchInput').value;
+            const status = document.getElementById('statusFilter').value;
+            
+            let url = `${BADGE_API_URL}/types?page=${currentPage}&limit=20`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (status) url += `&isActive=${status === 'active'}`;
+            
+            try {
+                const response = await authFetch(url);
+                if (!response) return;
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateBadgesTable(result.data.badgeTypes);
+                    updatePagination(result.data.pagination);
+                    updateStats(result.data.badgeTypes);
+                } else {
+                    showError(result.error || 'Failed to load badges');
+                }
+            } catch (error) {
+                showError('Error loading badges: ' + error.message);
+            }
+        }
+
+        function updateBadgesTable(badges) {
+            const tbody = document.getElementById('badgesTableBody');
+            
+            if (!badges || badges.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #6c757d; padding: 40px;">
+                            No badges found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = badges.map(badge => `
+                <tr>
+                    <td>
+                        <strong>${badge.name}</strong>
+                        ${badge.isGlobal ? '<span class="status-badge status-global" style="margin-left: 5px;">Global</span>' : ''}
+                    </td>
+                    <td style="font-family: monospace; font-size: 0.9rem;">${badge.key}</td>
+                    <td>${badge.issuer?.name || 'Unknown'}</td>
+                    <td>
+                        <div>Total: ${badge.totalMints}</div>
+                        <div style="font-size: 0.8rem; color: #6c757d;">
+                            ✓ ${badge.completedMints} | ✗ ${badge.failedMints}
+                        </div>
+                    </td>
+                    <td>${badge.successRate.toFixed(1)}%</td>
+                    <td>
+                        <span class="status-badge ${badge.isActive ? 'status-active' : 'status-inactive'}">
+                            ${badge.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm" onclick="toggleBadgeStatus('${badge.id}', ${!badge.isActive})">
+                                ${badge.isActive ? 'Deactivate' : 'Activate'}
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updatePagination(pagination) {
+            const paginationEl = document.getElementById('pagination');
+            if (!pagination || pagination.totalPages <= 1) {
+                paginationEl.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            if (pagination.page > 1) {
+                html += `<button class="btn btn-sm" onclick="changePage(${pagination.page - 1})">Previous</button> `;
+            }
+            
+            html += `Page ${pagination.page} of ${pagination.totalPages}`;
+            
+            if (pagination.page < pagination.totalPages) {
+                html += ` <button class="btn btn-sm" onclick="changePage(${pagination.page + 1})">Next</button>`;
+            }
+            
+            paginationEl.innerHTML = html;
+        }
+
+        function updateStats(badges) {
+            const totalBadges = badges.length;
+            const activeBadges = badges.filter(b => b.isActive).length;
+            const totalMints = badges.reduce((sum, badge) => sum + badge.totalMints, 0);
+            const totalSuccessful = badges.reduce((sum, badge) => sum + badge.completedMints, 0);
+            const successRate = totalMints > 0 ? (totalSuccessful / totalMints) * 100 : 0;
+            
+            document.getElementById('totalBadges').textContent = totalBadges;
+            document.getElementById('activeBadges').textContent = activeBadges;
+            document.getElementById('totalMints').textContent = totalMints;
+            document.getElementById('successRate').textContent = successRate.toFixed(1) + '%';
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            loadBadges();
+        }
+
+        // Simple modal functions
+        function openCreateModal() {
+            if (!checkAuth()) return;
+            showError('Create badge functionality coming soon! Use the API for now.');
+        }
+
+        async function toggleBadgeStatus(badgeId, newStatus) {
+            if (!checkAuth()) return;
+            
+            try {
+                const response = await authFetch(`${BADGE_API_URL}/types/${badgeId}/status`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ isActive: newStatus })
+                });
+                
+                if (!response) return;
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess(`Badge ${newStatus ? 'activated' : 'deactivated'} successfully`);
+                    loadBadges();
+                } else {
+                    showError(result.error || 'Failed to update badge status');
+                }
+            } catch (error) {
+                showError('Error updating badge status: ' + error.message);
+            }
+        }
+
+        // Message Functions
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+        }
+
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+        }
+
+        // Initialize - SIMPLE CHECK
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Badge Management Page Loaded');
+            console.log('🔐 Token present:', !!localStorage.getItem('adminToken'));
+            console.log('👤 User present:', !!localStorage.getItem('adminUser'));
+            
+            // Simple check - if no auth, redirect immediately
+            if (!localStorage.getItem('adminToken') || !localStorage.getItem('adminUser')) {
+                console.log('❌ No auth found, redirecting to login');
+                window.location.href = '/admin-login.html';
+                return;
+            }
+            
+            // If we have auth, load the data
+            console.log('✅ Auth found, loading badges...');
+            loadBadges();
+        });
+
+        // Add manual redirect button for testing
+        document.addEventListener('DOMContentLoaded', function() {
+            const header = document.querySelector('.header');
+            if (header) {
+                const testBtn = document.createElement('button');
+                testBtn.textContent = 'Test Redirect';
+                testBtn.className = 'btn btn-danger';
+                testBtn.onclick = function() {
+                    localStorage.removeItem('adminToken');
+                    localStorage.removeItem('adminUser');
+                    window.location.href = '/admin-login.html';
+                };
+                header.querySelector('.header-actions').appendChild(testBtn);
+            }
+        });
+    </script>
+</body>
+</html>

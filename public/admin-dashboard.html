@@ -180,6 +180,11 @@
         .status-pending { background: #fff3cd; color: #856404; }
         .status-completed { background: #d4edda; color: #155724; }
         .status-failed { background: #f8d7da; color: #721c24; }
+
+        /* Badge-specific status styles */
+        .status-active { background: #d4edda; color: #155724; }
+        .status-inactive { background: #f8d7da; color: #721c24; }
+        .status-global { background: #cce7ff; color: #004085; }
     </style>
 </head>
 <body>
@@ -190,7 +195,7 @@
             <nav>
                 <a href="/admin-dashboard.html" class="active">📊 Dashboard</a>
                 <a href="/user-management.html">👥 Users</a>
-                <a href="#">🪙 Badges</a>
+                <a href="/badge-management.html">🪙 Badges</a>
                 <a href="#">⚙️ Settings</a>
             </nav>
         </div>
@@ -235,6 +240,15 @@
                 <div class="stat-card">
                     <div class="stat-value" id="todayMints">0</div>
                     <div class="stat-label">Today's Mints</div>
+                </div>
+                <!-- NEW: Badge Type Statistics -->
+                <div class="stat-card">
+                    <div class="stat-value" id="totalBadgeTypes">0</div>
+                    <div class="stat-label">Total Badge Types</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="activeBadgeTypes">0</div>
+                    <div class="stat-label">Active Badge Types</div>
                 </div>
             </div>
 
@@ -284,6 +298,32 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Quick Badge Stats -->
+            <div class="chart-container">
+                <h3>🎯 Badge Performance Overview</h3>
+                <div id="badgePerformance">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Badge Name</th>
+                                <th>Total Mints</th>
+                                <th>Successful</th>
+                                <th>Failed</th>
+                                <th>Success Rate</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="badgePerformanceBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: #6c757d; padding: 20px;">
+                                    Loading badge performance...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -299,6 +339,7 @@
         // Authentication setup
         const ADMIN_AUTH_API = 'http://localhost:3001/api/admin/auth';
         const API_BASE_URL = 'http://localhost:3001/api/dashboard/admin';
+        const BADGE_API_URL = 'http://localhost:3001/api/admin/badges';
     
         // Enhanced fetch function with auth headers
         async function authFetch(url, options = {}) {
@@ -386,7 +427,8 @@
             successRate: 0,
             todayMints: 0,
             totalBadgeTypes: 0,
-            totalIssuers: 0
+            totalIssuers: 0,
+            activeBadgeTypes: 0
         };
         
         let activityChart = null;
@@ -545,7 +587,8 @@
             await Promise.all([
                 loadDashboardStats(),
                 loadRecentMints(),
-                loadMintingActivity()
+                loadMintingActivity(),
+                loadBadgePerformance()
             ]);
         }
     
@@ -579,6 +622,28 @@
                 }
             } catch (error) {
                 console.error('Error loading recent mints:', error);
+            }
+        }
+    
+        // Load Badge Performance Data
+        async function loadBadgePerformance() {
+            try {
+                const response = await authFetch(`${BADGE_API_URL}/types?limit=10`);
+                if (!response) return;
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateBadgePerformanceTable(result.data.badgeTypes);
+                    
+                    // Update badge type stats
+                    const activeBadges = result.data.badgeTypes.filter(badge => badge.isActive).length;
+                    stats.totalBadgeTypes = result.data.total || result.data.badgeTypes.length;
+                    stats.activeBadgeTypes = activeBadges;
+                    updateStatsDisplay();
+                }
+            } catch (error) {
+                console.error('Error loading badge performance:', error);
             }
         }
     
@@ -663,6 +728,7 @@
                     // Refresh data when important events occur
                     loadDashboardStats();
                     loadRecentMints();
+                    loadBadgePerformance();
                     break;
                     
                 case 'subscription_confirmed':
@@ -699,7 +765,7 @@
             document.getElementById('successRate').textContent = stats.successRate.toFixed(1) + '%';
             document.getElementById('todayMints').textContent = stats.todayMints.toLocaleString();
             document.getElementById('totalBadgeTypes').textContent = stats.totalBadgeTypes.toLocaleString();
-            document.getElementById('totalIssuers').textContent = stats.totalIssuers.toLocaleString();
+            document.getElementById('activeBadgeTypes').textContent = stats.activeBadgeTypes.toLocaleString();
         }
     
         // Update Recent Events Table with Real Data
@@ -752,6 +818,49 @@
                     <td>${badgeName}</td>
                     <td>${statusBadge}</td>
                     <td style="font-family: monospace;">${transactionDisplay}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+    
+        // Update Badge Performance Table
+        function updateBadgePerformanceTable(badges) {
+            const tableBody = document.getElementById('badgePerformanceBody');
+            tableBody.innerHTML = '';
+    
+            if (!badges || badges.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #6c757d; padding: 20px;">
+                            No badge types found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+    
+            badges.forEach(badge => {
+                const row = document.createElement('tr');
+                
+                const statusBadge = badge.isActive 
+                    ? '<span class="status-badge status-active">Active</span>'
+                    : '<span class="status-badge status-inactive">Inactive</span>';
+                
+                const globalBadge = badge.isGlobal 
+                    ? '<span class="status-badge status-global">Global</span>'
+                    : '';
+                
+                row.innerHTML = `
+                    <td>
+                        <strong>${badge.name}</strong>
+                        ${globalBadge}
+                    </td>
+                    <td>${badge.totalMints}</td>
+                    <td>${badge.completedMints}</td>
+                    <td>${badge.failedMints}</td>
+                    <td>${badge.successRate.toFixed(1)}%</td>
+                    <td>${statusBadge}</td>
                 `;
                 
                 tableBody.appendChild(row);
@@ -886,6 +995,7 @@
             // Refresh stats every 30 seconds
             setInterval(async () => {
                 await loadDashboardStats();
+                await loadBadgePerformance();
                 
                 if (ws && ws.readyState === WebSocket.OPEN) {
                     // Send ping to keep connection alive
