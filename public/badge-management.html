@@ -968,132 +968,132 @@
             document.getElementById('badgeModal').style.display = 'none';
         }
     
-        // Fixed loadIssuers function - ONLY THIS FUNCTION IS CHANGED
-async function loadIssuers() {
-    try {
-        console.log('🔄 Loading issuers...');
-        
-        // Try multiple approaches to get issuers
-        const token = localStorage.getItem('adminToken');
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-        
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        // Approach 1: Try the issuer API directly
-        let response = await fetch(ISSUER_API_URL, { headers });
-        
-        console.log('📡 Issuer API response status:', response.status);
-        
-        if (response.ok) {
-            const result = await response.json();
-            console.log('✅ Issuers API result:', result);
-            
-            // Handle different response structures
-            if (result.success && result.data) {
-                issuers = result.data;
-            } else if (result.success && result.issuers) {
-                issuers = result.issuers;
-            } else if (Array.isArray(result)) {
-                issuers = result;
-            } else if (result.data && Array.isArray(result.data)) {
-                issuers = result.data;
-            } else {
-                console.log('⚠️ Unexpected issuer response structure:', result);
-                await loadIssuersFromBadgesFallback();
-                return;
-            }
-            
-            updateIssuerDropdown();
-            return;
-        }
-        
-        // If issuer API fails, try to get issuers from existing badges
-        await loadIssuersFromBadgesFallback();
-        
-    } catch (error) {
-        console.error('❌ Error loading issuers:', error);
-        await loadIssuersFromBadgesFallback();
-    }
-}
-
-// Helper function to update the dropdown
-function updateIssuerDropdown() {
-    const select = document.getElementById('badgeIssuer');
-    
-    if (issuers.length > 0) {
-        select.innerHTML = '<option value="">Select Issuer</option>' +
-            issuers.map(issuer => 
-                `<option value="${issuer.id}">${issuer.name} (${issuer.id})</option>`
-            ).join('');
-        console.log(`✅ Loaded ${issuers.length} issuers into dropdown`);
-    } else {
-        // Final fallback - use hardcoded issuer
-        select.innerHTML = `
-            <option value="2ffcd255-5c43-4df9-8b9e-3867c5b74035">DeFi Camp (Fallback)</option>
-        `;
-        console.log('✅ Using fallback issuer');
-    }
-}
-
-// Fallback: Get issuer from existing badges
-async function loadIssuersFromBadgesFallback() {
-    try {
-        console.log('🔄 Trying to get issuers from existing badges...');
-        const token = localStorage.getItem('adminToken');
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-        
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-        
-        const response = await fetch(`${BADGE_API_URL}/types?limit=10`, { headers });
-        
-        if (response.ok) {
-            const result = await response.json();
-            console.log('✅ Badges response for issuer fallback:', result);
-            
-            if (result.success && result.data && result.data.badgeTypes) {
-                // Extract unique issuers from badges
-                const issuerMap = new Map();
+        // Fixed loadIssuers function
+        async function loadIssuers() {
+            try {
+                console.log('🔄 Loading issuers...');
                 
-                result.data.badgeTypes.forEach(badge => {
-                    if (badge.issuer && badge.issuer.id) {
-                        issuerMap.set(badge.issuer.id, badge.issuer);
+                // Try multiple approaches to get issuers
+                const token = localStorage.getItem('adminToken');
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                // Approach 1: Try the issuer API directly
+                let response = await fetch(ISSUER_API_URL, { headers });
+                
+                console.log('📡 Issuer API response status:', response.status);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ Issuers API result:', result);
+                    
+                    // Handle different response structures
+                    if (result.success && result.data) {
+                        issuers = result.data;
+                    } else if (result.success && result.issuers) {
+                        issuers = result.issuers;
+                    } else if (Array.isArray(result)) {
+                        issuers = result;
+                    } else if (result.data && Array.isArray(result.data)) {
+                        issuers = result.data;
+                    } else {
+                        console.log('⚠️ Unexpected issuer response structure:', result);
+                        await loadIssuersFromBadgesFallback();
+                        return;
                     }
-                });
-                
-                issuers = Array.from(issuerMap.values());
-                
-                if (issuers.length > 0) {
+                    
                     updateIssuerDropdown();
                     return;
                 }
+                
+                // If issuer API fails, try to get issuers from existing badges
+                await loadIssuersFromBadgesFallback();
+                
+            } catch (error) {
+                console.error('❌ Error loading issuers:', error);
+                await loadIssuersFromBadgesFallback();
             }
         }
-        
-        // Ultimate fallback - hardcoded issuer
-        issuers = [{
-            id: "2ffcd255-5c43-4df9-8b9e-3867c5b74035",
-            name: "DeFi Camp"
-        }];
-        updateIssuerDropdown();
-        
-    } catch (error) {
-        console.error('❌ Fallback issuer loading failed:', error);
-        // Last resort hardcoded issuer
-        issuers = [{
-            id: "2ffcd255-5c43-4df9-8b9e-3867c5b74035",
-            name: "DeFi Camp"
-        }];
-        updateIssuerDropdown();
-    }
-}
+
+        // Helper function to update the dropdown
+        function updateIssuerDropdown() {
+            const select = document.getElementById('badgeIssuer');
+            
+            if (issuers.length > 0) {
+                select.innerHTML = '<option value="">Select Issuer</option>' +
+                    issuers.map(issuer => 
+                        `<option value="${issuer.id}">${issuer.name} (${issuer.id})</option>`
+                    ).join('');
+                console.log(`✅ Loaded ${issuers.length} issuers into dropdown`);
+            } else {
+                // Final fallback - use hardcoded issuer
+                select.innerHTML = `
+                    <option value="2ffcd255-5c43-4df9-8b9e-3867c5b74035">DeFi Camp (Fallback)</option>
+                `;
+                console.log('✅ Using fallback issuer');
+            }
+        }
+
+        // Fallback: Get issuer from existing badges
+        async function loadIssuersFromBadgesFallback() {
+            try {
+                console.log('🔄 Trying to get issuers from existing badges...');
+                const token = localStorage.getItem('adminToken');
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+                
+                const response = await fetch(`${BADGE_API_URL}/types?limit=10`, { headers });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ Badges response for issuer fallback:', result);
+                    
+                    if (result.success && result.data && result.data.badgeTypes) {
+                        // Extract unique issuers from badges
+                        const issuerMap = new Map();
+                        
+                        result.data.badgeTypes.forEach(badge => {
+                            if (badge.issuer && badge.issuer.id) {
+                                issuerMap.set(badge.issuer.id, badge.issuer);
+                            }
+                        });
+                        
+                        issuers = Array.from(issuerMap.values());
+                        
+                        if (issuers.length > 0) {
+                            updateIssuerDropdown();
+                            return;
+                        }
+                    }
+                }
+                
+                // Ultimate fallback - hardcoded issuer
+                issuers = [{
+                    id: "2ffcd255-5c43-4df9-8b9e-3867c5b74035",
+                    name: "DeFi Camp"
+                }];
+                updateIssuerDropdown();
+                
+            } catch (error) {
+                console.error('❌ Fallback issuer loading failed:', error);
+                // Last resort hardcoded issuer
+                issuers = [{
+                    id: "2ffcd255-5c43-4df9-8b9e-3867c5b74035",
+                    name: "DeFi Camp"
+                }];
+                updateIssuerDropdown();
+            }
+        }
     
         // Secondary Rules Management
         function addSecondaryRule() {
@@ -1281,20 +1281,11 @@ async function loadIssuersFromBadgesFallback() {
             }
         }
 
-        // Enhanced viewBadgeAnalytics function
-function viewBadgeAnalytics(badgeId) {
-    console.log('📊 Opening analytics for badge:', badgeId);
-    
-    // For now, show a modal with basic info
-    // TODO: Implement full analytics page
-    showSuccess(`Analytics for badge ${badgeId} - Feature coming soon!`);
-    
-    // You can redirect to a dedicated analytics page:
-    // window.location.href = `/badge-analytics.html?id=${badgeId}`;
-}
-    
+        // CORRECT: Analytics function that redirects to analytics page
         function viewBadgeAnalytics(badgeId) {
-            showError('Analytics feature coming soon!');
+            console.log('📊 Opening analytics for badge:', badgeId);
+            // Redirect to the analytics page with the badge ID
+            window.location.href = `/badge-analytics.html?id=${badgeId}`;
         }
     
         // Message Functions
