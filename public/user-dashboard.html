@@ -232,7 +232,6 @@
 
     <div class="main-container">
         <div id="error-message" class="error" style="display: none;"></div>
-
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-number" id="totalBadges">0</div>
@@ -245,9 +244,16 @@
             <div class="stat-card">
                 <div class="stat-number" id="verificationLevel">0%</div>
                 <div class="stat-label">Verification Level</div>
-            </div>
+            </div>   
         </div>
-
+        <div class="stat-card">
+            <div class="stat-number" id="verificationCount">0</div>
+            <div class="stat-label">Verifications Completed</div>
+            <button onclick="goToVerifications()" style="margin-top: 0.5rem; background: #28a745; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">
+                Manage Verifications
+            </button>
+        </div>
+        
         <div class="nav-tabs">
             <div class="nav-tab active" onclick="switchTab('my-badges')">My Badges</div>
             <div class="nav-tab" onclick="switchTab('available-badges')">Available Badges</div>
@@ -368,6 +374,8 @@
             } catch (error) {
                 showError('Failed to load dashboard data: ' + error.message);
             }
+
+            document.getElementById('verificationCount').textContent = profile.verifications ? profile.verifications.length : 0;
         }
 
         function displayMyBadges(badges) {
@@ -486,65 +494,179 @@
             document.getElementById(tabName).classList.add('active');
         }
 
-        async function mintBadge(badgeTypeId) {
-            try {
-                const response = await fetch('/api/minting/mint', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${userToken}`
-                    },
-                    body: JSON.stringify({
-                        badgeTypeId: badgeTypeId,
-                        wallet: userWallet
-                    })
-                });
+        // UPDATED: user-dashboard.html - JavaScript section updates
 
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showError('');
-                    alert('Badge minting started! Check your activity for updates.');
-                    loadDashboardData();
-                } else {
-                    throw new Error(data.error || 'Minting failed');
-                }
-            } catch (error) {
-                showError('Failed to mint badge: ' + error.message);
-            }
+async function mintBadge(badgeTypeId) {
+    try {
+        const response = await fetch(`${API_BASE}/mint-badge`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userToken}`
+            },
+            body: JSON.stringify({
+                badgeTypeId: badgeTypeId
+            })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            showError('');
+            alert('Badge minting started! Check your activity for updates.');
+            // Reload data to show the new badge
+            loadDashboardData();
+        } else {
+            throw new Error(data.error || 'Minting failed');
         }
+    } catch (error) {
+        showError('Failed to mint badge: ' + error.message);
+    }
+}
 
-        async function checkEligibility(badgeTypeId) {
-            try {
-                const response = await fetch('/api/eligibility/check', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${userToken}`
-                    },
-                    body: JSON.stringify({
-                        badgeTypeId: badgeTypeId,
-                        wallet: userWallet
-                    })
-                });
+async function checkEligibility(badgeTypeId) {
+    try {
+        const response = await fetch(`${API_BASE}/check-eligibility`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userToken}`
+            },
+            body: JSON.stringify({
+                badgeTypeId: badgeTypeId
+            })
+        });
 
-                const data = await response.json();
-                
-                if (response.ok) {
-                    if (data.isEligible) {
-                        alert('You are eligible for this badge! You can now mint it.');
-                        loadDashboardData();
-                    } else {
-                        alert('You are not yet eligible for this badge. Requirements: ' + 
-                              (data.reasons ? data.reasons.join(', ') : 'Not met'));
-                    }
-                } else {
-                    throw new Error(data.error || 'Eligibility check failed');
-                }
-            } catch (error) {
-                showError('Eligibility check failed: ' + error.message);
+        const data = await response.json();
+        
+        if (response.ok) {
+            if (data.isEligible) {
+                alert('You are eligible for this badge! You can now mint it.');
+                // Reload available badges to update the button
+                loadAvailableBadges();
+            } else {
+                alert('You are not yet eligible for this badge. Requirements: ' + 
+                      (data.reasons ? data.reasons.join(', ') : 'Not met'));
             }
+        } else {
+            throw new Error(data.error || 'Eligibility check failed');
         }
+    } catch (error) {
+        showError('Eligibility check failed: ' + error.message);
+    }
+}
+
+// Add this function to reload just available badges
+async function loadAvailableBadges() {
+    try {
+        const availableResponse = await fetch(`${API_BASE}/available-badges`, {
+            headers: {
+                'Authorization': `Bearer ${userToken}`
+            }
+        });
+
+        if (availableResponse.ok) {
+            const availableBadges = await availableResponse.json();
+            displayAvailableBadges(availableBadges);
+            document.getElementById('availableBadges').textContent = availableBadges.length;
+        }
+    } catch (error) {
+        console.error('Failed to load available badges:', error);
+    }
+}
+
+        // FIXED: In user-dashboard.html - Update the checkEligibility function
+async function checkEligibility(badgeTypeId) {
+    try {
+        const response = await fetch(`${API_BASE}/check-eligibility`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userToken}`
+            },
+            body: JSON.stringify({
+                badgeTypeId: badgeTypeId
+            })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            if (data.isEligible) {
+                alert('🎉 You are eligible for this badge! You can now mint it.');
+                // Reload available badges to update the button
+                loadAvailableBadges();
+            } else {
+                // FIXED: Properly handle the reasons array
+                const reasons = Array.isArray(data.reasons) ? data.reasons : [data.reasons || 'Not eligible'];
+                const reasonText = reasons.join('\n• ');
+                alert(`❌ You are not yet eligible for this badge.\n\nRequirements not met:\n• ${reasonText}`);
+            }
+        } else {
+            // FIXED: Better error message handling
+            const errorMessage = data.error || data.message || 'Eligibility check failed';
+            throw new Error(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
+        }
+    } catch (error) {
+        // FIXED: Better error display
+        console.error('Eligibility check error:', error);
+        const errorMessage = error.message || 'Unknown error occurred';
+        showError('Eligibility check failed: ' + errorMessage);
+    }
+}
+
+// Also update the mintBadge function for better error handling
+async function mintBadge(badgeTypeId) {
+    try {
+        const response = await fetch(`${API_BASE}/mint-badge`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userToken}`
+            },
+            body: JSON.stringify({
+                badgeTypeId: badgeTypeId
+            })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            showError('');
+            alert('✅ Badge minting started! Check your activity tab for updates and watch the admin dashboard for real-time events.');
+            // Reload data to show the new badge
+            loadDashboardData();
+        } else {
+            // FIXED: Better error message handling
+            const errorMessage = data.error || data.message || 'Minting failed';
+            throw new Error(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
+        }
+    } catch (error) {
+        console.error('Mint badge error:', error);
+        const errorMessage = error.message || 'Unknown error occurred';
+        showError('Failed to mint badge: ' + errorMessage);
+    }
+}
+
+
+// Update the showError function to be more visible
+function showError(message) {
+    const errorDiv = document.getElementById('error-message');
+    if (message) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 5000);
+    } else {
+        errorDiv.style.display = 'none';
+    }
+}
+
+function goToVerifications() {
+    window.location.href = '/user-verifications.html';
+}
 
         function logout() {
             localStorage.removeItem('userToken');

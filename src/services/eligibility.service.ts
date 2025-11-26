@@ -8,7 +8,7 @@ import {
   EligibilityError, 
   ValidationError, 
   NotFoundError 
-} from '../utils/errors'; // ADD THIS IMPORT
+} from '../utils/errors';
 
 // Create repositories directly in this file
 const badgeTypeRepository = AppDataSource.getRepository(BadgeType);
@@ -205,7 +205,6 @@ export class EligibilityService {
     rule: BadgeRules['secondary'][0]
   ): Promise<{ verified: boolean; details?: any }> {
     // For now, use mock/stub implementations
-    // These will be replaced with real adapters in Step 7
     switch (rule.method) {
       case 'twitter_follow':
         return await this.mockTwitterFollowCheck(wallet, rule.params);
@@ -219,25 +218,29 @@ export class EligibilityService {
       case 'onchain_governance':
         return await this.mockOnChainGovernanceCheck(wallet, rule.params);
       
+      case 'discord_member':
+        return await this.mockDiscordMemberCheck(wallet, rule.params);
+      
       default:
-        throw new EligibilityError(
-          'unknown',
-          `Unsupported verification method: ${rule.method}`,
-          { 
-            method: rule.method,
-            suggestion: 'Contact issuer to update badge requirements'
-          }
-        );
+        // For development, return mock implementation instead of throwing error
+        logger.warn(`Unsupported verification method in development: ${rule.method}, using mock`);
+        return await this.mockGenericVerification(wallet, rule.method, rule.params);
     }
   }
 
   // Mock implementations - will be replaced with real adapters
   private async mockTwitterFollowCheck(wallet: string, params: any): Promise<{ verified: boolean; details?: any }> {
     if (!params?.account) {
-      throw new ValidationError('Twitter account parameter is required for follow check', {
-        params,
-        suggestion: 'Check badge configuration - Twitter account must be specified'
-      });
+      return {
+        verified: false,
+        details: {
+          account: params?.account || 'unknown',
+          requiredAction: `Follow @${params?.account || 'specified account'} on Twitter`,
+          checkedAt: new Date().toISOString(),
+          mock: true,
+          note: 'This is a mock implementation - will be replaced with real Twitter API'
+        }
+      };
     }
 
     // Mock: 70% success rate for testing
@@ -259,10 +262,16 @@ export class EligibilityService {
     const beforeDate = params?.beforeDate ? new Date(params.beforeDate) : new Date();
     
     if (minTransactions < 0) {
-      throw new ValidationError('Minimum transactions must be a positive number', {
-        minTransactions,
-        suggestion: 'Check badge configuration - minTransactions must be >= 0'
-      });
+      return {
+        verified: false,
+        details: {
+          minTransactions,
+          requirement: `Minimum ${minTransactions} on-chain transaction(s)`,
+          checkedAt: new Date().toISOString(),
+          mock: true,
+          note: 'Invalid configuration - minTransactions must be >= 0'
+        }
+      };
     }
 
     // Mock: Random transaction count between 0-20
@@ -287,10 +296,16 @@ export class EligibilityService {
     const space = params?.space || 'daospace.eth';
     
     if (minVotes < 0) {
-      throw new ValidationError('Minimum votes must be a positive number', {
-        minVotes,
-        suggestion: 'Check badge configuration - minVotes must be >= 0'
-      });
+      return {
+        verified: false,
+        details: {
+          minVotes,
+          requirement: `Minimum ${minVotes} vote(s) in ${space} Snapshot space`,
+          checkedAt: new Date().toISOString(),
+          mock: true,
+          note: 'Invalid configuration - minVotes must be >= 0'
+        }
+      };
     }
 
     // Mock: Random vote count between 0-5
@@ -314,10 +329,16 @@ export class EligibilityService {
     const minVotes = params?.minVotes || 1;
     
     if (minVotes < 0) {
-      throw new ValidationError('Minimum governance votes must be a positive number', {
-        minVotes,
-        suggestion: 'Check badge configuration - minVotes must be >= 0'
-      });
+      return {
+        verified: false,
+        details: {
+          minVotes,
+          requirement: `Participate in on-chain governance`,
+          checkedAt: new Date().toISOString(),
+          mock: true,
+          note: 'Invalid configuration - minVotes must be >= 0'
+        }
+      };
     }
 
     // Mock: Random governance participation
@@ -332,6 +353,51 @@ export class EligibilityService {
         requirement: `Participate in on-chain governance`,
         mock: true,
         note: 'This is a mock implementation - will be replaced with real governance data'
+      }
+    };
+  }
+
+  private async mockDiscordMemberCheck(wallet: string, params: any): Promise<{ verified: boolean; details?: any }> {
+    if (!params?.serverId) {
+      return {
+        verified: false,
+        details: {
+          serverId: params?.serverId || 'unknown',
+          requiredAction: `Join Discord server ${params?.serverId || 'specified server'}`,
+          checkedAt: new Date().toISOString(),
+          mock: true,
+          note: 'This is a mock implementation - will be replaced with real Discord API'
+        }
+      };
+    }
+
+    // Mock: 80% success rate for testing
+    const verified = Math.random() > 0.2;
+    return {
+      verified,
+      details: {
+        serverId: params.serverId,
+        serverName: params.serverName || 'Community Server',
+        requiredAction: `Join Discord server: ${params.serverName || params.serverId}`,
+        checkedAt: new Date().toISOString(),
+        mock: true,
+        note: 'This is a mock implementation - will be replaced with real Discord API'
+      }
+    };
+  }
+
+  private async mockGenericVerification(wallet: string, method: string, params: any): Promise<{ verified: boolean; details?: any }> {
+    // Generic mock for any unsupported method during development
+    const verified = Math.random() > 0.3;
+    return {
+      verified,
+      details: {
+        method,
+        params,
+        requiredAction: `Complete ${method} verification`,
+        checkedAt: new Date().toISOString(),
+        mock: true,
+        note: `Mock implementation for ${method} - will be replaced with real API`
       }
     };
   }

@@ -1,3 +1,4 @@
+// src/controllers/user.controller.ts
 import { Request, Response } from 'express';
 import { AppDataSource } from '../db/datasource';
 import { User } from '../entities/User';
@@ -5,6 +6,10 @@ import { BadgeMint } from '../entities/BadgeMint';
 import { BadgeType } from '../entities/BadgeType';
 import { Verification } from '../entities/Verification';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
+import { mintingService } from '../services/minting.service';
+import { eligibilityService } from '../services/eligibility.service';
+import { logger } from '../utils/logger';
+import { Not, IsNull } from 'typeorm';
 
 const userRepository = AppDataSource.getRepository(User);
 const badgeMintRepository = AppDataSource.getRepository(BadgeMint);
@@ -26,6 +31,22 @@ export class UserController {
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
+
+      // Get user's badge statistics - FIXED QUERIES
+      const totalBadges = await badgeMintRepository.count({ 
+        where: { 
+          wallet: user.wallet, 
+          isRevoked: false 
+        } 
+      });
+
+      const successfulMints = await badgeMintRepository.count({
+        where: { 
+          wallet: user.wallet, 
+          isRevoked: false,
+          transactionHash: Not(IsNull())
+        }
+      });
       
       res.json({
         id: user.id,
@@ -35,9 +56,9 @@ export class UserController {
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         verifications: user.verifications,
-        totalBadges: await badgeMintRepository.count({ 
-          where: { wallet: user.wallet } 
-        })
+        totalBadges,
+        successfulMints,
+        verificationLevel: user.verifications ? Math.min(100, user.verifications.length * 25) : 0
       });
     } catch (error) {
       console.error('Profile error:', error);
@@ -106,93 +127,55 @@ export class UserController {
       }
       
       // Get all active badge types
-      const availableBadges = await badgeTypeRepository.find({
+      const allBadgeTypes = await badgeTypeRepository.find({
         where: { isActive: true },
         relations: ['issuer']
       });
       
-      // Get user's already minted badges
-      const userMints = await badgeMintRepository.find({
-        where: { wallet: user.wallet },
-        select: ['badgeTypeId']
-      });
+      const badgesWithEligibility = [];
       
-      const mintedBadgeIds = new Set(userMints.map(mint => mint.badgeTypeId));
-      
-      // Check eligibility for each badge
-      const badgesWithEligibility = await Promise.all(
-        availableBadges.map(async (badge) => {
-          const isAlreadyMinted = mintedBadgeIds.has(badge.id);
+      // Check each badge type individually and handle errors gracefully
+      for (const badgeType of allBadgeTypes) {
+        try {
+          // Use the minting service to check eligibility
+          const canMintResult = await mintingService.canMintBadge(user.wallet, badgeType.key);
           
-          if (isAlreadyMinted) {
-            return null; // Skip already minted badges
+          // Only include badges that aren't already minted
+          if (!canMintResult.existingMint) {
+            badgesWithEligibility.push({
+              id: badgeType.id,
+              key: badgeType.key,
+              name: badgeType.name,
+              description: badgeType.description,
+              imageUrl: badgeType.imageUrl,
+              issuer: badgeType.issuer?.name,
+              rules: badgeType.rules,
+              isGlobal: badgeType.isGlobal,
+              contractBadgeTypeId: badgeType.contractBadgeTypeId,
+              isEligible: canMintResult.canMint,
+              reasons: canMintResult.canMint ? [] : [canMintResult.reason || 'Not eligible']
+            });
           }
-          
-          let isEligible = false;
-          let reasons: string[] = [];
-          
-          // Check primary DID requirements from badge rules
-          if (badge.rules?.primary && badge.rules.primary.length > 0) {
-            const hasPrimaryVerification = user.verifications?.some(verification => 
-              verification.type === 'primary_did' && 
-              verification.status === 'completed' &&
-              badge.rules.primary.includes(verification.provider)
-            );
-            
-            if (!hasPrimaryVerification) {
-              reasons.push(`Missing required DID verification: ${badge.rules.primary.join(' or ')}`);
-            } else {
-              isEligible = true;
-            }
-          } else {
-            // If no primary requirements, user is eligible by default
-            isEligible = true;
-          }
-          
-          // Check secondary rules if primary requirements are met
-          if (isEligible && badge.rules?.secondary && badge.rules.secondary.length > 0) {
-            const secondaryResults = await Promise.all(
-              badge.rules.secondary.map(async (rule) => {
-                // Simplified secondary rule checking
-                const hasSecondaryVerification = user.verifications?.some(verification => 
-                  verification.provider === rule.method && 
-                  verification.status === 'completed'
-                );
-                
-                if (rule.required && !hasSecondaryVerification) {
-                  return `Missing required verification: ${rule.method}`;
-                }
-                return null;
-              })
-            );
-            
-            const failedSecondary = secondaryResults.filter(result => result !== null);
-            if (failedSecondary.length > 0) {
-              isEligible = false;
-              reasons.push(...failedSecondary);
-            }
-          }
-          
-          return {
-            id: badge.id,
-            key: badge.key,
-            name: badge.name,
-            description: badge.description,
-            imageUrl: badge.imageUrl,
-            issuer: badge.issuer?.name,
-            rules: badge.rules,
-            isGlobal: badge.isGlobal,
-            contractBadgeTypeId: badge.contractBadgeTypeId,
-            isEligible,
-            reasons: isEligible ? [] : reasons
-          };
-        })
-      );
+        } catch (error) {
+          logger.error(`Error checking eligibility for badge ${badgeType.key}:`, error);
+          // Include the badge but mark as ineligible with error reason
+          badgesWithEligibility.push({
+            id: badgeType.id,
+            key: badgeType.key,
+            name: badgeType.name,
+            description: badgeType.description,
+            imageUrl: badgeType.imageUrl,
+            issuer: badgeType.issuer?.name,
+            rules: badgeType.rules,
+            isGlobal: badgeType.isGlobal,
+            contractBadgeTypeId: badgeType.contractBadgeTypeId,
+            isEligible: false,
+            reasons: ['Temporarily unable to check eligibility']
+          });
+        }
+      }
       
-      // Filter out null values (already minted badges)
-      const filteredBadges = badgesWithEligibility.filter(badge => badge !== null);
-      
-      res.json(filteredBadges);
+      res.json(badgesWithEligibility);
     } catch (error) {
       console.error('Available badges error:', error);
       res.status(500).json({ error: 'Failed to fetch available badges' });
@@ -233,7 +216,7 @@ export class UserController {
           type: 'badge_mint',
           id: mint.id,
           badgeName: mint.badgeType.name,
-          status: mint.isRevoked ? 'revoked' : 'minted',
+          status: mint.isRevoked ? 'revoked' : (mint.metadata?.status || 'minted'),
           date: mint.createdAt,
           transactionHash: mint.transactionHash,
           details: `Badge: ${mint.badgeType.name}`
@@ -255,7 +238,163 @@ export class UserController {
       res.status(500).json({ error: 'Failed to fetch user activity' });
     }
   }
+
+  // NEW: Mint badge endpoint for users
+  static async mintBadge(req: Request, res: Response) {
+    try {
+      const userId = (req as AuthenticatedRequest).user?.userId;
+      const { badgeTypeId } = req.body;
+      
+      if (!badgeTypeId) {
+        return res.status(400).json({ error: 'Badge type ID is required' });
+      }
+      
+      // Get user first to get wallet
+      const user = await userRepository.findOne({
+        where: { id: userId }
+      });
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Get badge type to get the key
+      const badgeType = await badgeTypeRepository.findOne({
+        where: { id: badgeTypeId }
+      });
+      
+      if (!badgeType) {
+        return res.status(404).json({ error: 'Badge type not found' });
+      }
+
+      logger.info(`User ${user.wallet} initiating mint for badge ${badgeType.key}`);
+      
+      // Use the minting service to initiate the mint
+      const mintResult = await mintingService.initiateMint(user.wallet, badgeType.key);
+      
+      if (mintResult.success) {
+        res.json({
+          success: true,
+          mintId: mintResult.mintId,
+          transactionHash: mintResult.transactionHash,
+          message: 'Badge minting initiated successfully'
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: mintResult.error
+        });
+      }
+    } catch (error) {
+      logger.error('Mint badge error:', error);
+      res.status(500).json({ error: 'Failed to mint badge: ' + (error instanceof Error ? error.message : 'Unknown error') });
+    }
+  }
+
+  // NEW: Check eligibility for specific badge
+  static async checkEligibility(req: Request, res: Response) {
+    try {
+      const userId = (req as AuthenticatedRequest).user?.userId;
+      const { badgeTypeId } = req.body;
+      
+      if (!badgeTypeId) {
+        return res.status(400).json({ error: 'Badge type ID is required' });
+      }
+      
+      // Get user first to get wallet
+      const user = await userRepository.findOne({
+        where: { id: userId }
+      });
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Get badge type to get the key
+      const badgeType = await badgeTypeRepository.findOne({
+        where: { id: badgeTypeId }
+      });
+      
+      if (!badgeType) {
+        return res.status(404).json({ error: 'Badge type not found' });
+      }
+
+      // Use the minting service to check eligibility
+      const eligibilityResult = await mintingService.checkEligibility(user.wallet, badgeType.key);
+      
+      res.json({
+        isEligible: eligibilityResult.eligible,
+        reasons: eligibilityResult.missingRequirements,
+        badgeName: badgeType.name,
+        canMintResult: eligibilityResult.canMintResult
+      });
+    } catch (error) {
+      logger.error('Check eligibility error:', error);
+      res.status(500).json({ error: 'Failed to check eligibility: ' + (error instanceof Error ? error.message : 'Unknown error') });
+    }
+  }
+
+  // ADD TO user.controller.ts
+static async completeVerification(req: Request, res: Response) {
+    try {
+        const userId = (req as AuthenticatedRequest).user?.userId;
+        const { provider, did, status = 'completed' } = req.body;
+        
+        // Get user first to get wallet
+        const user = await userRepository.findOne({
+            where: { id: userId }
+        });
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Check if verification already exists
+        const existingVerification = await verificationRepository.findOne({
+            where: { wallet: user.wallet, provider }
+        });
+
+        let verification;
+        
+        if (existingVerification) {
+            // Update existing verification
+            existingVerification.status = status;
+            existingVerification.did = did;
+            existingVerification.metadata = {
+                ...existingVerification.metadata,
+                completedAt: new Date().toISOString()
+            };
+            verification = await verificationRepository.save(existingVerification);
+        } else {
+            // Create new verification
+            verification = verificationRepository.create({
+                wallet: user.wallet,
+                provider,
+                did,
+                status,
+                metadata: {
+                    completedAt: new Date().toISOString(),
+                    test: true // Mark as test for now
+                }
+            });
+            await verificationRepository.save(verification);
+        }
+
+        res.json({
+            success: true,
+            verification: {
+                id: verification.id,
+                provider: verification.provider,
+                status: verification.status,
+                did: verification.did,
+                completedAt: verification.metadata?.completedAt
+            }
+        });
+    } catch (error) {
+        console.error('Complete verification error:', error);
+        res.status(500).json({ error: 'Failed to complete verification' });
+    }
+}
 }
 
-// Export the class directly (no instance needed since we're using static methods)
 export default UserController;

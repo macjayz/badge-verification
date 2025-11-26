@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Identity - Badge System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; }
+        .header { background: white; padding: 1rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #667eea; }
+        .main-container { max-width: 800px; margin: 2rem auto; padding: 0 2rem; }
+        .section { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        .section-title { font-size: 1.5rem; margin-bottom: 1rem; color: #333; }
+        .verification-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .verification-card { border: 2px solid #e9ecef; border-radius: 10px; padding: 1.5rem; text-align: center; transition: all 0.3s ease; }
+        .verification-card.verified { border-color: #28a745; background: #f8fff9; }
+        .verification-card.pending { border-color: #ffc107; background: #fffdf6; }
+        .verification-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .verification-name { font-weight: bold; margin-bottom: 0.5rem; font-size: 1.2rem; }
+        .verification-status { font-size: 0.9rem; padding: 0.3rem 0.8rem; border-radius: 15px; display: inline-block; margin-bottom: 1rem; }
+        .status-verified { background: #d4edda; color: #155724; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-not-verified { background: #f8d7da; color: #721c24; }
+        .verify-btn { background: #667eea; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 5px; cursor: pointer; font-size: 1rem; width: 100%; }
+        .verify-btn:disabled { background: #6c757d; cursor: not-allowed; }
+        .back-btn { background: #6c757d; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🎖️ Badge System - Identity Verification</div>
+    </div>
+
+    <div class="main-container">
+        <button class="back-btn" onclick="goBack()">← Back to Dashboard</button>
+        
+        <div class="section">
+            <h2 class="section-title">Identity Verification</h2>
+            <p>Complete these verifications to become eligible for badges.</p>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">Primary Verifications (Required)</h3>
+            <div class="verification-grid" id="primary-verifications">
+                <div class="loading">Loading verifications...</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">Social & On-chain Verifications</h3>
+            <div class="verification-grid" id="secondary-verifications">
+                <div class="loading">Loading verifications...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/user';
+        let userToken = localStorage.getItem('userToken');
+        let userWallet = localStorage.getItem('userWallet');
+
+        if (!userToken || !userWallet) {
+            window.location.href = '/user-login.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadVerifications();
+        });
+
+        async function loadVerifications() {
+            try {
+                // Load user profile to get current verifications
+                const profileResponse = await fetch(`${API_BASE}/profile`, {
+                    headers: { 'Authorization': `Bearer ${userToken}` }
+                });
+
+                if (profileResponse.ok) {
+                    const profile = await profileResponse.json();
+                    displayVerifications(profile.verifications || []);
+                }
+            } catch (error) {
+                console.error('Failed to load verifications:', error);
+            }
+        }
+
+        function displayVerifications(verifications) {
+            const primaryContainer = document.getElementById('primary-verifications');
+            const secondaryContainer = document.getElementById('secondary-verifications');
+
+            const primaryVerifications = [
+                { provider: 'polygonid', name: 'Polygon ID', icon: '🆔', description: 'Decentralized Identity Verification' },
+                { provider: 'idos', name: 'IdOS', icon: '🔐', description: 'Identity Operating System' }
+            ];
+
+            const secondaryVerifications = [
+                { provider: 'twitter_follow', name: 'Twitter Follow', icon: '🐦', description: 'Follow required accounts' },
+                { provider: 'discord_member', name: 'Discord Member', icon: '💬', description: 'Join community Discord' },
+                { provider: 'snapshot_votes', name: 'Snapshot Votes', icon: '🗳️', description: 'Participate in governance' },
+                { provider: 'onchain_activity', name: 'On-chain Activity', icon: '⛓️', description: 'Complete on-chain transactions' }
+            ];
+
+            // Display primary verifications
+            primaryContainer.innerHTML = primaryVerifications.map(verification => {
+                const existing = verifications.find(v => v.provider === verification.provider);
+                const isVerified = existing && existing.status === 'completed';
+                
+                return `
+                    <div class="verification-card ${isVerified ? 'verified' : ''}">
+                        <div class="verification-icon">${verification.icon}</div>
+                        <div class="verification-name">${verification.name}</div>
+                        <div class="verification-status ${isVerified ? 'status-verified' : 'status-not-verified'}">
+                            ${isVerified ? 'Verified' : 'Not Verified'}
+                        </div>
+                        <p>${verification.description}</p>
+                        <button class="verify-btn" onclick="startVerification('${verification.provider}')" ${isVerified ? 'disabled' : ''}>
+                            ${isVerified ? 'Verified ✓' : 'Verify Now'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            // Display secondary verifications
+            secondaryContainer.innerHTML = secondaryVerifications.map(verification => {
+                const existing = verifications.find(v => v.provider === verification.provider);
+                const isVerified = existing && existing.status === 'completed';
+                
+                return `
+                    <div class="verification-card ${isVerified ? 'verified' : ''}">
+                        <div class="verification-icon">${verification.icon}</div>
+                        <div class="verification-name">${verification.name}</div>
+                        <div class="verification-status ${isVerified ? 'status-verified' : 'status-not-verified'}">
+                            ${isVerified ? 'Verified' : 'Not Verified'}
+                        </div>
+                        <p>${verification.description}</p>
+                        <button class="verify-btn" onclick="startVerification('${verification.provider}')" ${isVerified ? 'disabled' : ''}>
+                            ${isVerified ? 'Verified ✓' : 'Verify Now'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function startVerification(provider) {
+            try {
+                alert(`Starting ${provider} verification... (This would integrate with real verification services)`);
+                
+                // For now, we'll simulate a successful verification
+                const response = await fetch('/api/verifications/complete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userToken}`
+                    },
+                    body: JSON.stringify({
+                        provider: provider,
+                        wallet: userWallet,
+                        did: `did:${provider}:test:${Date.now()}`,
+                        status: 'completed'
+                    })
+                });
+
+                if (response.ok) {
+                    alert(`✅ ${provider} verification completed!`);
+                    loadVerifications(); // Refresh the list
+                } else {
+                    throw new Error('Verification failed');
+                }
+            } catch (error) {
+                alert(`❌ ${provider} verification failed: ${error.message}`);
+            }
+        }
+
+        function goBack() {
+            window.location.href = '/user-dashboard.html';
+        }
+    </script>
+</body>
+</html>
