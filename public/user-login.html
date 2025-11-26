@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Badge System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 480px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 700;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 35px;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+
+        .wallet-option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .wallet-option:hover {
+            background: #fff;
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+        }
+
+        .wallet-icon {
+            font-size: 1.8rem;
+            flex-shrink: 0;
+        }
+
+        .wallet-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .wallet-description {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .divider {
+            margin: 30px 0;
+            position: relative;
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e9ecef;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            position: relative;
+        }
+
+        .demo-option {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border: 2px solid #fdcb6e;
+            color: #856404;
+        }
+
+        .demo-option:hover {
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            border-color: #f39c12;
+        }
+
+        .loading {
+            display: none;
+            margin: 25px 0;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            display: none;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+            text-align: left;
+        }
+
+        .success {
+            display: none;
+            background: #d1edff;
+            color: #0c5460;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #bee5eb;
+            text-align: left;
+        }
+
+        .footer {
+            margin-top: 35px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .admin-link {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .admin-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .feature-list {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            font-size: 0.9rem;
+        }
+
+        .feature-list h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .feature-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-list li::before {
+            content: '✅';
+        }
+
+        .metamask-not-installed {
+            display: none;
+            background: #fff3cd;
+            color: #856404;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #ffeaa7;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 1.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">🎖️</div>
+        <h1>Welcome to Badge System</h1>
+        <p class="subtitle">Connect your wallet to access and manage your digital badges</p>
+
+        <div id="error-message" class="error">
+            <div><strong>⚠️ Authentication Error</strong></div>
+            <div id="error-details"></div>
+        </div>
+
+        <div id="success-message" class="success">
+            <div><strong>🎉 Success!</strong></div>
+            <div id="success-details"></div>
+        </div>
+
+        <div id="metamask-not-installed" class="metamask-not-installed">
+            MetaMask is not installed. <a href="https://metamask.io/download.html" target="_blank">Install MetaMask</a> to connect your wallet.
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <div id="loading-text">Connecting to wallet...</div>
+        </div>
+
+        <div class="wallet-option" onclick="connectMetaMask()">
+            <span class="wallet-icon">🦊</span>
+            <div>
+                <div class="wallet-text">Connect with MetaMask</div>
+                <div class="wallet-description">Recommended for most users</div>
+            </div>
+        </div>
+
+        <div class="wallet-option" onclick="connectWalletConnect()">
+            <span class="wallet-icon">🔷</span>
+            <div>
+                <div class="wallet-text">Connect with WalletConnect</div>
+                <div class="wallet-description">Mobile & multi-wallet support</div>
+            </div>
+        </div>
+
+        <div class="divider"><span>or</span></div>
+
+        <div class="wallet-option demo-option" onclick="demoLogin()">
+            <span class="wallet-icon">🚀</span>
+            <div>
+                <div class="wallet-text">Try Demo Mode</div>
+                <div class="wallet-description">Test the system without a wallet</div>
+            </div>
+        </div>
+
+        <div class="feature-list">
+            <h3>What you can do:</h3>
+            <ul>
+                <li>View your earned badges</li>
+                <li>Check eligibility for new badges</li>
+                <li>Mint verifiable credentials</li>
+                <li>Track your verification status</li>
+                <li>Manage your digital identity</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>New to blockchain wallets? <a href="https://ethereum.org/en/wallets/" target="_blank">Learn more about wallets</a></p>
+            <div class="admin-link">
+                <a href="/admin-login.html">Administrator Login →</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentAccount = null;
+
+        // DOM Elements
+        const elements = {
+            error: document.getElementById('error-message'),
+            errorDetails: document.getElementById('error-details'),
+            success: document.getElementById('success-message'),
+            successDetails: document.getElementById('success-details'),
+            loading: document.getElementById('loading'),
+            loadingText: document.getElementById('loading-text'),
+            metamaskNotInstalled: document.getElementById('metamask-not-installed')
+        };
+
+        // Utility functions
+        function showError(message) {
+            if (elements.errorDetails) elements.errorDetails.textContent = message;
+            if (elements.error) elements.error.style.display = 'block';
+            if (elements.success) elements.success.style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            if (elements.successDetails) elements.successDetails.textContent = message;
+            if (elements.success) elements.success.style.display = 'block';
+            if (elements.error) elements.error.style.display = 'none';
+        }
+
+        function hideMessages() {
+            if (elements.error) elements.error.style.display = 'none';
+            if (elements.success) elements.success.style.display = 'none';
+        }
+
+        function showLoading(message = 'Connecting to wallet...') {
+            if (elements.loadingText) elements.loadingText.textContent = message;
+            if (elements.loading) elements.loading.style.display = 'block';
+            hideMessages();
+        }
+
+        function hideLoading() {
+            if (elements.loading) elements.loading.style.display = 'none';
+        }
+
+        // Check if MetaMask is installed
+        function isMetaMaskInstalled() {
+            return typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask;
+        }
+
+        // Check for MetaMask on page load
+        function checkMetaMask() {
+            if (!isMetaMaskInstalled() && elements.metamaskNotInstalled) {
+                elements.metamaskNotInstalled.style.display = 'block';
+            }
+        }
+
+        // MetaMask connection
+        async function connectMetaMask() {
+            if (!isMetaMaskInstalled()) {
+                showError('MetaMask is not installed. Please install MetaMask to continue.');
+                return;
+            }
+
+            showLoading('Connecting to MetaMask...');
+            hideMessages();
+            
+            try {
+                const accounts = await window.ethereum.request({
+                    method: 'eth_requestAccounts'
+                });
+
+                if (accounts.length === 0) {
+                    throw new Error('No accounts found. Please unlock MetaMask.');
+                }
+
+                currentAccount = accounts[0];
+                showLoading('Signing authentication message...');
+                await handleWalletConnection(currentAccount);
+                
+            } catch (error) {
+                hideLoading();
+                console.error('MetaMask connection error:', error);
+                
+                if (error.code === 4001) {
+                    showError('Connection rejected. Please approve the connection request in MetaMask.');
+                } else {
+                    showError('Failed to connect to MetaMask: ' + (error.message || 'Unknown error'));
+                }
+            }
+        }
+
+        // WalletConnect connection (stub for now)
+        async function connectWalletConnect() {
+            showError('WalletConnect integration coming soon! Please use MetaMask for now.');
+        }
+
+        // Demo login for testing
+        async function demoLogin() {
+            showLoading('Setting up demo account...');
+            hideMessages();
+            
+            try {
+                const demoWallet = '0x' + Math.random().toString(16).substr(2, 40);
+                
+                const response = await fetch('/api/auth/dev-verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        wallet: demoWallet
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.token) {
+                    localStorage.setItem('userToken', data.token);
+                    localStorage.setItem('userWallet', data.user.wallet);
+                    localStorage.setItem('userData', JSON.stringify(data.user));
+                    
+                    showSuccess('Demo login successful! Redirecting...');
+                    
+                    setTimeout(() => {
+                        window.location.href = '/user-dashboard.html';
+                    }, 1500);
+                } else {
+                    throw new Error(data.error || 'Demo login failed');
+                }
+                
+            } catch (error) {
+                hideLoading();
+                showError('Demo login failed: ' + error.message);
+            }
+        }
+
+        // Create SIWE message that works with both strict and fallback parsing
+        function createSiweMessage(address, nonce) {
+            const domain = window.location.host;
+            const origin = window.location.origin;
+            const issuedAt = new Date().toISOString();
+            
+            return `${domain} wants you to sign in with your Ethereum account:
+${address}
+
+URI: ${origin}
+Version: 1
+Chain ID: 1
+Nonce: ${nonce}
+Issued At: ${issuedAt}`;
+        }
+
+        // Handle wallet connection and SIWE
+        async function handleWalletConnection(address) {
+            try {
+                showLoading('Preparing authentication...');
+
+                // Step 1: Get nonce from server
+                const nonceResponse = await fetch('/api/auth/init', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        address: address 
+                    })
+                });
+
+                const nonceData = await nonceResponse.json();
+                
+                if (!nonceResponse.ok) {
+                    throw new Error(nonceData.error || 'Failed to get authentication nonce');
+                }
+
+                showLoading('Please sign the message in your wallet...');
+
+                // Step 2: Create SIWE message
+                const messageToSign = createSiweMessage(address, nonceData.nonce);
+                
+                console.log('Signing message:', messageToSign);
+
+                // Step 3: Sign message with wallet
+                const signature = await window.ethereum.request({
+                    method: 'personal_sign',
+                    params: [messageToSign, address]
+                });
+
+                showLoading('Verifying signature...');
+
+                // Step 4: Verify signature with server
+                const verifyResponse = await fetch('/api/auth/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: messageToSign,
+                        signature: signature
+                    })
+                });
+
+                const verifyData = await verifyResponse.json();
+                
+                if (verifyResponse.ok && verifyData.token) {
+                    // Store token and user data
+                    localStorage.setItem('userToken', verifyData.token);
+                    localStorage.setItem('userWallet', verifyData.user.wallet);
+                    localStorage.setItem('userData', JSON.stringify(verifyData.user));
+                    
+                    showSuccess('Authentication successful! Welcome to the Badge System.');
+                    
+                    setTimeout(() => {
+                        window.location.href = '/user-dashboard.html';
+                    }, 1000);
+                } else {
+                    throw new Error(verifyData.error || 'Authentication verification failed');
+                }
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Authentication error:', error);
+                
+                if (error.code === 4001) {
+                    showError('Signature request was rejected. Please try again and sign the message.');
+                } else {
+                    showError('Authentication failed: ' + error.message);
+                }
+            }
+        }
+
+        // Check if user is already logged in
+        async function checkExistingLogin() {
+            const token = localStorage.getItem('userToken');
+            const userWallet = localStorage.getItem('userWallet');
+            
+            if (token && userWallet) {
+                showLoading('Checking existing session...');
+                
+                try {
+                    const response = await fetch('/api/auth/verify-token', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        window.location.href = '/user-dashboard.html';
+                        return;
+                    } else {
+                        clearUserData();
+                    }
+                } catch (error) {
+                    clearUserData();
+                } finally {
+                    hideLoading();
+                }
+            }
+        }
+
+        // Clear user data from localStorage
+        function clearUserData() {
+            localStorage.removeItem('userToken');
+            localStorage.removeItem('userWallet');
+            localStorage.removeItem('userData');
+        }
+
+        // Initialize page
+        function init() {
+            checkMetaMask();
+            checkExistingLogin();
+            
+            // Set up event listeners
+            if (isMetaMaskInstalled()) {
+                window.ethereum.on('accountsChanged', (accounts) => {
+                    if (accounts.length === 0) {
+                        clearUserData();
+                        showError('Wallet disconnected. Please connect again.');
+                    }
+                });
+
+                window.ethereum.on('chainChanged', (chainId) => {
+                    window.location.reload();
+                });
+            }
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                    e.preventDefault();
+                    demoLogin();
+                }
+            });
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

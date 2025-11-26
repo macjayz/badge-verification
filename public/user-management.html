@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Management - Badge Admin</title>
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary: #3498db;
@@ -75,6 +77,61 @@
             padding-bottom: 1rem;
             border-bottom: 2px solid #e9ecef;
         }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-purple {
+            background: #9b59b6;
+            color: white;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
         
         .stats-grid {
             display: grid;
@@ -89,11 +146,16 @@
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             border-left: 4px solid var(--primary);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
         }
         
         .stat-card.success { border-left-color: var(--success); }
         .stat-card.warning { border-left-color: var(--warning); }
         .stat-card.danger { border-left-color: var(--danger); }
+        .stat-card.info { border-left-color: #17a2b8; }
+        .stat-card.purple { border-left-color: #9b59b6; }
         
         .stat-value {
             font-size: 2rem;
@@ -104,6 +166,107 @@
         .stat-label {
             color: #6c757d;
             font-size: 0.9rem;
+        }
+
+        .stat-change {
+            font-size: 0.8rem;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+        
+        .positive { color: var(--success); }
+        .negative { color: var(--danger); }
+
+        .stat-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5rem;
+            opacity: 0.1;
+        }
+        
+        /* Analytics Dashboard */
+        .analytics-dashboard {
+            margin-bottom: 2rem;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .analytics-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            height: 300px;
+        }
+
+        .analytics-card-full {
+            grid-column: 1 / -1;
+            height: 250px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chart-container {
+            height: calc(100% - 40px);
+            position: relative;
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .action-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .action-item:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .action-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
         }
         
         /* Search and Filters */
@@ -116,11 +279,13 @@
             display: flex;
             gap: 15px;
             align-items: center;
+            flex-wrap: wrap;
         }
         
         .search-box {
             flex: 1;
             position: relative;
+            min-width: 300px;
         }
         
         .search-box input {
@@ -138,6 +303,47 @@
             top: 50%;
             transform: translateY(-50%);
             color: #6c757d;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .filter-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        .bulk-actions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .bulk-selection {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .selected-count {
+            font-weight: 600;
+            color: #856404;
         }
         
         /* Users Table */
@@ -163,6 +369,8 @@
             background: #f8f9fa;
             font-weight: 600;
             color: #495057;
+            position: sticky;
+            top: 0;
         }
         
         .status-badge {
@@ -185,6 +393,17 @@
             padding: 2px 6px;
             border-radius: 4px;
             font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .wallet-address:hover {
+            background: #e9ecef;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
         }
         
         .action-btn {
@@ -193,12 +412,19 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.8rem;
-            margin: 2px;
+            transition: all 0.3s;
         }
         
         .btn-view { background: var(--primary); color: white; }
         .btn-activate { background: var(--success); color: white; }
         .btn-deactivate { background: var(--danger); color: white; }
+        .btn-analytics { background: #9b59b6; color: white; }
+        .btn-export { background: #17a2b8; color: white; }
+        
+        .action-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
         
         .pagination {
             display: flex;
@@ -225,6 +451,7 @@
             background: white;
             border-radius: 4px;
             cursor: pointer;
+            transition: all 0.3s;
         }
         
         .pagination-btn:hover:not(:disabled) {
@@ -251,6 +478,149 @@
             border-radius: 5px;
             margin-bottom: 20px;
         }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        /* User Detail Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 2% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .user-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .user-info-section, .user-stats-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .info-value {
+            color: #6c757d;
+        }
+
+        .user-badges {
+            margin-top: 20px;
+        }
+
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .badge-item {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        .badge-icon {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .user-detail-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                min-width: auto;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .header-actions {
+                flex-wrap: wrap;
+            }
+        }
     </style>
 </head>
 <body>
@@ -260,8 +630,8 @@
             <h1>🎯 Badge Admin</h1>
             <nav>
                 <a href="/admin-dashboard.html">📊 Dashboard</a>
-                <a href="#" class="active">👥 Users</a>
-                <a href="#">🪙 Badges</a>
+                <a href="/user-management.html" class="active">👥 Users</a>
+                <a href="/badge-management.html">🪙 Badges</a>
                 <a href="#">⚙️ Settings</a>
             </nav>
         </div>
@@ -269,27 +639,123 @@
         <!-- Main Content -->
         <div class="main-content">
             <div class="header">
-                <h2>User Management</h2>
-                <div id="lastUpdate" class="text-muted">Last update: Just now</div>
+                <h2>User Management & Analytics</h2>
+                <div class="header-actions">
+                    <span id="lastUpdate" class="text-muted">Last update: Just now</span>
+                    <button class="btn btn-info" onclick="exportUserData()">📥 Export Data</button>
+                    <button class="btn btn-purple" onclick="showUserAnalytics()">📈 Analytics</button>
+                    <button class="btn btn-primary" onclick="refreshAllData()">🔄 Refresh</button>
+                </div>
             </div>
+
+            <!-- Success Message -->
+            <div id="successMessage" class="success-message"></div>
 
             <!-- User Statistics -->
             <div class="stats-grid">
                 <div class="stat-card">
+                    <div class="stat-icon">👥</div>
                     <div class="stat-value" id="totalUsers">0</div>
                     <div class="stat-label">Total Users</div>
+                    <div class="stat-change positive" id="usersChange">+0% this week</div>
                 </div>
                 <div class="stat-card success">
+                    <div class="stat-icon">✅</div>
                     <div class="stat-value" id="activeUsers">0</div>
                     <div class="stat-label">Active Users</div>
+                    <div class="stat-change positive" id="activeChange">+0% this week</div>
                 </div>
                 <div class="stat-card warning">
+                    <div class="stat-icon">🆕</div>
                     <div class="stat-value" id="newUsers">0</div>
                     <div class="stat-label">New Users (30d)</div>
+                    <div class="stat-change positive" id="newChange">+0% this week</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card info">
+                    <div class="stat-icon">🔒</div>
                     <div class="stat-value" id="verifiedUsers">0</div>
                     <div class="stat-label">Verified Users</div>
+                    <div class="stat-change positive" id="verifiedChange">+0% this week</div>
+                </div>
+            </div>
+
+            <!-- Analytics Dashboard -->
+            <div class="analytics-dashboard">
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <div class="card-header">
+                            <div class="card-title">User Registration Trend</div>
+                            <div class="card-actions">
+                                <select id="chartTimeRange" onchange="loadChartsData()" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.8rem;">
+                                    <option value="7">7 Days</option>
+                                    <option value="30" selected>30 Days</option>
+                                    <option value="90">90 Days</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="registrationChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="analytics-card">
+                        <div class="card-header">
+                            <div class="card-title">User Status Distribution</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="analytics-card analytics-card-full">
+                        <div class="card-header">
+                            <div class="card-title">User Activity Timeline</div>
+                            <div class="card-actions">
+                                <button class="btn btn-sm btn-primary" onclick="loadActivityData()">Refresh</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h3>🚀 Quick Actions</h3>
+                <div class="actions-grid">
+                    <div class="action-item" onclick="showBulkActions()">
+                        <div class="action-icon">👥</div>
+                        <div>Bulk Actions</div>
+                    </div>
+                    <div class="action-item" onclick="exportUserData()">
+                        <div class="action-icon">📥</div>
+                        <div>Export Data</div>
+                    </div>
+                    <div class="action-item" onclick="showInactiveUsers()">
+                        <div class="action-icon">😴</div>
+                        <div>Inactive Users</div>
+                    </div>
+                    <div class="action-item" onclick="showNewUsers()">
+                        <div class="action-icon">🆕</div>
+                        <div>New Users</div>
+                    </div>
+                    <div class="action-item" onclick="refreshAllData()">
+                        <div class="action-icon">🔄</div>
+                        <div>Refresh All</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Actions -->
+            <div id="bulkActions" class="bulk-actions">
+                <div class="bulk-selection">
+                    <span class="selected-count" id="selectedCount">0 users selected</span>
+                    <button class="btn btn-success btn-sm" onclick="bulkActivate()">Activate Selected</button>
+                    <button class="btn btn-danger btn-sm" onclick="bulkDeactivate()">Deactivate Selected</button>
+                    <button class="btn btn-info btn-sm" onclick="bulkExport()">Export Selected</button>
+                    <button class="btn btn-sm" onclick="clearSelection()">Clear Selection</button>
                 </div>
             </div>
 
@@ -302,7 +768,28 @@
                         placeholder="Search by wallet address..."
                     >
                 </div>
-                <button id="refreshBtn" class="action-btn btn-view">🔄 Refresh</button>
+                <div class="filter-group">
+                    <div class="filter-label">Status</div>
+                    <select id="statusFilter" class="filter-select" onchange="loadUsers()">
+                        <option value="">All Status</option>
+                        <option value="active">Active Only</option>
+                        <option value="inactive">Inactive Only</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-label">Verification</div>
+                    <select id="verificationFilter" class="filter-select" onchange="loadUsers()">
+                        <option value="">All Verification</option>
+                        <option value="verified">Verified Only</option>
+                        <option value="pending">Pending Only</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-label">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                        Select All Visible
+                    </div>
+                </div>
             </div>
 
             <!-- Users Table -->
@@ -313,6 +800,9 @@
                     <table>
                         <thead>
                             <tr>
+                                <th width="30">
+                                    <input type="checkbox" id="selectAllHeader" onchange="toggleSelectAll()">
+                                </th>
                                 <th>Wallet Address</th>
                                 <th>Verification Status</th>
                                 <th>Total Mints</th>
@@ -324,7 +814,7 @@
                         </thead>
                         <tbody id="usersTableBody">
                             <tr>
-                                <td colspan="7" class="loading">
+                                <td colspan="8" class="loading">
                                     Loading users...
                                 </td>
                             </tr>
@@ -346,12 +836,28 @@
         </div>
     </div>
 
+    <!-- User Detail Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>User Details</h3>
+                <button class="modal-close" onclick="closeUserModal()">&times;</button>
+            </div>
+            
+            <div id="userModalContent">
+                <div class="loading">Loading user details...</div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE_URL = 'http://localhost:3001/api/admin';
         let currentPage = 1;
         const limit = 20;
         let currentSearch = '';
         let totalUsers = 0;
+        let charts = {};
+        let selectedUsers = new Set();
 
         // Authentication check
         async function checkAuth() {
@@ -399,15 +905,224 @@
                     document.getElementById('activeUsers').textContent = stats.activeUsers.toLocaleString();
                     document.getElementById('newUsers').textContent = stats.newUsers.toLocaleString();
                     document.getElementById('verifiedUsers').textContent = stats.verifiedUsers.toLocaleString();
+
+                    // Update trend indicators
+                    updateTrendIndicators(stats);
                 }
             } catch (error) {
                 console.error('Error loading user statistics:', error);
             }
         }
 
+        // Update trend indicators
+        function updateTrendIndicators(stats) {
+            // Simulated trend data - in real app, this would come from the API
+            const trends = {
+                total: '+12%',
+                active: '+8%', 
+                new: '+15%',
+                verified: '+10%'
+            };
+            
+            document.getElementById('usersChange').textContent = `${trends.total} this week`;
+            document.getElementById('activeChange').textContent = `${trends.active} this week`;
+            document.getElementById('newChange').textContent = `${trends.new} this week`;
+            document.getElementById('verifiedChange').textContent = `${trends.verified} this week`;
+        }
+
+        // Load analytics charts data
+        async function loadChartsData() {
+            const timeRange = document.getElementById('chartTimeRange').value;
+            
+            try {
+                // Generate sample data for demonstration
+                const registrationData = generateRegistrationData(parseInt(timeRange));
+                const statusData = generateStatusData();
+                const activityData = generateActivityData();
+                
+                initializeRegistrationChart(registrationData);
+                initializeStatusChart(statusData);
+                initializeActivityChart(activityData);
+            } catch (error) {
+                console.error('Error loading charts:', error);
+            }
+        }
+
+        // Load activity data
+        async function loadActivityData() {
+            const activityData = generateActivityData();
+            initializeActivityChart(activityData);
+            showSuccess('Activity data refreshed!');
+        }
+
+        // Generate sample registration data
+        function generateRegistrationData(days) {
+            const labels = [];
+            const data = [];
+            
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                
+                // Random registration data with realistic pattern
+                const base = 5;
+                const variation = Math.sin(i * 0.5) * 3;
+                data.push(Math.max(1, Math.floor(base + variation + Math.random() * 4)));
+            }
+            
+            return { labels, data };
+        }
+
+        // Generate sample status data
+        function generateStatusData() {
+            return {
+                active: 65,
+                inactive: 15,
+                suspended: 5,
+                pending: 15
+            };
+        }
+
+        // Generate sample activity data
+        function generateActivityData() {
+            const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const successful = [45, 52, 38, 65, 72, 58, 80, 75, 68, 82, 78, 85];
+            const failed = [8, 12, 6, 15, 10, 8, 12, 9, 11, 14, 10, 8];
+            
+            return { labels, successful, failed };
+        }
+
+        // Initialize registration chart
+        function initializeRegistrationChart(data) {
+            const ctx = document.getElementById('registrationChart').getContext('2d');
+            
+            if (charts.registrationChart) {
+                charts.registrationChart.destroy();
+            }
+            
+            charts.registrationChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'New Registrations',
+                        data: data.data,
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'New Users'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize status chart
+        function initializeStatusChart(data) {
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            
+            if (charts.statusChart) {
+                charts.statusChart.destroy();
+            }
+            
+            charts.statusChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Active', 'Inactive', 'Suspended', 'Pending'],
+                    datasets: [{
+                        data: [data.active, data.inactive, data.suspended, data.pending],
+                        backgroundColor: [
+                            '#2ecc71',
+                            '#95a5a6',
+                            '#e74c3c',
+                            '#f39c12'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize activity chart
+        function initializeActivityChart(data) {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            
+            if (charts.activityChart) {
+                charts.activityChart.destroy();
+            }
+            
+            charts.activityChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            label: 'Successful Mints',
+                            data: data.successful,
+                            backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                            borderColor: '#2ecc71',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Failed Mints',
+                            data: data.failed,
+                            backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                            borderColor: '#e74c3c',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Mints'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         // Load users with pagination and search
         async function loadUsers(page = 1, search = '') {
             try {
+                const statusFilter = document.getElementById('statusFilter').value;
+                const verificationFilter = document.getElementById('verificationFilter').value;
+                
                 const params = new URLSearchParams({
                     page: page.toString(),
                     limit: limit.toString()
@@ -415,6 +1130,12 @@
                 
                 if (search) {
                     params.append('search', search);
+                }
+                if (statusFilter) {
+                    params.append('status', statusFilter);
+                }
+                if (verificationFilter) {
+                    params.append('verification', verificationFilter);
                 }
 
                 const response = await authFetch(`${API_BASE_URL}/users?${params}`);
@@ -440,11 +1161,13 @@
             
             totalUsers = pagination.total;
             currentPage = pagination.page;
+            selectedUsers.clear();
+            updateSelectionUI();
             
             if (users.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="loading">
+                        <td colspan="8" class="loading">
                             No users found
                         </td>
                     </tr>
@@ -453,8 +1176,12 @@
                 tableBody.innerHTML = users.map(user => `
                     <tr>
                         <td>
-                            <span class="wallet-address" title="${user.walletAddress}">
-                                ${user.walletAddress.substring(0, 10)}...
+                            <input type="checkbox" class="user-checkbox" value="${user.id}" 
+                                   onchange="toggleUserSelection('${user.id}')">
+                        </td>
+                        <td>
+                            <span class="wallet-address" title="${user.walletAddress}" onclick="copyToClipboard('${user.walletAddress}')">
+                                ${user.walletAddress.substring(0, 10)}...${user.walletAddress.substring(user.walletAddress.length - 6)}
                             </span>
                         </td>
                         <td>
@@ -462,26 +1189,37 @@
                                 ${user.verificationStatus}
                             </span>
                         </td>
-                        <td>${user.totalMints}</td>
-                        <td>${user.successRate.toFixed(1)}%</td>
+                        <td>${user.totalMints || 0}</td>
+                        <td>
+                            <span style="font-weight: 500; color: ${(user.successRate || 0) > 80 ? '#2ecc71' : (user.successRate || 0) > 60 ? '#f39c12' : '#e74c3c'}">
+                                ${(user.successRate || 0).toFixed(1)}%
+                            </span>
+                        </td>
                         <td>
                             <span class="status-badge ${user.isActive ? 'status-active' : 'status-inactive'}">
                                 ${user.isActive ? 'Active' : 'Inactive'}
                             </span>
                         </td>
-                        <td>${new Date(user.lastActivity).toLocaleDateString()}</td>
+                        <td title="${new Date(user.lastActivity || user.createdAt).toLocaleString()}">
+                            ${timeAgo(user.lastActivity || user.createdAt)}
+                        </td>
                         <td>
-                            <button class="action-btn btn-view" onclick="viewUserDetails('${user.id}')">
-                                View
-                            </button>
-                            ${user.isActive ? 
-                                `<button class="action-btn btn-deactivate" onclick="updateUserStatus('${user.id}', false)">
-                                    Deactivate
-                                </button>` :
-                                `<button class="action-btn btn-activate" onclick="updateUserStatus('${user.id}', true)">
-                                    Activate
-                                </button>`
-                            }
+                            <div class="action-buttons">
+                                <button class="action-btn btn-view" onclick="viewUserDetails('${user.id}')">
+                                    View
+                                </button>
+                                <button class="action-btn btn-analytics" onclick="viewUserAnalytics('${user.id}')">
+                                    Analytics
+                                </button>
+                                ${user.isActive ? 
+                                    `<button class="action-btn btn-deactivate" onclick="updateUserStatus('${user.id}', false)">
+                                        Deactivate
+                                    </button>` :
+                                    `<button class="action-btn btn-activate" onclick="updateUserStatus('${user.id}', true)">
+                                        Activate
+                                    </button>`
+                                }
+                            </div>
                         </td>
                     </tr>
                 `).join('');
@@ -492,21 +1230,225 @@
             updateLastUpdateTime();
         }
 
-        // Update pagination controls
-        function updatePaginationInfo(pagination) {
-            const start = ((pagination.page - 1) * pagination.limit) + 1;
-            const end = Math.min(start + pagination.limit - 1, pagination.total);
+        // Selection Management
+        function toggleUserSelection(userId) {
+            if (selectedUsers.has(userId)) {
+                selectedUsers.delete(userId);
+            } else {
+                selectedUsers.add(userId);
+            }
+            updateSelectionUI();
+        }
+        
+        function toggleSelectAll() {
+            const checkboxes = document.querySelectorAll('.user-checkbox');
+            const selectAll = document.getElementById('selectAll').checked;
             
-            document.getElementById('paginationInfo').textContent = 
-                `Showing ${start}-${end} of ${pagination.total} users`;
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll;
+                const userId = checkbox.value;
+                if (selectAll) {
+                    selectedUsers.add(userId);
+                } else {
+                    selectedUsers.delete(userId);
+                }
+            });
             
-            document.getElementById('prevPage').disabled = pagination.page <= 1;
-            document.getElementById('nextPage').disabled = pagination.page >= pagination.totalPages;
+            updateSelectionUI();
+        }
+        
+        function updateSelectionUI() {
+            const selectedCount = selectedUsers.size;
+            document.getElementById('selectedCount').textContent = `${selectedCount} user${selectedCount !== 1 ? 's' : ''} selected`;
+            
+            const bulkActions = document.getElementById('bulkActions');
+            
+            if (selectedCount > 0) {
+                bulkActions.style.display = 'block';
+            } else {
+                bulkActions.style.display = 'none';
+            }
+        }
+        
+        function clearSelection() {
+            selectedUsers.clear();
+            document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = false);
+            document.getElementById('selectAll').checked = false;
+            updateSelectionUI();
+        }
+
+        // Bulk Operations
+        async function bulkActivate() {
+            if (!selectedUsers.size) return;
+            if (!confirm(`Activate ${selectedUsers.size} user(s)?`)) return;
+            
+            for (const userId of selectedUsers) {
+                await updateUserStatus(userId, true, false);
+            }
+            clearSelection();
+            showSuccess(`${selectedUsers.size} users activated successfully!`);
+        }
+        
+        async function bulkDeactivate() {
+            if (!selectedUsers.size) return;
+            if (!confirm(`Deactivate ${selectedUsers.size} user(s)?`)) return;
+            
+            for (const userId of selectedUsers) {
+                await updateUserStatus(userId, false, false);
+            }
+            clearSelection();
+            showSuccess(`${selectedUsers.size} users deactivated successfully!`);
+        }
+        
+        function bulkExport() {
+            showSuccess(`Preparing export for ${selectedUsers.size} users...`);
+        }
+
+        function showBulkActions() {
+            const bulkActions = document.getElementById('bulkActions');
+            if (selectedUsers.size > 0) {
+                bulkActions.style.display = 'block';
+            } else {
+                showError('Please select users first');
+            }
+        }
+
+        // View user details
+        async function viewUserDetails(userId) {
+            try {
+                const response = await authFetch(`${API_BASE_URL}/users/${userId}`);
+                if (!response) return;
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showUserModal(result.data);
+                } else {
+                    showError(result.error || 'Failed to load user details');
+                }
+            } catch (error) {
+                console.error('Error loading user details:', error);
+                showError('Error loading user details: ' + error.message);
+            }
+        }
+
+        // Show user modal with details
+        function showUserModal(user) {
+            const modalContent = document.getElementById('userModalContent');
+            
+            modalContent.innerHTML = `
+                <div class="user-detail-grid">
+                    <div class="user-info-section">
+                        <h4>User Information</h4>
+                        <div class="info-item">
+                            <span class="info-label">Wallet Address:</span>
+                            <span class="info-value" style="font-family: monospace;">${user.walletAddress}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Status:</span>
+                            <span class="info-value">
+                                <span class="status-badge ${user.isActive ? 'status-active' : 'status-inactive'}">
+                                    ${user.isActive ? 'Active' : 'Inactive'}
+                                </span>
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Verification:</span>
+                            <span class="info-value">
+                                <span class="status-badge ${user.isVerified ? 'status-verified' : 'status-pending'}">
+                                    ${user.isVerified ? 'Verified' : 'Pending'}
+                                </span>
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Last Active:</span>
+                            <span class="info-value">${formatDate(user.lastActivity)}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Registered:</span>
+                            <span class="info-value">${formatDate(user.createdAt)}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="user-stats-section">
+                        <h4>User Statistics</h4>
+                        <div class="info-item">
+                            <span class="info-label">Total Badges:</span>
+                            <span class="info-value">${user.badgesCount || 0}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Successful Mints:</span>
+                            <span class="info-value">${user.completedMints || 0}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Failed Mints:</span>
+                            <span class="info-value">${user.failedMints || 0}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Success Rate:</span>
+                            <span class="info-value">
+                                ${user.completedMints && user.failedMints ? 
+                                    ((user.completedMints / (user.completedMints + user.failedMints)) * 100).toFixed(1) + '%' : 
+                                    '0%'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                ${user.badges && user.badges.length > 0 ? `
+                <div class="user-badges">
+                    <h4>Earned Badges</h4>
+                    <div class="badges-grid">
+                        ${user.badges.map(badge => `
+                            <div class="badge-item">
+                                <div class="badge-icon">🪙</div>
+                                <div>${badge.name}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="btn ${user.isActive ? 'btn-danger' : 'btn-success'}" 
+                            onclick="updateUserStatus('${user.id}', ${!user.isActive}); closeUserModal();">
+                        ${user.isActive ? 'Deactivate User' : 'Activate User'}
+                    </button>
+                    <button class="btn btn-info" onclick="exportUserReport('${user.id}')">
+                        Export User Report
+                    </button>
+                    <button class="btn btn-purple" onclick="viewUserAnalytics('${user.id}')">
+                        View Analytics
+                    </button>
+                    <button class="btn" onclick="closeUserModal()">
+                        Close
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('userModal').style.display = 'block';
+        }
+
+        // Close user modal
+        function closeUserModal() {
+            document.getElementById('userModal').style.display = 'none';
+        }
+
+        // View user analytics
+        function viewUserAnalytics(userId) {
+            // Redirect to user analytics page or open in new tab
+            window.open(`/user-analytics.html?id=${userId}`, '_blank');
+        }
+
+        // Show user analytics dashboard
+        function showUserAnalytics() {
+            alert('Opening comprehensive user analytics dashboard...');
+            // This would open a full analytics view
         }
 
         // Update user status
-        async function updateUserStatus(userId, isActive) {
-            if (!confirm(`Are you sure you want to ${isActive ? 'activate' : 'deactivate'} this user?`)) {
+        async function updateUserStatus(userId, isActive, showAlert = true) {
+            if (showAlert && !confirm(`Are you sure you want to ${isActive ? 'activate' : 'deactivate'} this user?`)) {
                 return;
             }
             
@@ -524,6 +1466,11 @@
                     // Reload users to reflect changes
                     loadUsers(currentPage, currentSearch);
                     loadUserStatistics();
+                    loadChartsData();
+                    
+                    if (showAlert) {
+                        showSuccess(`User ${isActive ? 'activated' : 'deactivated'} successfully!`);
+                    }
                 } else {
                     showError(result.error || 'Failed to update user status');
                 }
@@ -533,10 +1480,74 @@
             }
         }
 
-        // View user details (placeholder for now)
-        function viewUserDetails(userId) {
-            alert(`View details for user: ${userId}\n\nThis feature will be implemented in the next update!`);
-            // In the next step, we'll implement a detailed user view modal
+        // Quick action functions
+        function showInactiveUsers() {
+            document.getElementById('statusFilter').value = 'inactive';
+            loadUsers(1, currentSearch);
+        }
+
+        function showNewUsers() {
+            // This would filter for users created in the last 7 days
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('verificationFilter').value = '';
+            loadUsers(1, '');
+            showSuccess('Showing all users. New users filter would be implemented with date filtering.');
+        }
+
+        // Export functionality
+        function exportUserData() {
+            showSuccess('Preparing user data export... This would generate a CSV report in production.');
+        }
+
+        function exportUserReport(userId) {
+            showSuccess(`Generating detailed report for user ${userId}...`);
+        }
+
+        // Utility functions
+        function formatDate(dateString) {
+            if (!dateString) return 'Never';
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function timeAgo(dateString) {
+            if (!dateString) return 'Never';
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return formatDate(dateString);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showSuccess('Wallet address copied to clipboard!');
+            });
+        }
+
+        // Update pagination controls
+        function updatePaginationInfo(pagination) {
+            const start = ((pagination.page - 1) * pagination.limit) + 1;
+            const end = Math.min(start + pagination.limit - 1, pagination.total);
+            
+            document.getElementById('paginationInfo').textContent = 
+                `Showing ${start}-${end} of ${pagination.total} users`;
+            
+            document.getElementById('prevPage').disabled = pagination.page <= 1;
+            document.getElementById('nextPage').disabled = pagination.page >= pagination.totalPages;
         }
 
         // Show error message
@@ -549,10 +1560,28 @@
             }, 5000);
         }
 
+        // Show success message
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 4000);
+        }
+
         // Update last update time
         function updateLastUpdateTime() {
             document.getElementById('lastUpdate').textContent = 
                 `Last update: ${new Date().toLocaleTimeString()}`;
+        }
+
+        // Refresh all data
+        function refreshAllData() {
+            loadUserStatistics();
+            loadUsers(currentPage, currentSearch);
+            loadChartsData();
+            showSuccess('All data refreshed successfully!');
         }
 
         // Initialize the page
@@ -564,16 +1593,12 @@
             // Load initial data
             loadUserStatistics();
             loadUsers();
+            loadChartsData();
             
             // Setup event listeners
             document.getElementById('searchInput').addEventListener('input', (e) => {
                 currentSearch = e.target.value;
                 currentPage = 1;
-                loadUsers(currentPage, currentSearch);
-            });
-            
-            document.getElementById('refreshBtn').addEventListener('click', () => {
-                loadUserStatistics();
                 loadUsers(currentPage, currentSearch);
             });
             
@@ -588,41 +1613,13 @@
             });
         });
 
-        // Add logout functionality
-        async function logout() {
-            try {
-                await authFetch(`${API_BASE_URL}/auth/logout`, { method: 'POST' });
-            } catch (error) {
-                console.error('Logout error:', error);
-            } finally {
-                localStorage.removeItem('adminToken');
-                window.location.href = '/admin-login.html';
+        // Close modal when clicking outside
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('userModal');
+            if (e.target === modal) {
+                closeUserModal();
             }
-        }
-
-        // Add logout button to header (you can add this to your HTML)
-        function setupLogout() {
-            const header = document.querySelector('.header');
-            if (header) {
-                const logoutBtn = document.createElement('button');
-                logoutBtn.textContent = 'Logout';
-                logoutBtn.style.cssText = `
-                    background: #e74c3c;
-                    color: white;
-                    border: none;
-                    padding: 8px 15px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 14px;
-                    margin-left: 15px;
-                `;
-                logoutBtn.onclick = logout;
-                header.appendChild(logoutBtn);
-            }
-        }
-
-        // Initialize logout button
-        setupLogout();
+        });
     </script>
 </body>
 </html>

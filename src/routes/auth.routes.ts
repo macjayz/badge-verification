@@ -4,11 +4,14 @@ import { authenticateToken } from '../middleware/auth.middleware';
 
 const router = Router();
 
+// Public routes
 router.post('/init', authController.initAuth);
 router.post('/verify', authController.verifyAuth);
-router.post('/dev-verify', authController.devVerify); // Keep for development
+router.post('/dev-verify', authController.devVerify);
 router.get('/status/:wallet', authController.getAuthStatus);
-router.get('/me', authenticateToken, authController.getCurrentUser);
+
+// Protected routes (require authentication)
+router.get('/verify-token', authenticateToken, authController.getCurrentUser);
 router.post('/logout', authenticateToken, authController.logout);
 
-export { router as authRoutes };
+export default router;

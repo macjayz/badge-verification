@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard - Badge System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .wallet-address {
+            background: #f8f9fa;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .nav-tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .badge-card {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .badge-card.earned {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .badge-card.available {
+            border-color: #ffc107;
+            background: #fffdf6;
+        }
+
+        .badge-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .badge-name {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .badge-status {
+            font-size: 0.8rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .status-earned {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-available {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .mint-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            width: 100%;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🎖️ Badge System</div>
+        <div class="user-info">
+            <div class="wallet-address" id="walletAddress">Loading...</div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div id="error-message" class="error" style="display: none;"></div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalBadges">0</div>
+                <div class="stat-label">Total Badges Earned</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="availableBadges">0</div>
+                <div class="stat-label">Available to Earn</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="verificationLevel">0%</div>
+                <div class="stat-label">Verification Level</div>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="switchTab('my-badges')">My Badges</div>
+            <div class="nav-tab" onclick="switchTab('available-badges')">Available Badges</div>
+            <div class="nav-tab" onclick="switchTab('activity')">Recent Activity</div>
+        </div>
+
+        <!-- My Badges Tab -->
+        <div id="my-badges" class="tab-content active">
+            <div class="section">
+                <h2 class="section-title">My Earned Badges</h2>
+                <div id="my-badges-list" class="badges-grid">
+                    <div class="loading">Loading your badges...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Badges Tab -->
+        <div id="available-badges" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Badges Available to Earn</h2>
+                <div id="available-badges-list" class="badges-grid">
+                    <div class="loading">Loading available badges...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Tab -->
+        <div id="activity" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Recent Activity</h2>
+                <div id="activity-list">
+                    <div class="loading">Loading activity...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/user';
+        let userToken = localStorage.getItem('userToken');
+        let userWallet = localStorage.getItem('userWallet');
+
+        // Check authentication
+        if (!userToken || !userWallet) {
+            window.location.href = '/user-login.html';
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('walletAddress').textContent = 
+                userWallet.substring(0, 6) + '...' + userWallet.substring(38);
+            
+            loadDashboardData();
+        });
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        async function loadDashboardData() {
+            try {
+                // Load user profile
+                const profileResponse = await fetch(`${API_BASE}/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`
+                    }
+                });
+
+                if (profileResponse.ok) {
+                    const profile = await profileResponse.json();
+                    document.getElementById('totalBadges').textContent = profile.totalBadges || 0;
+                    
+                    // Calculate verification level
+                    const verificationLevel = profile.verifications ? 
+                        Math.min(100, profile.verifications.length * 25) : 0;
+                    document.getElementById('verificationLevel').textContent = verificationLevel + '%';
+                }
+
+                // Load user badges
+                const badgesResponse = await fetch(`${API_BASE}/badges`, {
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`
+                    }
+                });
+
+                if (badgesResponse.ok) {
+                    const badges = await badgesResponse.json();
+                    displayMyBadges(badges);
+                }
+
+                // Load available badges
+                const availableResponse = await fetch(`${API_BASE}/available-badges`, {
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`
+                    }
+                });
+
+                if (availableResponse.ok) {
+                    const availableBadges = await availableResponse.json();
+                    displayAvailableBadges(availableBadges);
+                    document.getElementById('availableBadges').textContent = availableBadges.length;
+                }
+
+                // Load user activity
+                const activityResponse = await fetch(`${API_BASE}/activity`, {
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`
+                    }
+                });
+
+                if (activityResponse.ok) {
+                    const activity = await activityResponse.json();
+                    displayActivity(activity);
+                }
+
+            } catch (error) {
+                showError('Failed to load dashboard data: ' + error.message);
+            }
+        }
+
+        function displayMyBadges(badges) {
+            const container = document.getElementById('my-badges-list');
+            
+            if (badges.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🎖️</div>
+                        <h3>No badges yet</h3>
+                        <p>Start earning badges by checking your eligibility!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = badges.map(badge => `
+                <div class="badge-card earned">
+                    <div class="badge-icon">${getBadgeIcon(badge.badgeType?.name)}</div>
+                    <div class="badge-name">${badge.badgeType?.name || 'Unknown Badge'}</div>
+                    <div class="badge-status status-earned">Earned</div>
+                    <div class="badge-date">${new Date(badge.createdAt).toLocaleDateString()}</div>
+                </div>
+            `).join('');
+        }
+
+        function displayAvailableBadges(badges) {
+            const container = document.getElementById('available-badges-list');
+            
+            if (badges.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <h3>No available badges</h3>
+                        <p>All badges have been earned or none are currently available.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = badges.map(badge => `
+                <div class="badge-card available">
+                    <div class="badge-icon">${getBadgeIcon(badge.name)}</div>
+                    <div class="badge-name">${badge.name}</div>
+                    <div class="badge-status status-available">Available</div>
+                    ${badge.isEligible ? 
+                        `<button class="mint-btn" onclick="mintBadge('${badge.id}')">Mint Badge</button>` :
+                        `<button class="mint-btn" onclick="checkEligibility('${badge.id}')" style="background: #6c757d;">Check Eligibility</button>`
+                    }
+                </div>
+            `).join('');
+        }
+
+        function displayActivity(activities) {
+            const container = document.getElementById('activity-list');
+            
+            if (activities.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📊</div>
+                        <h3>No activity yet</h3>
+                        <p>Your activity will appear here once you start using the system.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = activities.map(activity => `
+                <div style="padding: 1rem; border-bottom: 1px solid #e9ecef;">
+                    <div style="display: flex; justify-content: between; align-items: center;">
+                        <div>
+                            <strong>${activity.details || activity.badgeName || activity.provider}</strong>
+                            <div style="color: #666; font-size: 0.9rem;">${new Date(activity.date).toLocaleString()}</div>
+                        </div>
+                        <span style="background: ${getStatusColor(activity.status)}; color: white; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.8rem;">
+                            ${activity.status || activity.type}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getBadgeIcon(badgeName) {
+            const icons = {
+                'Early Supporter': '🎖️',
+                'Verified Creator': '🎨',
+                'DAO Voter': '🗳️',
+                'DeFi Camp Student': '🎓',
+                'Community Contributor': '🤝'
+            };
+            return icons[badgeName] || '🎖️';
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'completed': '#28a745',
+                'minted': '#28a745',
+                'pending': '#ffc107',
+                'failed': '#dc3545',
+                'revoked': '#6c757d'
+            };
+            return colors[status] || '#6c757d';
+        }
+
+        function switchTab(tabName) {
+            // Update tab navigation
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`.nav-tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        async function mintBadge(badgeTypeId) {
+            try {
+                const response = await fetch('/api/minting/mint', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userToken}`
+                    },
+                    body: JSON.stringify({
+                        badgeTypeId: badgeTypeId,
+                        wallet: userWallet
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showError('');
+                    alert('Badge minting started! Check your activity for updates.');
+                    loadDashboardData();
+                } else {
+                    throw new Error(data.error || 'Minting failed');
+                }
+            } catch (error) {
+                showError('Failed to mint badge: ' + error.message);
+            }
+        }
+
+        async function checkEligibility(badgeTypeId) {
+            try {
+                const response = await fetch('/api/eligibility/check', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userToken}`
+                    },
+                    body: JSON.stringify({
+                        badgeTypeId: badgeTypeId,
+                        wallet: userWallet
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if (data.isEligible) {
+                        alert('You are eligible for this badge! You can now mint it.');
+                        loadDashboardData();
+                    } else {
+                        alert('You are not yet eligible for this badge. Requirements: ' + 
+                              (data.reasons ? data.reasons.join(', ') : 'Not met'));
+                    }
+                } else {
+                    throw new Error(data.error || 'Eligibility check failed');
+                }
+            } catch (error) {
+                showError('Eligibility check failed: ' + error.message);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('userToken');
+            localStorage.removeItem('userWallet');
+            localStorage.removeItem('userData');
+            window.location.href = '/user-login.html';
+        }
+    </script>
+</body>
+</html>

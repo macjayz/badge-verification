@@ -7,7 +7,7 @@ import { config } from './config';
 import { initializeDatabase } from './db/datasource';
 import { webSocketService } from './services/websocket.service';
 import { webSocketEventsService } from './services/websocket-events.service';
-import { authRoutes } from './routes/auth.routes';
+import authRoutes from './routes/auth.routes';
 import { healthRoutes } from './routes/health.routes';
 import { protectedRoutes } from './routes/protected.routes';
 import { didRoutes } from './routes/did.routes';
@@ -20,6 +20,7 @@ import { adminAuthRoutes } from './routes/admin-auth.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { userManagementRoutes } from './routes/user-management.routes';
 import { badgeManagementRoutes } from './routes/badge-management.routes';
+import userRoutes from './routes/user.routes';
 import { logger } from './utils/logger'; 
 import path from 'path';
 
@@ -36,6 +37,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, '../public')));
+
+app.use('/api/user', userRoutes);
 
 app.use('/public', (req, res, next) => {
   console.log('Static file request:', req.path);
