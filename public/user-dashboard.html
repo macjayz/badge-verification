@@ -224,8 +224,17 @@
 <body>
     <div class="header">
         <div class="logo">🎖️ Badge System</div>
+        <button onclick="goToAchievements()" style="background: #ff6b6b; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; margin-left: 0.5rem;">
+            View Achievements
+        </button>
+
+        <button onclick="goToGallery()" style="background: #17a2b8; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; margin-left: 0.5rem;">
+            View Gallery
+        </button>
+
         <div class="user-info">
             <div class="wallet-address" id="walletAddress">Loading...</div>
+            <button class="logout-btn" onclick="goToProfile()" style="background: #17a2b8;">My Profile</button>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
     </div>
@@ -249,11 +258,11 @@
         <div class="stat-card">
             <div class="stat-number" id="verificationCount">0</div>
             <div class="stat-label">Verifications Completed</div>
-            <button onclick="goToVerifications()" style="margin-top: 0.5rem; background: #28a745; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">
+            <button onclick="goToVerifications()" style="margin-top: 0.5rem; background: #28a745; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.8rem; width: 100%;">
                 Manage Verifications
             </button>
         </div>
-        
+
         <div class="nav-tabs">
             <div class="nav-tab active" onclick="switchTab('my-badges')">My Badges</div>
             <div class="nav-tab" onclick="switchTab('available-badges')">Available Badges</div>
@@ -315,68 +324,125 @@
             errorDiv.style.display = 'block';
         }
 
-        async function loadDashboardData() {
-            try {
-                // Load user profile
-                const profileResponse = await fetch(`${API_BASE}/profile`, {
-                    headers: {
-                        'Authorization': `Bearer ${userToken}`
-                    }
-                });
-
-                if (profileResponse.ok) {
-                    const profile = await profileResponse.json();
-                    document.getElementById('totalBadges').textContent = profile.totalBadges || 0;
-                    
-                    // Calculate verification level
-                    const verificationLevel = profile.verifications ? 
-                        Math.min(100, profile.verifications.length * 25) : 0;
-                    document.getElementById('verificationLevel').textContent = verificationLevel + '%';
-                }
-
-                // Load user badges
-                const badgesResponse = await fetch(`${API_BASE}/badges`, {
-                    headers: {
-                        'Authorization': `Bearer ${userToken}`
-                    }
-                });
-
-                if (badgesResponse.ok) {
-                    const badges = await badgesResponse.json();
-                    displayMyBadges(badges);
-                }
-
-                // Load available badges
-                const availableResponse = await fetch(`${API_BASE}/available-badges`, {
-                    headers: {
-                        'Authorization': `Bearer ${userToken}`
-                    }
-                });
-
-                if (availableResponse.ok) {
-                    const availableBadges = await availableResponse.json();
-                    displayAvailableBadges(availableBadges);
-                    document.getElementById('availableBadges').textContent = availableBadges.length;
-                }
-
-                // Load user activity
-                const activityResponse = await fetch(`${API_BASE}/activity`, {
-                    headers: {
-                        'Authorization': `Bearer ${userToken}`
-                    }
-                });
-
-                if (activityResponse.ok) {
-                    const activity = await activityResponse.json();
-                    displayActivity(activity);
-                }
-
-            } catch (error) {
-                showError('Failed to load dashboard data: ' + error.message);
+        // FIXED: Update the loadDashboardData function to refresh verification count
+async function loadDashboardData() {
+    try {
+        // Load user profile
+        const profileResponse = await fetch(`${API_BASE}/profile`, {
+            headers: {
+                'Authorization': `Bearer ${userToken}`
             }
+        });
 
+        if (profileResponse.ok) {
+            const profile = await profileResponse.json();
+            document.getElementById('totalBadges').textContent = profile.totalBadges || 0;
             document.getElementById('verificationCount').textContent = profile.verifications ? profile.verifications.length : 0;
+            
+            // Calculate verification level
+            const verificationLevel = profile.verifications ? 
+                Math.min(100, profile.verifications.length * 25) : 0;
+            document.getElementById('verificationLevel').textContent = verificationLevel + '%';
         }
+
+        // Load user badges
+        const badgesResponse = await fetch(`${API_BASE}/badges`, {
+            headers: {
+                'Authorization': `Bearer ${userToken}`
+            }
+        });
+
+        if (badgesResponse.ok) {
+            const badges = await badgesResponse.json();
+            displayMyBadges(badges);
+        }
+
+        // Load available badges
+        const availableResponse = await fetch(`${API_BASE}/available-badges`, {
+            headers: {
+                'Authorization': `Bearer ${userToken}`
+            }
+        });
+
+        if (availableResponse.ok) {
+            const availableBadges = await availableResponse.json();
+            displayAvailableBadges(availableBadges);
+            document.getElementById('availableBadges').textContent = availableBadges.length;
+        }
+
+        // Load user activity
+        const activityResponse = await fetch(`${API_BASE}/activity`, {
+            headers: {
+                'Authorization': `Bearer ${userToken}`
+            }
+        });
+
+        if (activityResponse.ok) {
+            const activity = await activityResponse.json();
+            displayActivity(activity);
+        }
+
+    } catch (error) {
+        showError('Failed to load dashboard data: ' + error.message);
+    }
+}
+
+// FIXED: Update the mintBadge function to refresh ALL data
+async function mintBadge(badgeTypeId) {
+    try {
+        const response = await fetch(`${API_BASE}/mint-badge`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userToken}`
+            },
+            body: JSON.stringify({
+                badgeTypeId: badgeTypeId
+            })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            showError('');
+            alert('✅ Badge minting started! Check your activity tab for updates and watch the admin dashboard for real-time events.');
+            
+            // FIXED: Refresh ALL dashboard data after minting
+            loadDashboardData();
+        } else {
+            const errorMessage = data.error || data.message || 'Minting failed';
+            throw new Error(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
+        }
+    } catch (error) {
+        console.error('Mint badge error:', error);
+        const errorMessage = error.message || 'Unknown error occurred';
+        showError('Failed to mint badge: ' + errorMessage);
+    }
+}
+
+// FIXED: Add function to refresh just verification count
+async function refreshVerificationCount() {
+    try {
+        const profileResponse = await fetch(`${API_BASE}/profile`, {
+            headers: {
+                'Authorization': `Bearer ${userToken}`
+            }
+        });
+
+        if (profileResponse.ok) {
+            const profile = await profileResponse.json();
+            document.getElementById('verificationCount').textContent = profile.verifications ? profile.verifications.length : 0;
+            
+            const verificationLevel = profile.verifications ? 
+                Math.min(100, profile.verifications.length * 25) : 0;
+            document.getElementById('verificationLevel').textContent = verificationLevel + '%';
+        }
+    } catch (error) {
+        console.error('Failed to refresh verification count:', error);
+    }
+    document.getElementById('verificationCount').textContent = profile.verifications ? profile.verifications.length : 0;
+       
+}
 
         function displayMyBadges(badges) {
             const container = document.getElementById('my-badges-list');
@@ -668,12 +734,40 @@ function goToVerifications() {
     window.location.href = '/user-verifications.html';
 }
 
-        function logout() {
-            localStorage.removeItem('userToken');
-            localStorage.removeItem('userWallet');
-            localStorage.removeItem('userData');
-            window.location.href = '/user-login.html';
-        }
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('walletAddress').textContent = 
+        userWallet.substring(0, 6) + '...' + userWallet.substring(38);
+    
+    // Check if we need to refresh data (coming from verifications page)
+    if (localStorage.getItem('shouldRefreshDashboard') === 'true') {
+        localStorage.removeItem('shouldRefreshDashboard');
+        // Small delay to ensure data is persisted
+        setTimeout(() => {
+            loadDashboardData();
+        }, 500);
+    } else {
+        loadDashboardData();
+    }
+});
+
+            function goToProfile() {
+                window.location.href = '/user-profile.html';
+            }
+            
+            function goToGallery() {
+                window.location.href = '/badge-gallery.html';
+            }
+
+            function goToAchievements() {
+                window.location.href = '/achievements.html';
+            }
+
+            function logout() {
+                localStorage.removeItem('userToken');
+                localStorage.removeItem('userWallet');
+                localStorage.removeItem('userData');
+                window.location.href = '/user-login.html';
+            }
     </script>
 </body>
 </html>

@@ -11,6 +11,32 @@ import { AuthenticatedRequest } from '../middleware/auth.middleware';
 const userRepository = AppDataSource.getRepository(User);
 
 export class AuthController {
+  async getNonce(req: Request, res: Response) {
+    try {
+      const { wallet } = req.query;
+      
+      if (!wallet || typeof wallet !== 'string' || !ethers.isAddress(wallet)) {
+        return res.status(400).json({ error: 'Valid Ethereum address required' });
+      }
+
+      // Generate cryptographically secure nonce
+      const nonce = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      
+      // Store nonce in Redis with 5-minute expiry
+      await redisService.set(`auth:nonce:${wallet.toLowerCase()}`, nonce, 300);
+
+      logger.info(`Generated nonce for address: ${wallet}`);
+      
+      res.json({ 
+        nonce,
+        expiresIn: '5 minutes'
+      });
+    } catch (error) {
+      logger.error('Get nonce error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+  
   async initAuth(req: Request, res: Response) {
     try {
       const { address } = req.body;

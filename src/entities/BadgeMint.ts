@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
-import { User } from './User';
+import { User } from './User';  // Uncomment this line
 import { BadgeType } from './BadgeType';
 import { Verification } from './Verification';
 
@@ -18,7 +18,7 @@ export class BadgeMint {
   @Column({ type: 'varchar', nullable: true })
   transactionHash?: string;  // Mint transaction hash
 
-  @Column({ type: 'uuid', nullable: true })  // FIXED: Use 'uuid' type instead of varchar with length
+  @Column({ type: 'uuid', nullable: true })
   verificationId?: string;  // Link to verification that triggered mint
 
   @Column({ type: 'jsonb', nullable: true })
@@ -37,7 +37,7 @@ export class BadgeMint {
   updatedAt!: Date;
 
   // Relationships
-  @ManyToOne(() => User, user => user.wallet, { nullable: true })
+  @ManyToOne(() => User, user => user.wallet, { nullable: true })  // Uncomment these 3 lines
   @JoinColumn({ name: 'wallet', referencedColumnName: 'wallet' })
   user?: User;
 

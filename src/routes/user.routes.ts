@@ -1,4 +1,4 @@
-// src/routes/user.routes.ts
+// UPDATED
 import { Router } from 'express';
 import { UserController } from '../controllers/user.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
@@ -13,10 +13,14 @@ router.get('/profile', UserController.getProfile);
 router.get('/badges', UserController.getUserBadges);
 router.get('/available-badges', UserController.getAvailableBadges);
 router.get('/activity', UserController.getUserActivity);
+router.get('/verifications', UserController.getUserVerifications);
+router.get('/achievements', UserController.getAchievements);
+router.post('/achievements/initialize', UserController.initializeAchievements);
 
-// NEW: Badge minting endpoints
+
+// Badge minting endpoints
 router.post('/mint-badge', UserController.mintBadge);
 router.post('/check-eligibility', UserController.checkEligibility);
-router.post('/complete-verification', UserController.completeVerification);
+router.post('/complete-verification', UserController.completeVerification); // NEW
 
 export default router;

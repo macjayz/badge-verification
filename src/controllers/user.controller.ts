@@ -4,10 +4,11 @@ import { AppDataSource } from '../db/datasource';
 import { User } from '../entities/User';
 import { BadgeMint } from '../entities/BadgeMint';
 import { BadgeType } from '../entities/BadgeType';
-import { Verification } from '../entities/Verification';
+import { Verification, VerificationStatus, VerificationType } from '../entities/Verification';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { mintingService } from '../services/minting.service';
 import { eligibilityService } from '../services/eligibility.service';
+import { achievementService } from '../services/achievement.service';
 import { logger } from '../utils/logger';
 import { Not, IsNull } from 'typeorm';
 
@@ -19,52 +20,57 @@ const verificationRepository = AppDataSource.getRepository(Verification);
 export class UserController {
   
   // Get user profile
-  static async getProfile(req: Request, res: Response) {
+  // In getProfile method - fix verifications references
+static async getProfile(req: Request, res: Response) {
     try {
-      const userId = (req as AuthenticatedRequest).user?.userId;
-      
-      const user = await userRepository.findOne({
-        where: { id: userId },
-        relations: ['verifications']
-      });
-      
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      // Get user's badge statistics - FIXED QUERIES
-      const totalBadges = await badgeMintRepository.count({ 
-        where: { 
-          wallet: user.wallet, 
-          isRevoked: false 
-        } 
-      });
-
-      const successfulMints = await badgeMintRepository.count({
-        where: { 
-          wallet: user.wallet, 
-          isRevoked: false,
-          transactionHash: Not(IsNull())
+        const userId = (req as AuthenticatedRequest).user?.userId;
+        
+        const user = await userRepository.findOne({
+            where: { id: userId }
+        });
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
         }
-      });
-      
-      res.json({
-        id: user.id,
-        wallet: user.wallet,
-        did: user.did,
-        provider: user.provider,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-        verifications: user.verifications,
-        totalBadges,
-        successfulMints,
-        verificationLevel: user.verifications ? Math.min(100, user.verifications.length * 25) : 0
-      });
+
+        // Get user's verifications separately
+        const verifications = await verificationRepository.find({
+            where: { wallet: user.wallet }
+        });
+
+        // Get user's badge statistics
+        const totalBadges = await badgeMintRepository.count({ 
+            where: { 
+                wallet: user.wallet, 
+                isRevoked: false 
+            } 
+        });
+
+        const successfulMints = await badgeMintRepository.count({
+            where: { 
+                wallet: user.wallet, 
+                isRevoked: false,
+                transactionHash: Not(IsNull())
+            }
+        });
+        
+        res.json({
+            id: user.id,
+            wallet: user.wallet,
+            did: user.did,
+            provider: user.provider,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+            verifications: verifications, // Use the separately queried verifications
+            totalBadges,
+            successfulMints,
+            verificationLevel: verifications ? Math.min(100, verifications.length * 25) : 0 // Fix this line
+        });
     } catch (error) {
-      console.error('Profile error:', error);
-      res.status(500).json({ error: 'Failed to fetch user profile' });
+        console.error('Profile error:', error);
+        res.status(500).json({ error: 'Failed to fetch user profile' });
     }
-  }
+}
   
   // Get user's badges
   static async getUserBadges(req: Request, res: Response) {
@@ -119,7 +125,7 @@ export class UserController {
       // Get user first to get wallet
       const user = await userRepository.findOne({
         where: { id: userId },
-        relations: ['verifications']
+        // relations: ['verifications']
       });
       
       if (!user) {
@@ -334,11 +340,12 @@ export class UserController {
     }
   }
 
-  // ADD TO user.controller.ts
+
+// BEST VERSION: Using the actual enums
 static async completeVerification(req: Request, res: Response) {
     try {
         const userId = (req as AuthenticatedRequest).user?.userId;
-        const { provider, did, status = 'completed' } = req.body;
+        const { provider, did } = req.body;
         
         // Get user first to get wallet
         const user = await userRepository.findOne({
@@ -349,6 +356,19 @@ static async completeVerification(req: Request, res: Response) {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        // Determine verification type based on provider - USING ACTUAL ENUMS
+        const getVerificationType = (provider: string): VerificationType => {
+            const primaryProviders = ['polygonid', 'idos'];
+            
+            if (primaryProviders.includes(provider)) {
+                return VerificationType.PRIMARY_DID;
+            } else {
+                return VerificationType.SECONDARY;
+            }
+        };
+
+        const verificationType = getVerificationType(provider);
+
         // Check if verification already exists
         const existingVerification = await verificationRepository.findOne({
             where: { wallet: user.wallet, provider }
@@ -358,24 +378,31 @@ static async completeVerification(req: Request, res: Response) {
         
         if (existingVerification) {
             // Update existing verification
-            existingVerification.status = status;
+            existingVerification.status = VerificationStatus.COMPLETED;
             existingVerification.did = did;
+            existingVerification.type = verificationType;
             existingVerification.metadata = {
                 ...existingVerification.metadata,
-                completedAt: new Date().toISOString()
+                completedAt: new Date().toISOString(),
+                lastVerified: new Date().toISOString(),
+                test: true
             };
+            existingVerification.completedAt = new Date();
             verification = await verificationRepository.save(existingVerification);
         } else {
-            // Create new verification
+            // Create new verification with proper type
             verification = verificationRepository.create({
                 wallet: user.wallet,
                 provider,
+                type: verificationType,
+                status: VerificationStatus.COMPLETED,
                 did,
-                status,
                 metadata: {
                     completedAt: new Date().toISOString(),
-                    test: true // Mark as test for now
-                }
+                    test: true,
+                    method: 'simulated'
+                },
+                completedAt: new Date()
             });
             await verificationRepository.save(verification);
         }
@@ -385,16 +412,108 @@ static async completeVerification(req: Request, res: Response) {
             verification: {
                 id: verification.id,
                 provider: verification.provider,
+                type: verification.type,
                 status: verification.status,
                 did: verification.did,
-                completedAt: verification.metadata?.completedAt
-            }
+                completedAt: verification.completedAt
+            },
+            message: `Successfully completed ${provider} verification`
         });
     } catch (error) {
         console.error('Complete verification error:', error);
-        res.status(500).json({ error: 'Failed to complete verification' });
+        res.status(500).json({ 
+            error: 'Failed to complete verification',
+            details: error instanceof Error ? error.message : 'Unknown error'
+        });
     }
 }
+
+// Get user's verifications
+static async getUserVerifications(req: Request, res: Response) {
+    try {
+        const userId = (req as AuthenticatedRequest).user?.userId;
+        
+        // Get user first to get wallet
+        const user = await userRepository.findOne({
+            where: { id: userId }
+        });
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Query verifications separately using the user's wallet
+        const verifications = await verificationRepository.find({
+            where: { wallet: user.wallet },
+            order: { createdAt: 'DESC' }
+        });
+
+        res.json(verifications || []);
+    } catch (error) {
+        console.error('Get user verifications error:', error);
+        res.status(500).json({ error: 'Failed to fetch verifications' });
+    }
+}
+
+    
+    static async getAchievements(req: Request, res: Response) {
+        try {
+            const userId = (req as AuthenticatedRequest).user?.userId;
+            
+            if (!userId) {
+                return res.status(401).json({ error: 'User not authenticated' });
+            }
+
+            const user = await userRepository.findOne({
+                where: { id: userId }
+            });
+            
+            if (!user) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+
+            const achievements = await achievementService.getUserAchievements(userId);
+            const stats = await achievementService.getAchievementStats(userId);
+
+            res.json({
+                success: true,
+                achievements,
+                stats
+            });
+        } catch (error) {
+            console.error('Get achievements error:', error);
+            res.status(500).json({ error: 'Failed to fetch achievements' });
+        }
+    }
+
+    static async initializeAchievements(req: Request, res: Response) {
+        try {
+            const userId = (req as AuthenticatedRequest).user?.userId;
+            
+            if (!userId) {
+                return res.status(401).json({ error: 'User not authenticated' });
+            }
+
+            const user = await userRepository.findOne({
+                where: { id: userId }
+            });
+            
+            if (!user) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+
+            const achievements = await achievementService.initializeUserAchievements(userId);
+
+            res.json({
+                success: true,
+                message: 'Achievements initialized successfully',
+                achievements: achievements.length
+            });
+        } catch (error) {
+            console.error('Initialize achievements error:', error);
+            res.status(500).json({ error: 'Failed to initialize achievements' });
+        }
+    }
 }
 
 export default UserController;

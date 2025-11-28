@@ -427,8 +427,8 @@
             successRate: 0,
             todayMints: 0,
             totalBadgeTypes: 0,
-            totalIssuers: 0,
-            activeBadgeTypes: 0
+            activeBadgeTypes: 0,
+            totalIssuers: 0
         };
         
         let activityChart = null;
@@ -755,18 +755,30 @@
         }
     
         // Update Statistics Display
-        function updateStatsDisplay() {
-            document.getElementById('totalMints').textContent = stats.totalMints.toLocaleString();
-            document.getElementById('successfulMints').textContent = stats.successfulMints.toLocaleString();
-            document.getElementById('pendingMints').textContent = stats.pendingMints.toLocaleString();
-            document.getElementById('failedMints').textContent = stats.failedMints.toLocaleString();
-            document.getElementById('activeUsers').textContent = stats.activeUsers.toLocaleString();
-            document.getElementById('wsConnections').textContent = stats.wsConnections.toLocaleString();
-            document.getElementById('successRate').textContent = stats.successRate.toFixed(1) + '%';
-            document.getElementById('todayMints').textContent = stats.todayMints.toLocaleString();
-            document.getElementById('totalBadgeTypes').textContent = stats.totalBadgeTypes.toLocaleString();
-            document.getElementById('activeBadgeTypes').textContent = stats.activeBadgeTypes.toLocaleString();
-        }
+function updateStatsDisplay() {
+    // Safe access with defaults for all properties
+    const totalMints = stats.totalMints || 0;
+    const successfulMints = stats.successfulMints || 0;
+    const pendingMints = stats.pendingMints || 0;
+    const failedMints = stats.failedMints || 0;
+    const activeUsers = stats.activeUsers || 0;
+    const wsConnections = stats.wsConnections || 0;
+    const successRate = stats.successRate || 0;
+    const todayMints = stats.todayMints || 0;
+    const totalBadgeTypes = stats.totalBadgeTypes || 0;
+    const activeBadgeTypes = stats.activeBadgeTypes || 0;
+
+    document.getElementById('totalMints').textContent = totalMints.toLocaleString();
+    document.getElementById('successfulMints').textContent = successfulMints.toLocaleString();
+    document.getElementById('pendingMints').textContent = pendingMints.toLocaleString();
+    document.getElementById('failedMints').textContent = failedMints.toLocaleString();
+    document.getElementById('activeUsers').textContent = activeUsers.toLocaleString();
+    document.getElementById('wsConnections').textContent = wsConnections.toLocaleString();
+    document.getElementById('successRate').textContent = successRate.toFixed(1) + '%';
+    document.getElementById('todayMints').textContent = todayMints.toLocaleString();
+    document.getElementById('totalBadgeTypes').textContent = totalBadgeTypes.toLocaleString();
+    document.getElementById('activeBadgeTypes').textContent = activeBadgeTypes.toLocaleString();
+}
     
         // Update Recent Events Table with Real Data
         function updateRecentEventsTable(mints) {

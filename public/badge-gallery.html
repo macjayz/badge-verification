@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Badge Gallery - Badge System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; }
+        .header { background: white; padding: 1rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #667eea; }
+        .user-info { display: flex; align-items: center; gap: 1rem; }
+        .wallet-address { background: #f8f9fa; padding: 0.5rem 1rem; border-radius: 20px; font-family: monospace; font-size: 0.9rem; }
+        .main-container { max-width: 1200px; margin: 2rem auto; padding: 0 2rem; }
+        .section { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        .section-title { font-size: 1.5rem; margin-bottom: 1.5rem; color: #333; }
+        
+        /* Filter Controls */
+        .filter-controls { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .filter-btn { background: #f8f9fa; border: 1px solid #ddd; padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; transition: all 0.3s ease; }
+        .filter-btn.active { background: #667eea; color: white; border-color: #667eea; }
+        .search-box { flex: 1; min-width: 200px; padding: 0.5rem 1rem; border: 1px solid #ddd; border-radius: 20px; }
+        
+        /* Badge Grid */
+        .badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+        .badge-card { border: 2px solid #e9ecef; border-radius: 15px; padding: 1.5rem; text-align: center; transition: all 0.3s ease; position: relative; }
+        .badge-card.earned { border-color: #28a745; background: linear-gradient(135deg, #f8fff9, #e8f5e8); }
+        .badge-card.available { border-color: #ffc107; background: linear-gradient(135deg, #fffdf6, #fff3cd); }
+        .badge-card.locked { border-color: #6c757d; background: #f8f9fa; opacity: 0.7; }
+        
+        .badge-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .badge-name { font-weight: bold; margin-bottom: 0.5rem; font-size: 1.2rem; }
+        .badge-description { color: #666; margin-bottom: 1rem; font-size: 0.9rem; }
+        .badge-meta { display: flex; justify-content: space-between; font-size: 0.8rem; color: #999; margin-bottom: 1rem; }
+        
+        .badge-status { font-size: 0.8rem; padding: 0.3rem 0.8rem; border-radius: 15px; display: inline-block; margin-bottom: 1rem; }
+        .status-earned { background: #d4edda; color: #155724; }
+        .status-available { background: #fff3cd; color: #856404; }
+        .status-locked { background: #f8d7da; color: #721c24; }
+        
+        .badge-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s ease; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-share { background: #17a2b8; color: white; }
+        
+        .badge-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        
+        /* Share Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 2rem; border-radius: 10px; max-width: 500px; width: 90%; }
+        .share-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.5rem 0; }
+        .share-option { text-align: center; padding: 1rem; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .share-option:hover { border-color: #667eea; background: #f8f9fa; }
+        
+        .back-btn { background: #6c757d; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; margin-bottom: 1rem; }
+        
+        /* Achievement Progress */
+        .progress-section { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2rem; border-radius: 10px; margin-bottom: 2rem; }
+        .progress-bar { background: rgba(255,255,255,0.3); border-radius: 10px; height: 10px; margin: 1rem 0; overflow: hidden; }
+        .progress-fill { background: white; height: 100%; transition: width 0.3s ease; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🎖️ Badge System - Gallery</div>
+        <div class="user-info">
+            <div class="wallet-address" id="walletAddress">Loading...</div>
+            <button class="back-btn" onclick="goToDashboard()">Dashboard</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- Achievement Progress -->
+        <div class="progress-section">
+            <h2>My Badge Collection</h2>
+            <div style="display: flex; justify-content: space-between; margin: 1rem 0;">
+                <div>
+                    <div style="font-size: 2rem; font-weight: bold;" id="earnedBadges">0</div>
+                    <div>Badges Earned</div>
+                </div>
+                <div>
+                    <div style="font-size: 2rem; font-weight: bold;" id="totalBadges">0</div>
+                    <div>Total Available</div>
+                </div>
+                <div>
+                    <div style="font-size: 2rem; font-weight: bold;" id="completionRate">0%</div>
+                    <div>Completion</div>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="section">
+            <div class="filter-controls">
+                <input type="text" class="search-box" id="searchInput" placeholder="Search badges..." oninput="filterBadges()">
+                <button class="filter-btn active" onclick="setFilter('all')">All Badges</button>
+                <button class="filter-btn" onclick="setFilter('earned')">Earned</button>
+                <button class="filter-btn" onclick="setFilter('available')">Available</button>
+                <button class="filter-btn" onclick="setFilter('locked')">Locked</button>
+                <button class="filter-btn" onclick="setSort('name')">Sort A-Z</button>
+                <button class="filter-btn" onclick="setSort('date')">Sort by Date</button>
+            </div>
+
+            <div class="badges-grid" id="badgesGrid">
+                <div class="loading">Loading your badge collection...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal" id="shareModal">
+        <div class="modal-content">
+            <h3>Share Your Badge</h3>
+            <div id="shareBadgeName" style="font-weight: bold; margin: 1rem 0;"></div>
+            
+            <div class="share-options">
+                <div class="share-option" onclick="shareToTwitter()">
+                    <div style="font-size: 2rem;">🐦</div>
+                    <div>Twitter</div>
+                </div>
+                <div class="share-option" onclick="shareToDiscord()">
+                    <div style="font-size: 2rem;">💬</div>
+                    <div>Discord</div>
+                </div>
+                <div class="share-option" onclick="copyShareLink()">
+                    <div style="font-size: 2rem;">🔗</div>
+                    <div>Copy Link</div>
+                </div>
+                <div class="share-option" onclick="downloadBadgeImage()">
+                    <div style="font-size: 2rem;">📷</div>
+                    <div>Save Image</div>
+                </div>
+                <div class="share-option" onclick="generateVerificationProof()">
+                    <div style="font-size: 2rem;">🔐</div>
+                    <div>Proof</div>
+                </div>
+                <div class="share-option" onclick="embedBadge()">
+                    <div style="font-size: 2rem;">📄</div>
+                    <div>Embed</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem;">
+                <button class="btn btn-primary" onclick="closeShareModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/user';
+        let userToken = localStorage.getItem('userToken');
+        let userWallet = localStorage.getItem('userWallet');
+        let allBadges = [];
+        let currentFilter = 'all';
+        let currentSort = 'name';
+        let currentBadgeForSharing = null;
+
+        if (!userToken || !userWallet) {
+            window.location.href = '/user-login.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('walletAddress').textContent = 
+                userWallet.substring(0, 6) + '...' + userWallet.substring(38);
+            
+            loadBadgeGallery();
+        });
+
+        async function loadBadgeGallery() {
+            try {
+                // Load earned badges
+                const earnedResponse = await fetch(`${API_BASE}/badges`, {
+                    headers: { 'Authorization': `Bearer ${userToken}` }
+                });
+
+                // Load available badges
+                const availableResponse = await fetch(`${API_BASE}/available-badges`, {
+                    headers: { 'Authorization': `Bearer ${userToken}` }
+                });
+
+                if (earnedResponse.ok && availableResponse.ok) {
+                    const earnedBadges = await earnedResponse.json();
+                    const availableBadges = await availableResponse.json();
+                    
+                    // Combine and format badges
+                    allBadges = [
+                        ...earnedBadges.map(badge => ({
+                            ...badge,
+                            status: 'earned',
+                            earnedDate: badge.createdAt,
+                            isEarned: true
+                        })),
+                        ...availableBadges.map(badge => ({
+                            ...badge,
+                            status: badge.isEligible ? 'available' : 'locked',
+                            earnedDate: null,
+                            isEarned: false
+                        }))
+                    ];
+
+                    updateProgressStats(earnedBadges.length, allBadges.length);
+                    displayBadges(allBadges);
+                }
+
+            } catch (error) {
+                console.error('Failed to load badge gallery:', error);
+            }
+        }
+
+        function updateProgressStats(earnedCount, totalCount) {
+            document.getElementById('earnedBadges').textContent = earnedCount;
+            document.getElementById('totalBadges').textContent = totalCount;
+            
+            const completionRate = totalCount > 0 ? Math.round((earnedCount / totalCount) * 100) : 0;
+            document.getElementById('completionRate').textContent = `${completionRate}%`;
+            document.getElementById('progressFill').style.width = `${completionRate}%`;
+        }
+
+        function displayBadges(badges) {
+            const grid = document.getElementById('badgesGrid');
+            
+            if (badges.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; padding: 3rem; color: #666;">No badges found matching your criteria.</div>';
+                return;
+            }
+
+            grid.innerHTML = badges.map(badge => `
+                <div class="badge-card ${badge.status}" data-badge-id="${badge.id}">
+                    ${badge.status === 'earned' ? '<div style="position: absolute; top: 10px; right: 10px; background: #28a745; color: white; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.7rem;">EARNED</div>' : ''}
+                    
+                    <div class="badge-icon">${getBadgeIcon(badge.badgeType?.name || badge.name)}</div>
+                    <div class="badge-name">${badge.badgeType?.name || badge.name}</div>
+                    <div class="badge-description">${badge.badgeType?.description || badge.description || 'No description available'}</div>
+                    
+                    <div class="badge-meta">
+                        <span>${badge.badgeType?.issuer || badge.issuer || 'Unknown Issuer'}</span>
+                        ${badge.earnedDate ? `<span>${new Date(badge.earnedDate).toLocaleDateString()}</span>` : ''}
+                    </div>
+                    
+                    <div class="badge-status ${'status-' + badge.status}">
+                        ${badge.status === 'earned' ? '✅ Earned' : 
+                          badge.status === 'available' ? '🔓 Available' : '🔒 Locked'}
+                    </div>
+                    
+                    <div class="badge-actions">
+                        ${badge.status === 'earned' ? 
+                            `<button class="btn btn-share" onclick="openShareModal('${badge.id}')">Share</button>
+                             <button class="btn btn-secondary" onclick="viewBadgeDetails('${badge.id}')">View</button>` :
+                         badge.status === 'available' ?
+                            `<button class="btn btn-success" onclick="mintBadge('${badge.id}')">Mint</button>
+                             <button class="btn btn-secondary" onclick="checkEligibility('${badge.id}')">Check</button>` :
+                            `<button class="btn btn-secondary" onclick="viewRequirements('${badge.id}')">Requirements</button>`
+                        }
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getBadgeIcon(badgeName) {
+            const icons = {
+                'Early Supporter': '🎖️',
+                'Verified Creator': '🎨',
+                'DAO Voter': '🗳️',
+                'DeFi Camp Student': '🎓',
+                'Community Contributor': '🤝',
+                'First Steps': '👣',
+                'Quick Start': '⚡',
+                'Test Badge': '🧪',
+                'Polygon Verified': '🆔'
+            };
+            return icons[badgeName] || '🎖️';
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            
+            // Update filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            filterBadges();
+        }
+
+        function setSort(sort) {
+            currentSort = sort;
+            filterBadges();
+        }
+
+        function filterBadges() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = allBadges.filter(badge => {
+                const name = (badge.badgeType?.name || badge.name).toLowerCase();
+                const matchesSearch = name.includes(searchTerm);
+                const matchesFilter = currentFilter === 'all' || badge.status === currentFilter;
+                return matchesSearch && matchesFilter;
+            });
+
+            // Sort badges
+            filtered.sort((a, b) => {
+                if (currentSort === 'name') {
+                    return (a.badgeType?.name || a.name).localeCompare(b.badgeType?.name || b.name);
+                } else if (currentSort === 'date') {
+                    return new Date(b.earnedDate || 0) - new Date(a.earnedDate || 0);
+                }
+                return 0;
+            });
+
+            displayBadges(filtered);
+        }
+
+        // Share functionality
+        function openShareModal(badgeId) {
+            currentBadgeForSharing = allBadges.find(b => b.id === badgeId);
+            if (currentBadgeForSharing) {
+                document.getElementById('shareBadgeName').textContent = 
+                    currentBadgeForSharing.badgeType?.name || currentBadgeForSharing.name;
+                document.getElementById('shareModal').style.display = 'flex';
+            }
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').style.display = 'none';
+            currentBadgeForSharing = null;
+        }
+
+        function shareToTwitter() {
+            const badgeName = currentBadgeForSharing?.badgeType?.name || currentBadgeForSharing?.name;
+            const text = `I just earned the "${badgeName}" badge! 🎖️ Check out my achievements.`;
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+            closeShareModal();
+        }
+
+        function shareToDiscord() {
+            alert('Discord sharing would embed your badge in Discord channels. Feature coming soon!');
+            closeShareModal();
+        }
+
+        function copyShareLink() {
+            const badgeId = currentBadgeForSharing?.id;
+            const link = `${window.location.origin}/badge-proof/${badgeId}`;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Share link copied to clipboard!');
+            });
+            closeShareModal();
+        }
+
+        function downloadBadgeImage() {
+            alert('This would generate and download a beautiful badge image for sharing on social media.');
+            closeShareModal();
+        }
+
+        function generateVerificationProof() {
+            alert('This would generate a cryptographic proof of your badge ownership.');
+            closeShareModal();
+        }
+
+        function embedBadge() {
+            const badgeId = currentBadgeForSharing?.id;
+            const embedCode = `<script src="${window.location.origin}/embed.js?badge=${badgeId}"><\/script>`;
+            navigator.clipboard.writeText(embedCode).then(() => {
+                alert('Embed code copied to clipboard! Paste this on your website.');
+            });
+            closeShareModal();
+        }
+
+        // Badge actions
+        async function mintBadge(badgeId) {
+            try {
+                const response = await fetch(`${API_BASE}/mint-badge`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userToken}`
+                    },
+                    body: JSON.stringify({ badgeTypeId: badgeId })
+                });
+
+                if (response.ok) {
+                    alert('Badge minting started! Check your dashboard for updates.');
+                    loadBadgeGallery(); // Refresh the gallery
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Minting failed');
+                }
+            } catch (error) {
+                alert('Failed to mint badge: ' + error.message);
+            }
+        }
+
+        function checkEligibility(badgeId) {
+            alert('This would check your eligibility for the badge. Feature coming soon!');
+        }
+
+        function viewBadgeDetails(badgeId) {
+            alert('This would show detailed information about the badge. Feature coming soon!');
+        }
+
+        function viewRequirements(badgeId) {
+            alert('This would show the requirements to earn this badge. Feature coming soon!');
+        }
+
+        function goToDashboard() {
+            window.location.href = '/user-dashboard.html';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('shareModal');
+            if (event.target === modal) {
+                closeShareModal();
+            }
+        }
+    </script>
+</body>
+</html>

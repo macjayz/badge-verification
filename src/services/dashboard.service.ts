@@ -413,7 +413,7 @@ try {
   }
 
   // NEW: User Management Data - FIXED VERSION
-  // In src/services/dashboard.service.ts - replace the getUserManagementData method
+// FIXED VERSION - Update the getUserManagementData method
 async getUserManagementData(page: number = 1, limit: number = 20) {
   try {
     logger.info('🟡 Starting getUserManagementData...');
@@ -470,19 +470,24 @@ async getUserManagementData(page: number = 1, limit: number = 20) {
       });
     });
 
-    const formattedUsers = users.map(user => {
+    // FIXED: Process users sequentially with proper async/await
+    const formattedUsers = [];
+    for (const user of users) {
       const wallet = user.wallet;
       const mintData = mintCountMap.get(wallet) || { totalMints: 0, successMints: 0 };
 
-      // Find latest verification
-      const verifications = user.verifications || [];
+      // Find latest verification - FIXED: Use proper async/await
+      const verifications = await this.verificationRepository.find({
+        where: { wallet: user.wallet }
+      });
+      
       const latestVerification = verifications.length > 0 
         ? verifications.reduce((latest: any, current: any) => 
             new Date(current.createdAt) > new Date(latest.createdAt) ? current : latest
           )
         : null;
 
-      return {
+      formattedUsers.push({
         id: user.id,
         walletAddress: user.wallet, // Map to walletAddress for frontend consistency
         verificationStatus: latestVerification?.status || 'not_verified',
@@ -492,8 +497,8 @@ async getUserManagementData(page: number = 1, limit: number = 20) {
         lastActivity: user.updatedAt || user.createdAt,
         isActive: mintData.successMints > 0,
         createdAt: user.createdAt
-      };
-    });
+      });
+    }
 
     const result = {
       users: formattedUsers,
@@ -514,7 +519,6 @@ async getUserManagementData(page: number = 1, limit: number = 20) {
     throw new Error('Failed to get user management data: ' + errorMessage);
   }
 }
-
   // NEW: Badge Analytics
   async getBadgeAnalytics() {
     try {

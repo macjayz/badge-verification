@@ -5,6 +5,7 @@ import { authenticateToken } from '../middleware/auth.middleware';
 const router = Router();
 
 // Public routes
+router.get('/nonce', authController.getNonce); 
 router.post('/init', authController.initAuth);
 router.post('/verify', authController.verifyAuth);
 router.post('/dev-verify', authController.devVerify);

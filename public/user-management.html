@@ -893,14 +893,18 @@
         }
 
         // Load user statistics
+        // Load user statistics
         async function loadUserStatistics() {
             try {
                 const response = await authFetch(`${API_BASE_URL}/users/stats`);
                 if (!response) return;
                 
                 const result = await response.json();
-                if (result.success) {
-                    const stats = result.data;
+                
+                // Handle both response formats
+                const stats = result.data || result;
+                
+                if (stats) {
                     document.getElementById('totalUsers').textContent = stats.totalUsers.toLocaleString();
                     document.getElementById('activeUsers').textContent = stats.activeUsers.toLocaleString();
                     document.getElementById('newUsers').textContent = stats.newUsers.toLocaleString();
@@ -1118,6 +1122,7 @@
         }
 
         // Load users with pagination and search
+        // Load users with pagination and search
         async function loadUsers(page = 1, search = '') {
             try {
                 const statusFilter = document.getElementById('statusFilter').value;
@@ -1142,22 +1147,30 @@
                 if (!response) return;
                 
                 const result = await response.json();
+                console.log('API Response:', result); // Debug log
                 
-                if (result.success) {
+                // Check if the response has users array (direct response without success wrapper)
+                if (result.users !== undefined) {
+                    displayUsers(result);
+                } else if (result.success && result.data) {
+                    // If it has success wrapper with data
                     displayUsers(result.data);
                 } else {
-                    showError(result.error || 'Failed to load users');
+                    showError('Invalid response format from server');
                 }
             } catch (error) {
                 console.error('Error loading users:', error);
-                showError('Network error loading users');
+                showError('Network error loading users: ' + error.message);
             }
         }
 
-        // Display users in table
-        function displayUsers(data) {
+        // Display users in table - FIXED VERSION
+        function displayUsers(result) {
+            // Extract users and pagination from the result object
+            const users = result.users || [];
+            const pagination = result.pagination || { page: 1, limit: 20, total: 0, totalPages: 1 };
+            
             const tableBody = document.getElementById('usersTableBody');
-            const { users, pagination } = data;
             
             totalUsers = pagination.total;
             currentPage = pagination.page;

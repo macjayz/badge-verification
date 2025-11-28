@@ -80,6 +80,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/admin/users', userManagementRoutes);
 app.use('/api/admin/badges', badgeManagementRoutes);
+app.use('/', healthRoutes);
 
 // HTML Page Routes
 app.get('/websocket-demo', (req, res) => {

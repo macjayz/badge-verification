@@ -1,3 +1,4 @@
+// src/entities/Verification.ts - CLEAN VERSION
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
 import { User } from './User';
 
@@ -9,8 +10,8 @@ export enum VerificationStatus {
 }
 
 export enum VerificationType {
-  PRIMARY_DID = 'primary_did',    // Global DID verification (Polygon ID, IdOS)
-  SECONDARY = 'secondary'          // Project-specific verification (Twitter, Discord, etc.)
+  PRIMARY_DID = 'primary_did',
+  SECONDARY = 'secondary'
 }
 
 @Entity('verifications')
@@ -22,13 +23,8 @@ export class Verification {
   @Index()
   wallet!: string;
 
-  // Link to user (optional - for relationships)
-  @ManyToOne(() => User, user => user.wallet, { nullable: true })
-  @JoinColumn({ name: 'wallet', referencedColumnName: 'wallet' })
-  user?: User;
-
   @Column({ type: 'varchar' })
-  provider!: string;  // 'polygonid', 'idos', 'twitter', 'discord', etc.
+  provider!: string;
 
   @Column({ type: 'varchar' })
   type!: VerificationType;
@@ -38,16 +34,16 @@ export class Verification {
 
   @Column({ type: 'varchar', nullable: true })
   @Index()
-  sessionId?: string;  // For tracking verification sessions
+  sessionId?: string;
 
   @Column({ type: 'varchar', nullable: true })
-  verificationId?: string;  // External verification ID from provider
+  verificationId?: string;
 
   @Column({ type: 'varchar', nullable: true })
-  did?: string;  // The actual DID if verification successful
+  did?: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata?: any;  // Provider-specific metadata
+  metadata?: any;
 
   @Column({ type: 'varchar', nullable: true })
   errorMessage?: string;
@@ -57,6 +53,10 @@ export class Verification {
 
   @Column({ type: 'timestamptz', nullable: true })
   expiresAt?: Date;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'wallet', referencedColumnName: 'wallet' })
+  user?: User;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
