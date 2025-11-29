@@ -20,6 +20,7 @@ import { adminAuthRoutes } from './routes/admin-auth.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { userManagementRoutes } from './routes/user-management.routes';
 import { badgeManagementRoutes } from './routes/badge-management.routes';
+import { twitterVerificationRoutes } from './routes/twitter-verification.routes';
 import userRoutes from './routes/user.routes';
 import { logger } from './utils/logger'; 
 import path from 'path';
@@ -80,6 +81,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/admin/users', userManagementRoutes);
 app.use('/api/admin/badges', badgeManagementRoutes);
+app.use('/api/verify/twitter', twitterVerificationRoutes);
 app.use('/', healthRoutes);
 
 // HTML Page Routes

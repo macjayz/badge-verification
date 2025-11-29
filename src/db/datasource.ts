@@ -2,9 +2,11 @@ import { DataSource } from 'typeorm';
 import { config } from '../config';
 import { User } from '../entities/User';
 import { Verification } from '../entities/Verification';
-import { Issuer } from '../entities/Issuer'; // Add this
-import { BadgeType } from '../entities/BadgeType'; // Add this
-import { BadgeMint } from '../entities/BadgeMint'; // Add this
+import { Issuer } from '../entities/Issuer';
+import { BadgeType } from '../entities/BadgeType';
+import { BadgeMint } from '../entities/BadgeMint';
+import { Achievement } from '../entities/Achievement'; // ADD THIS
+import { UserSocialConnection } from '../entities/UserSocialConnection'; // ADD THIS
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -15,15 +17,21 @@ export const AppDataSource = new DataSource({
   database: config.database.database,
   synchronize: config.server.nodeEnv === 'development',
   logging: config.server.nodeEnv === 'development',
-  entities: [User, Verification, Issuer, BadgeType, BadgeMint], // Add new entities
+  entities: [
+    User, 
+    Verification, 
+    Issuer, 
+    BadgeType, 
+    BadgeMint,
+    Achievement, // ADD THIS
+    UserSocialConnection // ADD THIS
+  ],
   migrations: ['src/migrations/**/*.ts'],
   subscribers: [],
   extra: {
     max: 20,
   },
 });
-
-
 
 export const initializeDatabase = async (): Promise<void> => {
   try {

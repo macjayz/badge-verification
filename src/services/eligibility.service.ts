@@ -9,6 +9,7 @@ import {
   ValidationError, 
   NotFoundError 
 } from '../utils/errors';
+import { twitterService } from './twitter.service';
 
 // Create repositories directly in this file
 const badgeTypeRepository = AppDataSource.getRepository(BadgeType);
@@ -200,33 +201,43 @@ export class EligibilityService {
     return results;
   }
 
-  private async verifySecondaryRule(
-    wallet: string, 
-    rule: BadgeRules['secondary'][0]
-  ): Promise<{ verified: boolean; details?: any }> {
-    // For now, use mock/stub implementations
-    switch (rule.method) {
-      case 'twitter_follow':
-        return await this.mockTwitterFollowCheck(wallet, rule.params);
-      
-      case 'onchain_activity':
-        return await this.mockOnChainActivityCheck(wallet, rule.params);
-      
-      case 'snapshot_votes':
-        return await this.mockSnapshotVotesCheck(wallet, rule.params);
-      
-      case 'onchain_governance':
-        return await this.mockOnChainGovernanceCheck(wallet, rule.params);
-      
-      case 'discord_member':
-        return await this.mockDiscordMemberCheck(wallet, rule.params);
-      
-      default:
-        // For development, return mock implementation instead of throwing error
-        logger.warn(`Unsupported verification method in development: ${rule.method}, using mock`);
-        return await this.mockGenericVerification(wallet, rule.method, rule.params);
-    }
+  // In src/services/eligibility.service.ts - Update the verifySecondaryRule method:
+
+private async verifySecondaryRule(
+  wallet: string, 
+  rule: BadgeRules['secondary'][0]
+): Promise<{ verified: boolean; details?: any }> {
+  switch (rule.method) {
+    case 'twitter_follow':
+      if (!rule.params?.account) {
+        return {
+          verified: false,
+          details: {
+            error: 'Twitter account not specified in badge rules',
+            requiredAction: 'Contact badge issuer to fix configuration'
+          }
+        };
+      }
+      // Use REAL Twitter verification instead of mock
+      return await twitterService.verifyFollow(wallet, rule.params.account);
+    
+    case 'onchain_activity':
+      return await this.mockOnChainActivityCheck(wallet, rule.params); // Keep mock for now
+    
+    case 'snapshot_votes':
+      return await this.mockSnapshotVotesCheck(wallet, rule.params); // Keep mock for now
+    
+    case 'onchain_governance':
+      return await this.mockOnChainGovernanceCheck(wallet, rule.params); // Keep mock for now
+    
+    case 'discord_member':
+      return await this.mockDiscordMemberCheck(wallet, rule.params); // Keep mock for now
+    
+    default:
+      logger.warn(`Unsupported verification method: ${rule.method}, using mock`);
+      return await this.mockGenericVerification(wallet, rule.method, rule.params);
   }
+}
 
   // Mock implementations - will be replaced with real adapters
   private async mockTwitterFollowCheck(wallet: string, params: any): Promise<{ verified: boolean; details?: any }> {
