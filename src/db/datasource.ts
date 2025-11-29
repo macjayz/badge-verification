@@ -1,3 +1,4 @@
+// src/db/datasource.ts - UPDATED
 import { DataSource } from 'typeorm';
 import { config } from '../config';
 import { User } from '../entities/User';
@@ -5,8 +6,10 @@ import { Verification } from '../entities/Verification';
 import { Issuer } from '../entities/Issuer';
 import { BadgeType } from '../entities/BadgeType';
 import { BadgeMint } from '../entities/BadgeMint';
-import { Achievement } from '../entities/Achievement'; // ADD THIS
-import { UserSocialConnection } from '../entities/UserSocialConnection'; // ADD THIS
+import { Achievement } from '../entities/Achievement';
+import { UserSocialConnection } from '../entities/UserSocialConnection';
+import { IssuerProfile } from '../entities/IssuerProfile'; // ADD THIS
+import { ProjectSocialRules } from '../entities/ProjectSocialRules'; // ADD THIS
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -23,8 +26,10 @@ export const AppDataSource = new DataSource({
     Issuer, 
     BadgeType, 
     BadgeMint,
-    Achievement, // ADD THIS
-    UserSocialConnection // ADD THIS
+    Achievement,
+    UserSocialConnection,
+    IssuerProfile, // ADD THIS
+    ProjectSocialRules // ADD THIS
   ],
   migrations: ['src/migrations/**/*.ts'],
   subscribers: [],

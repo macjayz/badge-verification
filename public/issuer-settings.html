@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Settings - Issuer Portal</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: var(--dark);
+            color: white;
+            padding: 20px;
+        }
+        
+        .sidebar h1 {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: var(--light);
+        }
+        
+        .sidebar nav a {
+            display: block;
+            color: #bdc3c7;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar nav a:hover, 
+        .sidebar nav a.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .issuer-info {
+            margin-top: 2rem;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .issuer-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .issuer-wallet {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #bdc3c7;
+            word-break: break-all;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+        }
+        
+        /* Settings Layout */
+        .settings-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 30px;
+            max-width: 1000px;
+        }
+        
+        /* Settings Navigation */
+        .settings-nav {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px 0;
+        }
+        
+        .nav-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .nav-item.active {
+            background: #f8f9ff;
+            border-left-color: var(--primary);
+            color: var(--primary);
+            font-weight: 500;
+        }
+        
+        /* Settings Content */
+        .settings-content {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        
+        .settings-section {
+            margin-bottom: 40px;
+            display: none;
+        }
+        
+        .settings-section.active {
+            display: block;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-description {
+            color: #6c757d;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-help {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* API Key Section */
+        .api-key-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+        
+        .api-key-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .api-key-value {
+            font-family: monospace;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            flex: 1;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+        
+        .copy-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .copy-btn:hover {
+            opacity: 0.9;
+        }
+        
+        /* Danger Zone */
+        .danger-zone {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .danger-title {
+            color: #721c24;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .danger-description {
+            color: #856404;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--primary);
+            text-align: center;
+        }
+        
+        .stat-card.success { border-left-color: var(--success); }
+        .stat-card.warning { border-left-color: var(--warning); }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        /* Integration Cards */
+        .integration-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 2rem;
+        }
+        
+        .integration-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+        
+        .integration-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .integration-icon {
+            font-size: 2rem;
+        }
+        
+        .integration-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .integration-description {
+            color: #6c757d;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        
+        .integration-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-connected { background: #d4edda; color: #155724; }
+        .status-disconnected { background: #f8d7da; color: #721c24; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        
+        /* Messages */
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .warning-message {
+            background: #fff3cd;
+            color: #856404;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--success);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h1>🏢 Issuer Portal</h1>
+            <nav>
+                <a href="/issuer-dashboard.html">📊 Dashboard</a>
+                <a href="/issuer-badge-creator.html">🪙 Create Badge</a>
+                <a href="/issuer-analytics.html">📈 Analytics</a>
+                <a href="/issuer-social-rules.html">🔗 Social Rules</a>
+                <a href="/issuer-settings.html" class="active">⚙️ Settings</a>
+            </nav>
+            
+            <div class="issuer-info">
+                <div class="issuer-name" id="issuerName">Loading...</div>
+                <div class="issuer-wallet" id="issuerWallet">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h2>Settings & Configuration</h2>
+                <div class="header-actions">
+                    <button class="btn btn-warning" onclick="debugAuthState()">🔧 Debug</button>
+                    <button class="btn btn-primary" onclick="saveAllSettings()">💾 Save All</button>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+
+            <div class="settings-layout">
+                <!-- Settings Navigation -->
+                <div class="settings-nav">
+                    <div class="nav-item active" data-section="profile">
+                        👤 Profile
+                    </div>
+                    <div class="nav-item" data-section="api">
+                        🔑 API Keys
+                    </div>
+                    <div class="nav-item" data-section="integrations">
+                        🔗 Integrations
+                    </div>
+                    <div class="nav-item" data-section="notifications">
+                        🔔 Notifications
+                    </div>
+                    <div class="nav-item" data-section="security">
+                        🛡️ Security
+                    </div>
+                    <div class="nav-item" data-section="billing">
+                        💳 Billing
+                    </div>
+                </div>
+
+                <!-- Settings Content -->
+                <div class="settings-content">
+                    <!-- Profile Section -->
+                    <div class="settings-section active" id="profile-section">
+                        <div class="section-title">👤 Project Profile</div>
+                        <div class="section-description">
+                            Manage your project information and contact details.
+                        </div>
+                        
+                        <form id="profileForm">
+                            <div class="form-group">
+                                <label class="form-label">Project Name *</label>
+                                <input type="text" id="projectName" class="form-input" required>
+                                <div class="form-help">The display name of your project</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Description</label>
+                                <textarea id="projectDescription" class="form-textarea"></textarea>
+                                <div class="form-help">Describe your project for users</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Website</label>
+                                <input type="url" id="projectWebsite" class="form-input">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Contact Email</label>
+                                <input type="email" id="contactEmail" class="form-input">
+                                <div class="form-help">For important notifications and support</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">Update Profile</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- API Keys Section -->
+                    <div class="settings-section" id="api-section">
+                        <div class="section-title">🔑 API Keys</div>
+                        <div class="section-description">
+                            Manage your API keys for programmatic access to the issuer platform.
+                        </div>
+                        
+                        <div class="warning-message">
+                            <strong>⚠️ Keep your API keys secure!</strong>
+                            <p>Do not share your API keys in client-side code or public repositories. They provide full access to your issuer account.</p>
+                        </div>
+                        
+                        <div class="api-key-section">
+                            <div class="form-group">
+                                <label class="form-label">Current API Key</label>
+                                <div class="api-key-display">
+                                    <input type="text" id="apiKeyValue" class="api-key-value" readonly>
+                                    <button type="button" class="copy-btn" onclick="copyApiKey()">📋 Copy</button>
+                                </div>
+                                <div class="form-help">This key is used to authenticate API requests from your application</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="button" class="btn btn-warning" onclick="rotateApiKey()">
+                                    🔄 Rotate API Key
+                                </button>
+                                <div class="form-help">
+                                    Generate a new API key. The old key will be immediately invalidated.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">API Usage</label>
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-value" id="apiRequests">0</div>
+                                    <div class="stat-label">API Requests (30d)</div>
+                                </div>
+                                <div class="stat-card success">
+                                    <div class="stat-value" id="apiSuccessRate">100%</div>
+                                    <div class="stat-label">Success Rate</div>
+                                </div>
+                                <div class="stat-card warning">
+                                    <div class="stat-value" id="apiRateLimit">1000</div>
+                                    <div class="stat-label">Rate Limit / hour</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Integrations Section -->
+                    <div class="settings-section" id="integrations-section">
+                        <div class="section-title">🔗 Integrations</div>
+                        <div class="section-description">
+                            Connect your project with external platforms and services.
+                        </div>
+                        
+                        <div class="integration-grid">
+                            <!-- Twitter Integration -->
+                            <div class="integration-card">
+                                <div class="integration-header">
+                                    <div class="integration-icon">🐦</div>
+                                    <div class="integration-title">Twitter</div>
+                                </div>
+                                <div class="integration-description">
+                                    Enable Twitter follow verification and social features for your badges.
+                                </div>
+                                <div class="integration-status">
+                                    <span class="status-badge" id="twitterStatus">Not Connected</span>
+                                    <button class="btn btn-sm btn-primary" onclick="connectTwitter()">
+                                        Connect
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Discord Integration -->
+                            <div class="integration-card">
+                                <div class="integration-header">
+                                    <div class="integration-icon">💬</div>
+                                    <div class="integration-title">Discord</div>
+                                </div>
+                                <div class="integration-description">
+                                    Verify Discord server membership and roles for badge eligibility.
+                                </div>
+                                <div class="integration-status">
+                                    <span class="status-badge" id="discordStatus">Not Connected</span>
+                                    <button class="btn btn-sm btn-primary" onclick="connectDiscord()">
+                                        Connect
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Snapshot Integration -->
+                            <div class="integration-card">
+                                <div class="integration-header">
+                                    <div class="integration-icon">🗳️</div>
+                                    <div class="integration-title">Snapshot</div>
+                                </div>
+                                <div class="integration-description">
+                                    Integrate with Snapshot for governance voting verification.
+                                </div>
+                                <div class="integration-status">
+                                    <span class="status-badge" id="snapshotStatus">Not Connected</span>
+                                    <button class="btn btn-sm btn-primary" onclick="connectSnapshot()">
+                                        Connect
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- GitHub Integration -->
+                            <div class="integration-card">
+                                <div class="integration-header">
+                                    <div class="integration-icon">💻</div>
+                                    <div class="integration-title">GitHub</div>
+                                </div>
+                                <div class="integration-description">
+                                    Verify GitHub contributions and repository access.
+                                </div>
+                                <div class="integration-status">
+                                    <span class="status-badge" id="githubStatus">Not Connected</span>
+                                    <button class="btn btn-sm btn-primary" onclick="connectGitHub()">
+                                        Connect
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notifications Section -->
+                    <div class="settings-section" id="notifications-section">
+                        <div class="section-title">🔔 Notifications</div>
+                        <div class="section-description">
+                            Configure how you receive notifications about your issuer activity.
+                        </div>
+                        
+                        <form id="notificationsForm">
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="emailMintNotifications" checked>
+                                    <label class="form-label">Email me when badges are minted</label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="emailFailedMints" checked>
+                                    <label class="form-label">Email me about failed minting attempts</label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="emailWeeklyReports" checked>
+                                    <label class="form-label">Send weekly activity reports</label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="emailSystemUpdates">
+                                    <label class="form-label">Notify me about system updates</label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">Save Notification Settings</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Security Section -->
+                    <div class="settings-section" id="security-section">
+                        <div class="section-title">🛡️ Security</div>
+                        <div class="section-description">
+                            Manage security settings and access controls for your issuer account.
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Session Timeout</label>
+                            <select id="sessionTimeout" class="form-select">
+                                <option value="1">1 hour</option>
+                                <option value="4">4 hours</option>
+                                <option value="8" selected>8 hours</option>
+                                <option value="24">24 hours</option>
+                                <option value="168">1 week</option>
+                            </select>
+                            <div class="form-help">Automatically log out after inactivity</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="require2FA">
+                                <label class="form-label">Require two-factor authentication</label>
+                            </div>
+                            <div class="form-help">Add an extra layer of security to your account</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="ipWhitelist">
+                                <label class="form-label">Enable IP whitelisting</label>
+                            </div>
+                            <div class="form-help">Restrict API access to specific IP addresses</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="button" class="btn btn-primary" onclick="saveSecuritySettings()">
+                                Save Security Settings
+                            </button>
+                        </div>
+                        
+                        <!-- Danger Zone -->
+                        <div class="danger-zone">
+                            <div class="danger-title">⚠️ Danger Zone</div>
+                            <div class="danger-description">
+                                These actions are irreversible. Please proceed with caution.
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn btn-danger" onclick="deactivateAccount()">
+                                    🚨 Deactivate Account
+                                </button>
+                                <button class="btn btn-danger" onclick="deleteAccount()">
+                                    💀 Delete Account
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Billing Section -->
+                    <div class="settings-section" id="billing-section">
+                        <div class="section-title">💳 Billing & Plans</div>
+                        <div class="section-description">
+                            Manage your subscription plan and billing information.
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">Starter</div>
+                                <div class="stat-label">Current Plan</div>
+                            </div>
+                            <div class="stat-card success">
+                                <div class="stat-value">$0</div>
+                                <div class="stat-label">Monthly Cost</div>
+                            </div>
+                            <div class="stat-card warning">
+                                <div class="stat-value" id="badgeLimit">100</div>
+                                <div class="stat-label">Badge Limit</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Usage Summary</label>
+                            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                    <span>Badges Created</span>
+                                    <span id="badgesCreated">0 / 100</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                    <span>Total Mints</span>
+                                    <span id="totalMints">0</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>API Requests (this month)</span>
+                                    <span id="monthlyRequests">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button class="btn btn-primary" onclick="upgradePlan()">
+                                💎 Upgrade Plan
+                            </button>
+                            <div class="form-help">
+                                Upgrade to access advanced features and higher limits
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const ISSUER_DASHBOARD_API = 'http://localhost:3001/api/issuer-dashboard';
+        const ISSUER_API_URL = 'http://localhost:3001/api/issuer';
+        
+        // Global State
+        let issuerData = null;
+        let profileData = null;
+        let currentSection = 'profile';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Settings Loading...');
+            
+            // Check if issuer is authenticated
+            const apiKey = localStorage.getItem('issuerApiKey');
+            if (!apiKey) {
+                showError('Please log in as an issuer first. Redirecting...');
+                setTimeout(() => {
+                    window.location.href = '/issuer-login.html';
+                }, 2000);
+                return;
+            }
+            
+            loadIssuerData();
+            loadProfileData();
+            setupNavigation();
+            setupForms();
+        });
+
+        // Load Issuer Data
+        async function loadIssuerData() {
+            try {
+                const storedIssuer = localStorage.getItem('issuerData');
+                if (storedIssuer) {
+                    issuerData = JSON.parse(storedIssuer);
+                    updateIssuerInfo();
+                    updateApiKeyDisplay();
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading issuer data:', error);
+            }
+        }
+
+        // Update Issuer Info
+        function updateIssuerInfo() {
+            if (issuerData) {
+                document.getElementById('issuerName').textContent = issuerData.name;
+                document.getElementById('issuerWallet').textContent = issuerData.wallet;
+            }
+        }
+
+        // Update API Key Display
+        function updateApiKeyDisplay() {
+            const apiKey = localStorage.getItem('issuerApiKey');
+            if (apiKey) {
+                document.getElementById('apiKeyValue').value = apiKey;
+            }
+        }
+
+        // Load Profile Data
+        async function loadProfileData() {
+            try {
+                const response = await issuerAuthFetch(`${ISSUER_DASHBOARD_API}/profile`);
+                
+                if (!response) return;
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        profileData = result.profile;
+                        updateProfileForm();
+                        updateIntegrationStatus();
+                    }
+                }
+                // If 404, no profile exists yet - that's fine
+                
+            } catch (error) {
+                console.error('❌ Error loading profile:', error);
+            }
+        }
+
+        // Update Profile Form
+        function updateProfileForm() {
+            if (profileData) {
+                document.getElementById('projectName').value = profileData.projectName || '';
+                document.getElementById('projectDescription').value = profileData.description || '';
+                document.getElementById('projectWebsite').value = profileData.website || '';
+                document.getElementById('contactEmail').value = profileData.contactEmail || '';
+            }
+        }
+
+        // Update Integration Status
+        function updateIntegrationStatus() {
+            if (profileData) {
+                // Update integration status based on profile data
+                if (profileData.twitterHandle) {
+                    document.getElementById('twitterStatus').textContent = 'Connected';
+                    document.getElementById('twitterStatus').className = 'status-badge status-connected';
+                }
+                
+                if (profileData.discordServerId) {
+                    document.getElementById('discordStatus').textContent = 'Connected';
+                    document.getElementById('discordStatus').className = 'status-badge status-connected';
+                }
+                
+                if (profileData.snapshotSpace) {
+                    document.getElementById('snapshotStatus').textContent = 'Connected';
+                    document.getElementById('snapshotStatus').className = 'status-badge status-connected';
+                }
+                
+                if (profileData.githubOrganization) {
+                    document.getElementById('githubStatus').textContent = 'Connected';
+                    document.getElementById('githubStatus').className = 'status-badge status-connected';
+                }
+            }
+        }
+
+        // Setup Navigation
+        function setupNavigation() {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    // Remove active class from all items
+                    document.querySelectorAll('.nav-item').forEach(i => {
+                        i.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Hide all sections
+                    document.querySelectorAll('.settings-section').forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    
+                    // Show selected section
+                    currentSection = this.dataset.section;
+                    document.getElementById(`${currentSection}-section`).classList.add('active');
+                });
+            });
+        }
+
+        // Setup Forms
+        function setupForms() {
+            document.getElementById('profileForm').addEventListener('submit', updateProfile);
+            document.getElementById('notificationsForm').addEventListener('submit', updateNotifications);
+        }
+
+        // Update Profile
+        async function updateProfile(e) {
+            e.preventDefault();
+            
+            try {
+                const updates = {
+                    projectName: document.getElementById('projectName').value,
+                    description: document.getElementById('projectDescription').value,
+                    website: document.getElementById('projectWebsite').value,
+                    contactEmail: document.getElementById('contactEmail').value
+                };
+                
+                const response = await issuerAuthFetch(`${ISSUER_DASHBOARD_API}/profile`, {
+                    method: 'PATCH',
+                    body: JSON.stringify(updates)
+                });
+                
+                if (!response) return;
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess('Profile updated successfully!');
+                    profileData = { ...profileData, ...updates };
+                } else {
+                    throw new Error(result.error || 'Failed to update profile');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error updating profile:', error);
+                showError('Error updating profile: ' + error.message);
+            }
+        }
+
+        // Update Notifications
+        async function updateNotifications(e) {
+            e.preventDefault();
+            
+            // In a real implementation, this would save to the backend
+            showSuccess('Notification settings saved!');
+        }
+
+        // Copy API Key
+        function copyApiKey() {
+            const apiKeyInput = document.getElementById('apiKeyValue');
+            apiKeyInput.select();
+            apiKeyInput.setSelectionRange(0, 99999); // For mobile devices
+            
+            try {
+                navigator.clipboard.writeText(apiKeyInput.value);
+                showSuccess('API key copied to clipboard!');
+            } catch (err) {
+                console.error('Failed to copy: ', err);
+                showError('Failed to copy API key');
+            }
+        }
+
+        // Rotate API Key
+        async function rotateApiKey() {
+            if (!confirm('Are you sure you want to rotate your API key? The current key will be invalidated immediately.')) {
+                return;
+            }
+            
+            try {
+                const response = await issuerAuthFetch(`${ISSUER_API_URL}/rotate-key`, {
+                    method: 'POST'
+                });
+                
+                if (!response) return;
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update stored API key
+                    localStorage.setItem('issuerApiKey', result.newApiKey);
+                    updateApiKeyDisplay();
+                    showSuccess('API key rotated successfully! Make sure to update your applications with the new key.');
+                } else {
+                    throw new Error(result.error || 'Failed to rotate API key');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error rotating API key:', error);
+                showError('Error rotating API key: ' + error.message);
+            }
+        }
+
+        // Connect Integrations
+        function connectTwitter() {
+            showSuccess('Redirecting to Twitter authentication...');
+            // In real implementation, this would redirect to OAuth flow
+        }
+
+        function connectDiscord() {
+            showSuccess('Redirecting to Discord authentication...');
+            // In real implementation, this would redirect to OAuth flow
+        }
+
+        function connectSnapshot() {
+            showSuccess('Configuring Snapshot integration...');
+            // In real implementation, this would open configuration modal
+        }
+
+        function connectGitHub() {
+            showSuccess('Redirecting to GitHub authentication...');
+            // In real implementation, this would redirect to OAuth flow
+        }
+
+        // Save Security Settings
+        function saveSecuritySettings() {
+            // In a real implementation, this would save to the backend
+            showSuccess('Security settings saved!');
+        }
+
+        // Save All Settings
+        function saveAllSettings() {
+            // This would save all modified settings across sections
+            showSuccess('All settings saved successfully!');
+        }
+
+        // Upgrade Plan
+        function upgradePlan() {
+            showSuccess('Redirecting to plan upgrade...');
+            // In real implementation, this would redirect to billing portal
+        }
+
+        // Deactivate Account
+        function deactivateAccount() {
+            if (!confirm('Are you sure you want to deactivate your account? You can reactivate it later by logging in.')) {
+                return;
+            }
+            
+            showSuccess('Account deactivation initiated...');
+            // In real implementation, this would call the API
+        }
+
+        // Delete Account
+        function deleteAccount() {
+            if (!confirm('🚨 DANGER: This will permanently delete your account and all associated data. This action cannot be undone. Are you absolutely sure?')) {
+                return;
+            }
+            
+            const confirmation = prompt('Please type "DELETE" to confirm account deletion:');
+            if (confirmation === 'DELETE') {
+                showSuccess('Account deletion initiated...');
+                // In real implementation, this would call the API
+            } else {
+                showError('Account deletion cancelled.');
+            }
+        }
+
+        // Debug Auth State
+        function debugAuthState() {
+            const apiKey = localStorage.getItem('issuerApiKey');
+            const issuer = localStorage.getItem('issuerData');
+            
+            console.log('=== 🔍 ISSUER AUTH DEBUG ===');
+            console.log('API Key exists:', !!apiKey);
+            console.log('Issuer data exists:', !!issuer);
+            console.log('Profile data:', profileData);
+            console.log('Current section:', currentSection);
+            console.log('========================');
+        }
+
+        // Auth Fetch for Issuer API
+        async function issuerAuthFetch(url, options = {}) {
+            const apiKey = localStorage.getItem('issuerApiKey');
+            
+            if (!apiKey) {
+                throw new Error('No API key found. Please log in as an issuer.');
+            }
+            
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-API-Key': apiKey,
+                ...options.headers
+            };
+            
+            try {
+                const response = await fetch(url, { 
+                    ...options, 
+                    headers,
+                    body: options.body 
+                });
+                
+                if (response.status === 401) {
+                    localStorage.removeItem('issuerApiKey');
+                    localStorage.removeItem('issuerData');
+                    showError('API key invalid. Please log in again.');
+                    return null;
+                }
+                
+                return response;
+            } catch (error) {
+                console.error('❌ Fetch error:', error);
+                throw error;
+            }
+        }
+
+        // Message Functions
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+            console.error('💥 Error:', message);
+        }
+
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+            console.log('✅ Success:', message);
+        }
+    </script>
+</body>
+</html>

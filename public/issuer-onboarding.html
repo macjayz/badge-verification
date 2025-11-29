@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Issuer Onboarding - Badge Backend</title>
+    <style>
+        /* Reuse the same CSS variables and base styles from dashboard */
+        :root {
+            --primary: #3498db;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .onboarding-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+        }
+        
+        .onboarding-header {
+            background: var(--dark);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .onboarding-header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .onboarding-header p {
+            color: #bdc3c7;
+            font-size: 1.1rem;
+        }
+        
+        .onboarding-progress {
+            display: flex;
+            background: #f8f9fa;
+            padding: 0;
+        }
+        
+        .progress-step {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            font-weight: 500;
+            color: #6c757d;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .progress-step.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: white;
+        }
+        
+        .progress-step.completed {
+            color: var(--success);
+            border-bottom-color: var(--success);
+        }
+        
+        .onboarding-content {
+            padding: 40px;
+        }
+        
+        .step-content {
+            display: none;
+        }
+        
+        .step-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+            font-size: 1rem;
+        }
+        
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-help {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .social-platforms {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .platform-card {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .platform-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .platform-card.selected {
+            border-color: var(--primary);
+            background: #f8f9ff;
+        }
+        
+        .platform-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .platform-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .platform-description {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        .platform-fields {
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .platform-card.selected .platform-fields {
+            display: block;
+        }
+        
+        .onboarding-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: #6c757d;
+            border: 2px solid #e9ecef;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .completion-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .completion-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        
+        .completion-title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--success);
+        }
+        
+        .completion-description {
+            color: #6c757d;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .next-steps {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .next-steps h4 {
+            margin-bottom: 15px;
+            color: #495057;
+        }
+        
+        .next-steps ul {
+            list-style: none;
+        }
+        
+        .next-steps li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-number {
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="onboarding-container">
+        <div class="onboarding-header">
+            <h1>🚀 Project Onboarding</h1>
+            <p>Set up your project profile and social verification rules</p>
+        </div>
+        
+        <div class="onboarding-progress">
+            <div class="progress-step active" data-step="1">Project Info</div>
+            <div class="progress-step" data-step="2">Social Platforms</div>
+            <div class="progress-step" data-step="3">Verification Rules</div>
+            <div class="progress-step" data-step="4">Complete</div>
+        </div>
+        
+        <div class="onboarding-content">
+            <!-- Step 1: Project Information -->
+            <div class="step-content active" data-step="1">
+                <h2 style="margin-bottom: 20px;">Project Information</h2>
+                <p style="color: #6c757d; margin-bottom: 30px;">Tell us about your project and how users can connect with you.</p>
+                
+                <form id="projectInfoForm">
+                    <div class="form-group">
+                        <label class="form-label">Project Name *</label>
+                        <input type="text" id="projectName" class="form-input" required 
+                               placeholder="e.g., DeFi Camp, Web3 University">
+                        <div class="form-help">The display name of your project</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Project Description</label>
+                        <textarea id="projectDescription" class="form-textarea" 
+                                  placeholder="Describe your project, community, or organization..."></textarea>
+                        <div class="form-help">This will be shown to users when they verify eligibility</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Website</label>
+                        <input type="url" id="projectWebsite" class="form-input" 
+                               placeholder="https://your-project.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Contact Email</label>
+                        <input type="email" id="contactEmail" class="form-input" 
+                               placeholder="team@your-project.com">
+                        <div class="form-help">For important notifications and support</div>
+                    </div>
+                </form>
+                
+                <div class="onboarding-actions">
+                    <div></div> <!-- Spacer -->
+                    <button class="btn btn-primary" onclick="nextStep()">
+                        Continue →
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 2: Social Platforms -->
+            <div class="step-content" data-step="2">
+                <h2 style="margin-bottom: 20px;">Social Platforms</h2>
+                <p style="color: #6c757d; margin-bottom: 30px;">Connect your social platforms to enable verification rules.</p>
+                
+                <div class="social-platforms">
+                    <!-- Twitter -->
+                    <div class="platform-card" data-platform="twitter">
+                        <div class="platform-icon">🐦</div>
+                        <div class="platform-name">Twitter</div>
+                        <div class="platform-description">Follow requirements, tweet verification</div>
+                        <div class="platform-fields">
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label class="form-label">Twitter Handle</label>
+                                <input type="text" class="form-input twitter-handle" 
+                                       placeholder="yourhandle" oninput="updateTwitterExample(this)">
+                                <div class="form-help" id="twitterExample">Users will need to follow: @_____</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Discord -->
+                    <div class="platform-card" data-platform="discord">
+                        <div class="platform-icon">💬</div>
+                        <div class="platform-name">Discord</div>
+                        <div class="platform-description">Server membership, role requirements</div>
+                        <div class="platform-fields">
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label class="form-label">Server Name</label>
+                                <input type="text" class="form-input discord-server-name" 
+                                       placeholder="Community Server">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Server ID</label>
+                                <input type="text" class="form-input discord-server-id" 
+                                       placeholder="123456789012345678">
+                                <div class="form-help">Your Discord server ID</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Snapshot -->
+                    <div class="platform-card" data-platform="snapshot">
+                        <div class="platform-icon">🗳️</div>
+                        <div class="platform-name">Snapshot</div>
+                        <div class="platform-description">Voting requirements, governance</div>
+                        <div class="platform-fields">
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label class="form-label">Snapshot Space</label>
+                                <input type="text" class="form-input snapshot-space" 
+                                       placeholder="your-space.eth">
+                                <div class="form-help">Your Snapshot space name</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- GitHub -->
+                    <div class="platform-card" data-platform="github">
+                        <div class="platform-icon">💻</div>
+                        <div class="platform-name">GitHub</div>
+                        <div class="platform-description">Contributions, repository access</div>
+                        <div class="platform-fields">
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label class="form-label">Organization</label>
+                                <input type="text" class="form-input github-org" 
+                                       placeholder="your-organization">
+                                <div class="form-help">Your GitHub organization name</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="onboarding-actions">
+                    <button class="btn btn-outline" onclick="prevStep()">
+                        ← Back
+                    </button>
+                    <button class="btn btn-primary" onclick="nextStep()">
+                        Continue →
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 3: Verification Rules -->
+            <div class="step-content" data-step="3">
+                <h2 style="margin-bottom: 20px;">Verification Rules</h2>
+                <p style="color: #6c757d; margin-bottom: 30px;">Configure automatic verification rules based on your social platforms.</p>
+                
+                <div id="autoRulesInfo" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 10px;">✨ Automatic Rule Generation</h4>
+                    <p style="color: #6c757d; margin-bottom: 15px;">Based on your social platform connections, we'll automatically create these verification rules:</p>
+                    <div id="generatedRulesList">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Rule Logic</label>
+                    <select id="ruleLogic" class="form-select">
+                        <option value="AND">AND - Users must meet ALL rules</option>
+                        <option value="OR">OR - Users can meet ANY rule</option>
+                    </select>
+                    <div class="form-help">How multiple verification rules should be combined</div>
+                </div>
+                
+                <div class="onboarding-actions">
+                    <button class="btn btn-outline" onclick="prevStep()">
+                        ← Back
+                    </button>
+                    <button class="btn btn-success" onclick="completeOnboarding()">
+                        Complete Setup
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 4: Completion -->
+            <div class="step-content" data-step="4">
+                <div class="completion-screen">
+                    <div class="completion-icon">🎉</div>
+                    <div class="completion-title">Setup Complete!</div>
+                    <div class="completion-description">
+                        Your project profile has been created and verification rules are ready to use.
+                    </div>
+                    
+                    <div class="next-steps">
+                        <h4>Next Steps</h4>
+                        <ul>
+                            <li>
+                                <div class="step-number">1</div>
+                                <span>Create your first badge with automatic rule generation</span>
+                            </li>
+                            <li>
+                                <div class="step-number">2</div>
+                                <span>Customize social verification rules in the dashboard</span>
+                            </li>
+                            <li>
+                                <div class="step-number">3</div>
+                                <span>Share verification links with your community</span>
+                            </li>
+                            <li>
+                                <div class="step-number">4</div>
+                                <span>Monitor analytics and minting activity</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-top: 30px;">
+                        <a href="/issuer-dashboard.html" class="btn btn-primary" style="margin-right: 10px;">
+                            Go to Dashboard
+                        </a>
+                        <a href="/issuer-badge-creator.html" class="btn btn-success">
+                            Create First Badge
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Messages -->
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+    </div>
+
+    <script>
+        // API Configuration
+        const ISSUER_DASHBOARD_API = 'http://localhost:3001/api/issuer-dashboard';
+        
+        // Global State
+        let currentStep = 1;
+        let selectedPlatforms = new Set();
+        let onboardingData = {};
+
+        // Platform Selection
+        document.querySelectorAll('.platform-card').forEach(card => {
+  card.addEventListener('click', function(e) {
+    // Only toggle if clicking on the card itself, not form inputs
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+      return; // Don't toggle selection when clicking form fields
+    }
+    
+    this.classList.toggle('selected');
+    const platform = this.dataset.platform;
+    
+    if (this.classList.contains('selected')) {
+      selectedPlatforms.add(platform);
+    } else {
+      selectedPlatforms.delete(platform);
+    }
+    
+    updateGeneratedRules();
+  });
+});
+
+        // Update Twitter Example
+        function updateTwitterExample(input) {
+            const handle = input.value.trim();
+            const example = document.getElementById('twitterExample');
+            if (handle) {
+                example.textContent = `Users will need to follow: @${handle}`;
+            } else {
+                example.textContent = 'Users will need to follow: @_____';
+            }
+        }
+
+        // Navigation Functions
+        function nextStep() {
+            if (!validateStep(currentStep)) {
+                return;
+            }
+            
+            saveStepData(currentStep);
+            
+            if (currentStep < 4) {
+                // Hide current step
+                document.querySelector(`.step-content[data-step="${currentStep}"]`).classList.remove('active');
+                document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.remove('active');
+                
+                currentStep++;
+                
+                // Show next step
+                document.querySelector(`.step-content[data-step="${currentStep}"]`).classList.add('active');
+                document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.add('active');
+                
+                // Special handling for step 3
+                if (currentStep === 3) {
+                    updateGeneratedRules();
+                }
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                // Hide current step
+                document.querySelector(`.step-content[data-step="${currentStep}"]`).classList.remove('active');
+                document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.remove('active');
+                
+                currentStep--;
+                
+                // Show previous step
+                document.querySelector(`.step-content[data-step="${currentStep}"]`).classList.add('active');
+                document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.add('active');
+            }
+        }
+
+        // Step Validation
+        function validateStep(step) {
+            switch (step) {
+                case 1:
+                    const projectName = document.getElementById('projectName').value.trim();
+                    if (!projectName) {
+                        showError('Project name is required');
+                        return false;
+                    }
+                    return true;
+                    
+                case 2:
+                    // No validation needed - platforms are optional
+                    return true;
+                    
+                case 3:
+                    // Always valid
+                    return true;
+                    
+                default:
+                    return true;
+            }
+        }
+
+        // Save Step Data
+        function saveStepData(step) {
+            switch (step) {
+                case 1:
+                    onboardingData.projectName = document.getElementById('projectName').value.trim();
+                    onboardingData.description = document.getElementById('projectDescription').value.trim();
+                    onboardingData.website = document.getElementById('projectWebsite').value.trim();
+                    onboardingData.contactEmail = document.getElementById('contactEmail').value.trim();
+                    break;
+                    
+                case 2:
+                    // Save platform data
+                    onboardingData.socialConfig = {};
+                    
+                    if (selectedPlatforms.has('twitter')) {
+                        const handle = document.querySelector('.twitter-handle').value.trim();
+                        if (handle) {
+                            onboardingData.twitterHandle = handle.replace('@', '');
+                        }
+                    }
+                    
+                    if (selectedPlatforms.has('discord')) {
+                        onboardingData.discordServerName = document.querySelector('.discord-server-name').value.trim();
+                        onboardingData.discordServerId = document.querySelector('.discord-server-id').value.trim();
+                    }
+                    
+                    if (selectedPlatforms.has('snapshot')) {
+                        onboardingData.snapshotSpace = document.querySelector('.snapshot-space').value.trim();
+                    }
+                    
+                    if (selectedPlatforms.has('github')) {
+                        onboardingData.githubOrganization = document.querySelector('.github-org').value.trim();
+                    }
+                    break;
+                    
+                case 3:
+                    onboardingData.ruleLogic = document.getElementById('ruleLogic').value;
+                    break;
+            }
+        }
+
+        // Update Generated Rules Display
+        function updateGeneratedRules() {
+            const rulesList = document.getElementById('generatedRulesList');
+            const rules = [];
+            
+            if (selectedPlatforms.has('twitter') && onboardingData.twitterHandle) {
+                rules.push({
+                    icon: '🐦',
+                    name: 'Twitter Follow',
+                    description: `Follow @${onboardingData.twitterHandle} on Twitter`
+                });
+            }
+            
+            if (selectedPlatforms.has('discord') && onboardingData.discordServerName) {
+                rules.push({
+                    icon: '💬',
+                    name: 'Discord Member',
+                    description: `Join ${onboardingData.discordServerName} Discord server`
+                });
+            }
+            
+            if (selectedPlatforms.has('snapshot') && onboardingData.snapshotSpace) {
+                rules.push({
+                    icon: '🗳️',
+                    name: 'Snapshot Voter',
+                    description: `Vote in ${onboardingData.snapshotSpace} Snapshot space`
+                });
+            }
+            
+            if (selectedPlatforms.has('github') && onboardingData.githubOrganization) {
+                rules.push({
+                    icon: '💻',
+                    name: 'GitHub Contributor',
+                    description: `Contribute to ${onboardingData.githubOrganization} organization`
+                });
+            }
+            
+            if (rules.length === 0) {
+                rulesList.innerHTML = '<p style="color: #6c757d; font-style: italic;">No rules generated yet. Connect social platforms in the previous step.</p>';
+            } else {
+                rulesList.innerHTML = rules.map(rule => `
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 5px; margin-bottom: 8px;">
+                        <span style="font-size: 1.2rem;">${rule.icon}</span>
+                        <div>
+                            <div style="font-weight: 500;">${rule.name}</div>
+                            <div style="font-size: 0.8rem; color: #6c757d;">${rule.description}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Complete Onboarding
+        async function completeOnboarding() {
+            try {
+                saveStepData(currentStep);
+                
+                // Show loading state
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = 'Creating Profile...';
+                
+                // Prepare API request
+                const apiKey = localStorage.getItem('issuerApiKey');
+                if (!apiKey) {
+                    throw new Error('No API key found. Please log in as an issuer.');
+                }
+                
+                const requestData = {
+                    projectName: onboardingData.projectName,
+                    description: onboardingData.description,
+                    website: onboardingData.website,
+                    contactEmail: onboardingData.contactEmail,
+                    twitterHandle: onboardingData.twitterHandle,
+                    discordServerId: onboardingData.discordServerId,
+                    discordServerName: onboardingData.discordServerName,
+                    snapshotSpace: onboardingData.snapshotSpace,
+                    githubOrganization: onboardingData.githubOrganization
+                };
+                
+                const response = await fetch(`${ISSUER_DASHBOARD_API}/profile`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': apiKey
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                if (!response.ok) {
+                    const result = await response.json();
+                    throw new Error(result.error || 'Failed to create profile');
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Create social rules based on selected platforms
+                    await createSocialRules();
+                    
+                    nextStep(); // Move to completion step
+                    showSuccess('Project profile created successfully!');
+                } else {
+                    throw new Error(result.error || 'Failed to create profile');
+                }
+                
+            } catch (error) {
+                console.error('❌ Onboarding error:', error);
+                showError('Error completing onboarding: ' + error.message);
+                
+                // Reset button
+                const btn = event.target;
+                btn.disabled = false;
+                btn.textContent = 'Complete Setup';
+            }
+        }
+
+        // Create Social Rules
+        async function createSocialRules() {
+            const apiKey = localStorage.getItem('issuerApiKey');
+            
+            // Create rules based on selected platforms
+            const rules = [];
+            
+            if (selectedPlatforms.has('twitter') && onboardingData.twitterHandle) {
+                rules.push({
+                    ruleType: 'twitter_follow',
+                    name: 'Twitter Follow',
+                    parameters: { account: onboardingData.twitterHandle },
+                    description: `Follow @${onboardingData.twitterHandle} on Twitter`,
+                    isRequired: true,
+                    priority: 100
+                });
+            }
+            
+            if (selectedPlatforms.has('discord') && onboardingData.discordServerId) {
+                rules.push({
+                    ruleType: 'discord_member',
+                    name: 'Discord Member',
+                    parameters: { 
+                        serverId: onboardingData.discordServerId,
+                        serverName: onboardingData.discordServerName 
+                    },
+                    description: `Join ${onboardingData.discordServerName} Discord server`,
+                    isRequired: true,
+                    priority: 90
+                });
+            }
+            
+            if (selectedPlatforms.has('snapshot') && onboardingData.snapshotSpace) {
+                rules.push({
+                    ruleType: 'snapshot_votes',
+                    name: 'Snapshot Voter',
+                    parameters: { space: onboardingData.snapshotSpace, minVotes: 1 },
+                    description: `Vote in ${onboardingData.snapshotSpace} Snapshot space`,
+                    isRequired: false,
+                    priority: 80
+                });
+            }
+            
+            if (selectedPlatforms.has('github') && onboardingData.githubOrganization) {
+                rules.push({
+                    ruleType: 'github_contributor',
+                    name: 'GitHub Contributor',
+                    parameters: { organization: onboardingData.githubOrganization, minContributions: 1 },
+                    description: `Contribute to ${onboardingData.githubOrganization} organization`,
+                    isRequired: false,
+                    priority: 70
+                });
+            }
+            
+            // Create each rule via API
+            for (const rule of rules) {
+                try {
+                    await fetch(`${ISSUER_DASHBOARD_API}/social-rules`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-API-Key': apiKey
+                        },
+                        body: JSON.stringify(rule)
+                    });
+                } catch (error) {
+                    console.error('Error creating social rule:', error);
+                }
+            }
+        }
+
+        // Message Functions
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+            console.error('💥 Error:', message);
+        }
+
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+            console.log('✅ Success:', message);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Issuer Onboarding Loading...');
+            
+            // Check if issuer is authenticated
+            const apiKey = localStorage.getItem('issuerApiKey');
+            if (!apiKey) {
+                showError('Please log in as an issuer first. Redirecting...');
+                setTimeout(() => {
+                    window.location.href = '/issuer-login.html';
+                }, 2000);
+                return;
+            }
+            
+            // Load existing profile if it exists
+            loadExistingProfile();
+        });
+
+        // Load existing profile data
+        async function loadExistingProfile() {
+            try {
+                const apiKey = localStorage.getItem('issuerApiKey');
+                const response = await fetch(`${ISSUER_DASHBOARD_API}/profile`, {
+                    headers: {
+                        'X-API-Key': apiKey
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        // Populate form with existing data
+                        populateFormWithProfile(result.profile);
+                        showSuccess('Existing profile loaded. You can update your information.');
+                    }
+                }
+                // If 404, no profile exists yet - that's fine
+                
+            } catch (error) {
+                console.log('No existing profile found or error loading:', error);
+            }
+        }
+
+        // Populate form with existing profile data
+        function populateFormWithProfile(profile) {
+            document.getElementById('projectName').value = profile.projectName || '';
+            document.getElementById('projectDescription').value = profile.description || '';
+            document.getElementById('projectWebsite').value = profile.website || '';
+            document.getElementById('contactEmail').value = profile.contactEmail || '';
+            
+            // Populate social platforms
+            if (profile.twitterHandle) {
+                const twitterCard = document.querySelector('.platform-card[data-platform="twitter"]');
+                twitterCard.classList.add('selected');
+                selectedPlatforms.add('twitter');
+                document.querySelector('.twitter-handle').value = profile.twitterHandle;
+                updateTwitterExample(document.querySelector('.twitter-handle'));
+            }
+            
+            if (profile.discordServerId) {
+                const discordCard = document.querySelector('.platform-card[data-platform="discord"]');
+                discordCard.classList.add('selected');
+                selectedPlatforms.add('discord');
+                document.querySelector('.discord-server-name').value = profile.discordServerName || '';
+                document.querySelector('.discord-server-id').value = profile.discordServerId || '';
+            }
+            
+            if (profile.snapshotSpace) {
+                const snapshotCard = document.querySelector('.platform-card[data-platform="snapshot"]');
+                snapshotCard.classList.add('selected');
+                selectedPlatforms.add('snapshot');
+                document.querySelector('.snapshot-space').value = profile.snapshotSpace || '';
+            }
+            
+            if (profile.githubOrganization) {
+                const githubCard = document.querySelector('.platform-card[data-platform="github"]');
+                githubCard.classList.add('selected');
+                selectedPlatforms.add('github');
+                document.querySelector('.github-org').value = profile.githubOrganization || '';
+            }
+            
+            onboardingData = { ...profile };
+        }
+    </script>
+</body>
+</html>

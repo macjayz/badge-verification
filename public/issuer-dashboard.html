@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Issuer Dashboard - Badge Backend</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --purple: #9b59b6;
+            --teal: #1abc9c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: var(--dark);
+            color: white;
+            padding: 20px;
+        }
+        
+        .sidebar h1 {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: var(--light);
+        }
+        
+        .sidebar nav a {
+            display: block;
+            color: #bdc3c7;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar nav a:hover, 
+        .sidebar nav a.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .issuer-info {
+            margin-top: 2rem;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .issuer-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .issuer-wallet {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #bdc3c7;
+            word-break: break-all;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .btn-purple {
+            background: var(--purple);
+            color: white;
+        }
+        
+        .btn-teal {
+            background: var(--teal);
+            color: white;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stat-card.success { border-left-color: var(--success); }
+        .stat-card.warning { border-left-color: var(--warning); }
+        .stat-card.danger { border-left-color: var(--danger); }
+        .stat-card.purple { border-left-color: var(--purple); }
+        .stat-card.teal { border-left-color: var(--teal); }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .stat-trend {
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+        
+        .trend-up { color: var(--success); }
+        .trend-down { color: var(--danger); }
+        
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .chart-title {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .chart-placeholder {
+            height: 200px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        /* Recent Activity */
+        .activity-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .activity-list {
+            list-style: none;
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 0.8rem;
+        }
+        
+        .activity-content {
+            flex: 1;
+        }
+        
+        .activity-description {
+            font-weight: 500;
+        }
+        
+        .activity-time {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        .activity-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-warning { background: #fff3cd; color: #856404; }
+        .badge-danger { background: #f8d7da; color: #721c24; }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 2rem;
+        }
+        
+        .action-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        
+        .action-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .action-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .action-description {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        /* Messages */
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .warning-message {
+            background: #fff3cd;
+            color: #856404;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        /* Profile Status */
+        .profile-status {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-verified { background: #cce7ff; color: #004085; }
+        
+        .profile-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .profile-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .field-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .field-value {
+            font-weight: 500;
+        }
+        
+        .field-empty {
+            color: #6c757d;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h1>🏢 Issuer Portal</h1>
+            <nav>
+                <a href="/issuer-dashboard.html" class="active">📊 Dashboard</a>
+                <a href="/issuer-badge-creator.html">🪙 Create Badge</a>
+                <a href="/issuer-analytics.html">📈 Analytics</a>
+                <a href="/issuer-social-rules.html">🔗 Social Rules</a>
+                <a href="/issuer-settings.html">⚙️ Settings</a>
+            </nav>
+            
+            <div class="issuer-info">
+                <div class="issuer-name" id="issuerName">Loading...</div>
+                <div class="issuer-wallet" id="issuerWallet">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h2>Issuer Dashboard</h2>
+                <div class="header-actions">
+                    <button class="btn btn-warning" onclick="debugAuthState()">🔧 Debug</button>
+                    <button class="btn btn-primary" onclick="refreshDashboard()">🔄 Refresh</button>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+
+            <!-- Profile Status -->
+            <div id="profileStatus" class="profile-status" style="display: none;">
+                <div class="status-header">
+                    <h3>Project Profile</h3>
+                    <span class="status-badge" id="profileStatusBadge">Pending</span>
+                </div>
+                <div class="profile-details" id="profileDetails">
+                    <!-- Dynamic content -->
+                </div>
+                <div style="margin-top: 15px;">
+                    <a href="/issuer-onboarding.html" class="btn btn-primary btn-sm">Edit Profile</a>
+                </div>
+            </div>
+
+            <!-- No Profile Warning -->
+            <div id="noProfileWarning" class="warning-message">
+                <strong>🚀 Welcome to Issuer Portal!</strong>
+                <p>Complete your project profile to start creating badges and social verification rules.</p>
+                <a href="/issuer-onboarding.html" class="btn btn-success btn-sm" style="margin-top: 10px;">
+                    Complete Onboarding
+                </a>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalBadges">0</div>
+                    <div class="stat-label">Total Badges</div>
+                    <div class="stat-trend trend-up" id="badgesTrend">+0 this week</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-value" id="totalMints">0</div>
+                    <div class="stat-label">Total Mints</div>
+                    <div class="stat-trend trend-up" id="mintsTrend">+0 today</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="stat-value" id="successRate">0%</div>
+                    <div class="stat-label">Success Rate</div>
+                    <div class="stat-trend trend-up" id="successTrend">+0%</div>
+                </div>
+                <div class="stat-card teal">
+                    <div class="stat-value" id="activeUsers">0</div>
+                    <div class="stat-label">Active Users</div>
+                    <div class="stat-trend trend-up" id="usersTrend">+0 today</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <a href="/issuer-badge-creator.html" class="action-card">
+                    <div class="action-icon">🪙</div>
+                    <div class="action-title">Create Badge</div>
+                    <div class="action-description">Design and deploy new badge</div>
+                </a>
+                <a href="/issuer-social-rules.html" class="action-card">
+                    <div class="action-icon">🔗</div>
+                    <div class="action-title">Social Rules</div>
+                    <div class="action-description">Configure verification rules</div>
+                </a>
+                <a href="/issuer-analytics.html" class="action-card">
+                    <div class="action-icon">📈</div>
+                    <div class="action-title">Analytics</div>
+                    <div class="action-description">View detailed insights</div>
+                </a>
+                <a href="#" class="action-card" onclick="generateBadgeRules()">
+                    <div class="action-icon">⚡</div>
+                    <div class="action-title">Generate Rules</div>
+                    <div class="action-description">Auto-create badge rules</div>
+                </a>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">Minting Activity</div>
+                        <select id="timeRange" onchange="loadDashboardData()">
+                            <option value="7d">Last 7 days</option>
+                            <option value="30d">Last 30 days</option>
+                            <option value="90d">Last 90 days</option>
+                        </select>
+                    </div>
+                    <div class="chart-placeholder">
+                        📊 Minting activity chart will be displayed here
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">Top Badges</div>
+                    </div>
+                    <div class="chart-placeholder">
+                        🏆 Top performing badges will be shown here
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="activity-card">
+                <h3 style="margin-bottom: 15px;">Recent Activity</h3>
+                <ul class="activity-list" id="recentActivity">
+                    <li class="loading">Loading recent activity...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const ISSUER_DASHBOARD_API = 'http://localhost:3001/api/issuer-dashboard';
+        
+        // Global State
+        let issuerData = null;
+        let dashboardData = null;
+
+        // Debug Auth State
+        function debugAuthState() {
+            const apiKey = localStorage.getItem('issuerApiKey');
+            const issuer = localStorage.getItem('issuerData');
+            
+            console.log('=== 🔍 ISSUER AUTH DEBUG ===');
+            console.log('API Key exists:', !!apiKey);
+            console.log('Issuer data exists:', !!issuer);
+            
+            if (apiKey) {
+                console.log('API Key first 20 chars:', apiKey.substring(0, 20) + '...');
+            }
+            
+            if (issuer) {
+                try {
+                    const issuerObj = JSON.parse(issuer);
+                    console.log('Issuer data:', issuerObj);
+                } catch (e) {
+                    console.log('Cannot parse issuer data:', e.message);
+                }
+            }
+            console.log('========================');
+        }
+
+        // Auth Fetch for Issuer API
+        async function issuerAuthFetch(url, options = {}) {
+            const apiKey = localStorage.getItem('issuerApiKey');
+            
+            if (!apiKey) {
+                throw new Error('No API key found. Please log in as an issuer.');
+            }
+            
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-API-Key': apiKey,
+                ...options.headers
+            };
+            
+            try {
+                const response = await fetch(url, { 
+                    ...options, 
+                    headers 
+                });
+                
+                if (response.status === 401) {
+                    // API key invalid
+                    localStorage.removeItem('issuerApiKey');
+                    localStorage.removeItem('issuerData');
+                    showError('API key invalid. Please log in again.');
+                    return null;
+                }
+                
+                return response;
+            } catch (error) {
+                console.error('❌ Fetch error:', error);
+                throw error;
+            }
+        }
+
+        // Load Issuer Data
+        async function loadIssuerData() {
+            try {
+                const storedIssuer = localStorage.getItem('issuerData');
+                if (storedIssuer) {
+                    issuerData = JSON.parse(storedIssuer);
+                    updateIssuerInfo();
+                }
+
+                // Load profile data
+                const profileResponse = await issuerAuthFetch(`${ISSUER_DASHBOARD_API}/profile`);
+                
+                if (!profileResponse) return;
+                
+                if (profileResponse.ok) {
+                    const result = await profileResponse.json();
+                    if (result.success) {
+                        updateProfileUI(result.profile);
+                    } else {
+                        // No profile exists yet
+                        document.getElementById('noProfileWarning').style.display = 'block';
+                    }
+                } else if (profileResponse.status === 404) {
+                    // No profile exists
+                    document.getElementById('noProfileWarning').style.display = 'block';
+                } else {
+                    throw new Error('Failed to load profile');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading issuer data:', error);
+                showError('Error loading issuer data: ' + error.message);
+            }
+        }
+
+        // Update Issuer Info in Sidebar
+        function updateIssuerInfo() {
+            if (issuerData) {
+                document.getElementById('issuerName').textContent = issuerData.name;
+                document.getElementById('issuerWallet').textContent = issuerData.wallet;
+            }
+        }
+
+        // Update Profile UI
+        function updateProfileUI(profile) {
+            document.getElementById('noProfileWarning').style.display = 'none';
+            document.getElementById('profileStatus').style.display = 'block';
+            
+            // Update status badge
+            const statusBadge = document.getElementById('profileStatusBadge');
+            statusBadge.textContent = profile.onboardingStatus.charAt(0).toUpperCase() + profile.onboardingStatus.slice(1);
+            statusBadge.className = `status-badge status-${profile.onboardingStatus}`;
+            
+            // Update profile details
+            const profileDetails = document.getElementById('profileDetails');
+            profileDetails.innerHTML = `
+                <div class="profile-field">
+                    <div class="field-label">Project Name</div>
+                    <div class="field-value">${profile.projectName || '<span class="field-empty">Not set</span>'}</div>
+                </div>
+                <div class="profile-field">
+                    <div class="field-label">Website</div>
+                    <div class="field-value">${profile.website || '<span class="field-empty">Not set</span>'}</div>
+                </div>
+                <div class="profile-field">
+                    <div class="field-label">Twitter</div>
+                    <div class="field-value">${profile.twitterHandle ? '@' + profile.twitterHandle : '<span class="field-empty">Not set</span>'}</div>
+                </div>
+                <div class="profile-field">
+                    <div class="field-label">Discord</div>
+                    <div class="field-value">${profile.discordServerName || '<span class="field-empty">Not set</span>'}</div>
+                </div>
+            `;
+        }
+
+        // Load Dashboard Data
+        async function loadDashboardData() {
+            try {
+                const statsResponse = await issuerAuthFetch(`${ISSUER_DASHBOARD_API}/stats`);
+                
+                if (!statsResponse) return;
+                
+                if (statsResponse.ok) {
+                    const result = await statsResponse.json();
+                    if (result.success) {
+                        dashboardData = result.stats;
+                        updateDashboardStats();
+                        updateRecentActivity();
+                    }
+                } else {
+                    throw new Error('Failed to load dashboard stats');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading dashboard data:', error);
+                showError('Error loading dashboard: ' + error.message);
+            }
+        }
+
+        // Update Dashboard Statistics
+        function updateDashboardStats() {
+            if (!dashboardData) return;
+            
+            document.getElementById('totalBadges').textContent = dashboardData.totalBadges;
+            document.getElementById('totalMints').textContent = dashboardData.totalMints;
+            document.getElementById('successRate').textContent = dashboardData.successRate.toFixed(1) + '%';
+            document.getElementById('activeUsers').textContent = dashboardData.successfulMints; // Using successful mints as active users proxy
+            
+            // Update trends (mock data for now)
+            document.getElementById('badgesTrend').textContent = '+2 this week';
+            document.getElementById('mintsTrend').textContent = `+${Math.floor(dashboardData.totalMints * 0.1)} today`;
+            document.getElementById('successTrend').textContent = '+5.2%';
+            document.getElementById('usersTrend').textContent = `+${Math.floor(dashboardData.successfulMints * 0.15)} today`;
+        }
+
+        // Update Recent Activity
+        function updateRecentActivity() {
+            if (!dashboardData) return;
+            
+            const activityList = document.getElementById('recentActivity');
+            
+            // Mock recent activity based on stats
+            const activities = [
+                {
+                    icon: '🪙',
+                    description: `${dashboardData.successfulMints} badges minted successfully`,
+                    time: 'Just now',
+                    badge: 'success'
+                },
+                {
+                    icon: '👥',
+                    description: `${Math.floor(dashboardData.successfulMints * 0.8)} new users joined`,
+                    time: '2 hours ago',
+                    badge: 'success'
+                },
+                {
+                    icon: '🔗',
+                    description: 'Social verification rules updated',
+                    time: '5 hours ago',
+                    badge: 'warning'
+                },
+                {
+                    icon: '⚠️',
+                    description: `${dashboardData.failedMints} minting attempts failed`,
+                    time: '1 day ago',
+                    badge: 'danger'
+                }
+            ];
+            
+            activityList.innerHTML = activities.map(activity => `
+                <li class="activity-item">
+                    <div class="activity-icon">${activity.icon}</div>
+                    <div class="activity-content">
+                        <div class="activity-description">${activity.description}</div>
+                        <div class="activity-time">${activity.time}</div>
+                    </div>
+                    <span class="activity-badge badge-${activity.badge}">
+                        ${activity.badge.toUpperCase()}
+                    </span>
+                </li>
+            `).join('');
+        }
+
+        // Generate Badge Rules from Social Rules
+        async function generateBadgeRules() {
+            try {
+                const response = await issuerAuthFetch(`${ISSUER_DASHBOARD_API}/generate-badge-rules`);
+                
+                if (!response) return;
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        // Store the generated rules for use in badge creator
+                        localStorage.setItem('generatedBadgeRules', JSON.stringify(result.badgeRules));
+                        showSuccess('Badge rules generated successfully! Ready to use in badge creator.');
+                    }
+                } else {
+                    throw new Error('Failed to generate badge rules');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error generating badge rules:', error);
+                showError('Error generating badge rules: ' + error.message);
+            }
+        }
+
+        // Refresh Dashboard
+        function refreshDashboard() {
+            loadIssuerData();
+            loadDashboardData();
+            showSuccess('Dashboard refreshed!');
+        }
+
+        // Message Functions
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+            console.error('💥 Error:', message);
+        }
+
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+            console.log('✅ Success:', message);
+        }
+
+        // Initialize Dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Issuer Dashboard Loading...');
+            
+            // Check if issuer is authenticated
+            const apiKey = localStorage.getItem('issuerApiKey');
+            if (!apiKey) {
+                showError('Please log in as an issuer first. Redirecting to login...');
+                setTimeout(() => {
+                    window.location.href = '/issuer-login.html';
+                }, 2000);
+                return;
+            }
+            
+            loadIssuerData();
+            loadDashboardData();
+        });
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                loadDashboardData();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

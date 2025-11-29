@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Issuer Login - Badge Backend</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            overflow: hidden;
+        }
+        
+        .login-header {
+            background: var(--dark);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .login-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .login-header p {
+            color: #bdc3c7;
+            font-size: 1rem;
+        }
+        
+        .login-content {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .form-help {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .login-footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .footer-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .footer-link:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .demo-notes {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .demo-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>🏢 Issuer Login</h1>
+            <p>Access your issuer dashboard</p>
+        </div>
+        
+        <div class="login-content">
+            <!-- Messages -->
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+
+            <!-- Demo Notes -->
+            <div class="demo-notes">
+                <div class="demo-title">🚀 Demo Access</div>
+                <p>Use your existing API key to log in. If you don't have one, you can register as an issuer first.</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">API Key *</label>
+                    <input type="password" id="apiKey" class="form-input" required 
+                           placeholder="Enter your issuer API key">
+                    <div class="form-help">
+                        Your API key authenticates you as an issuer. Keep it secure.
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary" id="loginBtn">
+                        🔑 Login as Issuer
+                    </button>
+                </div>
+            </form>
+
+            <div class="login-footer">
+                <p>Don't have an issuer account? <br>
+                <a href="/issuer-register.html" class="footer-link">Register as an Issuer</a> or 
+                <a href="/admin-login.html" class="footer-link">Admin Login</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const ISSUER_API_URL = 'http://localhost:3001/api/issuer';
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Issuer Login Loading...');
+            
+            // Check if already logged in
+            const apiKey = localStorage.getItem('issuerApiKey');
+            if (apiKey) {
+                showSuccess('Already logged in. Redirecting...');
+                setTimeout(() => {
+                    window.location.href = '/issuer-dashboard.html';
+                }, 1000);
+                return;
+            }
+            
+            setupForm();
+        });
+
+        // Setup Form
+        function setupForm() {
+            document.getElementById('loginForm').addEventListener('submit', login);
+        }
+
+        // Login Function
+        async function login(e) {
+            e.preventDefault();
+            
+            const loginBtn = document.getElementById('loginBtn');
+            const originalText = loginBtn.textContent;
+            
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Authenticating...';
+            
+            try {
+                const apiKey = document.getElementById('apiKey').value.trim();
+                
+                if (!apiKey) {
+                    throw new Error('Please enter your API key');
+                }
+                
+                // Validate API key by making a test request
+                const response = await fetch(`${ISSUER_API_URL}/profile`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': apiKey
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Store API key and issuer data
+                        localStorage.setItem('issuerApiKey', apiKey);
+                        localStorage.setItem('issuerData', JSON.stringify(result.issuer));
+                        
+                        showSuccess('Login successful! Redirecting...');
+                        
+                        // Redirect to dashboard
+                        setTimeout(() => {
+                            window.location.href = '/issuer-dashboard.html';
+                        }, 1500);
+                    } else {
+                        throw new Error('Invalid API key or issuer not found');
+                    }
+                } else if (response.status === 401) {
+                    throw new Error('Invalid API key');
+                } else if (response.status === 404) {
+                    // Profile doesn't exist yet, but API key is valid
+                    // Get issuer info from a different endpoint
+                    const issuerResponse = await fetch(`${ISSUER_API_URL}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-API-Key': apiKey
+                        }
+                    });
+                    
+                    if (issuerResponse.ok) {
+                        const issuerResult = await issuerResponse.json();
+                        
+                        if (issuerResult.success && issuerResult.issuer) {
+                            // Store API key and basic issuer data
+                            localStorage.setItem('issuerApiKey', apiKey);
+                            localStorage.setItem('issuerData', JSON.stringify(issuerResult.issuer));
+                            
+                            showSuccess('Login successful! Redirecting to onboarding...');
+                            
+                            // Redirect to onboarding
+                            setTimeout(() => {
+                                window.location.href = '/issuer-onboarding.html';
+                            }, 1500);
+                        } else {
+                            throw new Error('Invalid API key');
+                        }
+                    } else {
+                        throw new Error('Invalid API key');
+                    }
+                } else {
+                    throw new Error('Authentication failed');
+                }
+                
+            } catch (error) {
+                console.error('❌ Login error:', error);
+                showError('Login failed: ' + error.message);
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = originalText;
+            }
+        }
+
+        // Message Functions
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+            console.error('💥 Error:', message);
+        }
+
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+            console.log('✅ Success:', message);
+        }
+    </script>
+</body>
+</html>

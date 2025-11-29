@@ -22,6 +22,7 @@ import { userManagementRoutes } from './routes/user-management.routes';
 import { badgeManagementRoutes } from './routes/badge-management.routes';
 import { twitterVerificationRoutes } from './routes/twitter-verification.routes';
 import userRoutes from './routes/user.routes';
+import { issuerDashboardRoutes } from './routes/issuer-dashboard.routes'; // ADD THIS
 import { logger } from './utils/logger'; 
 import path from 'path';
 
@@ -82,6 +83,7 @@ app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/admin/users', userManagementRoutes);
 app.use('/api/admin/badges', badgeManagementRoutes);
 app.use('/api/verify/twitter', twitterVerificationRoutes);
+app.use('/api/issuer-dashboard', issuerDashboardRoutes); // ADD THIS
 app.use('/', healthRoutes);
 
 // HTML Page Routes
@@ -124,6 +126,77 @@ app.get('/badge-management', (req, res) => {
 app.get('/badge-management.html', (req, res) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.sendFile(path.join(__dirname, '../public/badge-management.html'));
+});
+
+// Issuer Dashboard HTML Routes (ADD ALL THESE)
+app.get('/issuer-dashboard', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/issuer-dashboard.html'));
+});
+
+app.get('/issuer-dashboard.html', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/issuer-dashboard.html'));
+});
+
+app.get('/issuer-onboarding', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/issuer-onboarding.html'));
+});
+
+app.get('/issuer-onboarding.html', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/issuer-onboarding.html'));
+});
+
+app.get('/issuer-badge-creator', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/issuer-badge-creator.html'));
+});
+
+app.get('/issuer-badge-creator.html', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/issuer-badge-creator.html'));
+});
+
+app.get('/issuer-analytics', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/issuer-analytics.html'));
+});
+
+app.get('/issuer-analytics.html', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/issuer-analytics.html'));
+});
+
+app.get('/issuer-social-rules', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/issuer-social-rules.html'));
+});
+
+app.get('/issuer-social-rules.html', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/issuer-social-rules.html'));
+});
+
+app.get('/issuer-settings', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/issuer-settings.html'));
+});
+
+app.get('/issuer-settings.html', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/issuer-settings.html'));
+});
+
+app.get('/issuer-login', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/issuer-login.html'));
+});
+
+app.get('/issuer-login.html', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, '../public/issuer-login.html'));
 });
 
 // Global error handler middleware (must be after all routes)
@@ -184,6 +257,12 @@ const startServer = async () => {
       logger.info(`📊 WebSocket demo available at http://localhost:${config.server.port}/websocket-demo`);
       logger.info(`📈 Admin dashboard available at http://localhost:${config.server.port}/admin-dashboard`);
       logger.info(`🔐 Admin login available at http://localhost:${config.server.port}/admin-login`);
+      logger.info(`🏢 Issuer dashboard available at http://localhost:${config.server.port}/issuer-dashboard`); // ADD THIS
+      logger.info(`🚀 Issuer login available at http://localhost:${config.server.port}/issuer-login`); // ADD THIS
+      logger.info(`🪙 Issuer badge creator available at http://localhost:${config.server.port}/issuer-badge-creator`); // ADD THIS
+      logger.info(`📈 Issuer analytics available at http://localhost:${config.server.port}/issuer-analytics`); // ADD THIS
+      logger.info(`🔗 Issuer social rules available at http://localhost:${config.server.port}/issuer-social-rules`); // ADD THIS
+      logger.info(`⚙️ Issuer settings available at http://localhost:${config.server.port}/issuer-settings`); // ADD THIS
       logger.info(`🌐 Environment: ${config.server.nodeEnv}`);
       logger.info(`🔒 Allowed origins: ${config.server.allowedOrigins.join(', ')}`);
       logger.info(`📡 Health check: http://localhost:${config.server.port}/health`);
@@ -194,6 +273,7 @@ const startServer = async () => {
       logger.info(`🪙 Minting endpoints: http://localhost:${config.server.port}/api/minting`);
       logger.info(`📈 Dashboard endpoints: http://localhost:${config.server.port}/api/dashboard`);
       logger.info(`🔐 Admin auth endpoints: http://localhost:${config.server.port}/api/admin/auth`);
+      logger.info(`🔑 Issuer dashboard endpoints: http://localhost:${config.server.port}/api/issuer-dashboard`); // ADD THIS
       logger.info(`✅ Enhanced error handling: ACTIVE`);
       logger.info(`🔔 WebSocket real-time updates: ACTIVE`);
       logger.info(`🔐 Admin authentication: ENABLED`);
