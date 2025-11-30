@@ -727,7 +727,7 @@
             }
         }
 
-        // Complete Onboarding
+        // Complete Onboarding - FIXED VERSION
         async function completeOnboarding() {
             try {
                 saveStepData(currentStep);
@@ -736,7 +736,7 @@
                 const btn = event.target;
                 const originalText = btn.textContent;
                 btn.disabled = true;
-                btn.textContent = 'Creating Profile...';
+                btn.textContent = 'Updating Profile...';
                 
                 // Prepare API request
                 const apiKey = localStorage.getItem('issuerApiKey');
@@ -756,18 +756,37 @@
                     githubOrganization: onboardingData.githubOrganization
                 };
                 
-                const response = await fetch(`${ISSUER_DASHBOARD_API}/profile`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-API-Key': apiKey
-                    },
-                    body: JSON.stringify(requestData)
-                });
+                // Try to update existing profile first, create if it doesn't exist
+                let response;
+                try {
+                    // First try to update existing profile
+                    response = await fetch(`${ISSUER_DASHBOARD_API}/profile`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-API-Key': apiKey
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+                    
+                    if (response.status === 404) {
+                        // Profile doesn't exist, create it
+                        response = await fetch(`${ISSUER_DASHBOARD_API}/profile`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-API-Key': apiKey
+                            },
+                            body: JSON.stringify(requestData)
+                        });
+                    }
+                } catch (error) {
+                    throw new Error('Failed to update profile: ' + error.message);
+                }
                 
                 if (!response.ok) {
                     const result = await response.json();
-                    throw new Error(result.error || 'Failed to create profile');
+                    throw new Error(result.error || 'Failed to update profile');
                 }
                 
                 const result = await response.json();
@@ -777,9 +796,9 @@
                     await createSocialRules();
                     
                     nextStep(); // Move to completion step
-                    showSuccess('Project profile created successfully!');
+                    showSuccess('Project profile updated successfully!');
                 } else {
-                    throw new Error(result.error || 'Failed to create profile');
+                    throw new Error(result.error || 'Failed to update profile');
                 }
                 
             } catch (error) {
@@ -899,7 +918,7 @@
             loadExistingProfile();
         });
 
-        // Load existing profile data
+       // Load existing profile data - FIXED VERSION
         async function loadExistingProfile() {
             try {
                 const apiKey = localStorage.getItem('issuerApiKey');
@@ -917,7 +936,7 @@
                         showSuccess('Existing profile loaded. You can update your information.');
                     }
                 }
-                // If 404, no profile exists yet - that's fine
+                // If 404, no profile exists yet - that's fine, we'll create one
                 
             } catch (error) {
                 console.log('No existing profile found or error loading:', error);
