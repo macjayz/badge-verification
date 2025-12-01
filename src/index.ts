@@ -22,7 +22,8 @@ import { userManagementRoutes } from './routes/user-management.routes';
 import { badgeManagementRoutes } from './routes/badge-management.routes';
 import { twitterVerificationRoutes } from './routes/twitter-verification.routes';
 import userRoutes from './routes/user.routes';
-import { issuerDashboardRoutes } from './routes/issuer-dashboard.routes'; // ADD THIS
+import { issuerDashboardRoutes } from './routes/issuer-dashboard.routes'; 
+import { discordVerificationRoutes } from './routes/discord-verification.routes';
 import { logger } from './utils/logger'; 
 import path from 'path';
 
@@ -83,7 +84,8 @@ app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/admin/users', userManagementRoutes);
 app.use('/api/admin/badges', badgeManagementRoutes);
 app.use('/api/verify/twitter', twitterVerificationRoutes);
-app.use('/api/issuer-dashboard', issuerDashboardRoutes); // ADD THIS
+app.use('/api/verify/discord', discordVerificationRoutes);
+app.use('/api/issuer-dashboard', issuerDashboardRoutes);
 app.use('/', healthRoutes);
 
 // HTML Page Routes

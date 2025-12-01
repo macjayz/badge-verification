@@ -59,106 +59,72 @@ async handleCallback(req: Request, res: Response) {
   
       // For GET requests (Twitter redirect)
       if (req.method === 'GET') {
-        // Return an HTML page that captures the OAuth data and prompts user to complete
-        const html = `
-          <!DOCTYPE html>
-          <html>
-          <head>
-              <title>Twitter Verification - Complete Setup</title>
-              <style>
-                  body { 
-                    font-family: Arial, sans-serif; 
-                    text-align: center; 
-                    padding: 50px;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                  }
-                  .container {
-                    background: rgba(255,255,255,0.1);
-                    border-radius: 15px;
-                    padding: 40px;
-                    backdrop-filter: blur(10px);
-                    max-width: 500px;
-                    margin: 0 auto;
-                  }
-                  .success { 
-                    color: #1DA1F2; 
-                    font-size: 28px;
-                    margin-bottom: 20px;
-                  }
-                  .message { 
-                    margin: 20px 0; 
-                    font-size: 16px;
-                  }
-                  .data {
-                    background: rgba(255,255,255,0.2);
-                    padding: 15px;
-                    border-radius: 8px;
-                    margin: 20px 0;
-                    text-align: left;
-                    font-family: monospace;
-                    font-size: 12px;
-                    word-break: break-all;
-                  }
-                  .button {
-                    background: #1DA1F2;
-                    color: white;
-                    border: none;
-                    padding: 12px 30px;
-                    border-radius: 25px;
-                    font-size: 16px;
-                    cursor: pointer;
-                    margin: 10px;
-                  }
-                  .button:hover {
-                    background: #1a91da;
-                  }
-              </style>
-          </head>
-          <body>
-              <div class="container">
-                <div class="success">✓ Twitter Authorization Received</div>
-                <div class="message">Your Twitter account has been authorized successfully!</div>
-                
-                <div class="data">
-                  <strong>Authorization Code:</strong><br>
-                  ${code}
-                </div>
-                
-                <div class="message">
-                  To complete the verification, return to the badge verification dashboard and click "Complete Verification".
-                </div>
-                
-                <button class="button" onclick="copyData()">Copy Authorization Data</button>
-                <button class="button" onclick="closeWindow()">Close Window</button>
-              </div>
-              
-              <script>
-                  function copyData() {
-                    const data = {
-                      code: '${code}',
-                      state: '${state}'
-                    };
-                    navigator.clipboard.writeText(JSON.stringify(data));
-                    alert('Authorization data copied to clipboard!');
-                  }
-                  
-                  function closeWindow() {
-                    window.close();
-                  }
-                  
-                  // Send message to opener window if available
-                  if (window.opener) {
-                    window.opener.postMessage({
-                      type: 'TWITTER_OAUTH_SUCCESS',
-                      code: '${code}',
-                      state: '${state}'
-                    }, '*');
-                  }
-              </script>
-          </body>
-          </html>
-        `;
+        // Return an HTML page that automatically sends the OAuth data back
+const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Twitter Verification - Complete Setup</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            padding: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .success { 
+            color: #1DA1F2; 
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .message { 
+            margin: 20px 0; 
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success">✓ Twitter Authorization Received</div>
+        <div class="message">Completing verification automatically...</div>
+    </div>
+    
+    <script>
+        // AUTO-SEND THE MESSAGE TO PARENT WINDOW
+        if (window.opener) {
+            window.opener.postMessage({
+                type: 'TWITTER_OAUTH_SUCCESS',
+                code: '${code}',
+                state: '${state}'
+            }, '*');
+            
+            // Close the popup after 1 second
+            setTimeout(() => {
+                window.close();
+            }, 1000);
+        } else {
+            // Fallback for if opener is not available
+            document.body.innerHTML = '<div class="container"><div class="success">✓ Twitter Authorization Received</div><div class="message">Please copy this authorization code and return to the main window:</div><div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 8px; margin: 20px 0; text-align: left; font-family: monospace; font-size: 12px; word-break: break-all;">Code: ${code}<br>State: ${state}</div><button style="background: #1DA1F2; color: white; border: none; padding: 12px 30px; border-radius: 25px; font-size: 16px; cursor: pointer;" onclick="copyData()">Copy Authorization Data</button></div>';
+            
+            function copyData() {
+                const data = { code: '${code}', state: '${state}' };
+                navigator.clipboard.writeText(JSON.stringify(data));
+                alert('Authorization data copied to clipboard!');
+            }
+        }
+    </script>
+</body>
+</html>
+`;
         res.setHeader('Content-Type', 'text/html');
         return res.send(html);
       }
