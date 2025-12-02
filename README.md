@@ -171,7 +171,7 @@ PORT=3001
 DB_HOST=localhost
 DB_PORT=5432
 DB_USERNAME=postgres
-DB_PASSWORD=your_password
+DB_PASSWORD=postgres
 DB_NAME=badgedb
 
 # Redis
@@ -626,3 +626,4 @@ For questions, issues, or contributions:
 ---
 
 *Last Updated: December 2024 | Version: 1.0.0 | Status: Production Ready*
+
