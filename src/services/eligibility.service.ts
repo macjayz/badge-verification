@@ -3,6 +3,7 @@ import { AppDataSource } from '../db/datasource';
 import { BadgeType, BadgeRules } from '../entities/BadgeType';
 import { Verification } from '../entities/Verification';
 import { verificationService } from './verification.service';
+import { snapshotService } from './snapshot.service';
 import { logger } from '../utils/logger';
 import { 
   EligibilityError, 
@@ -201,43 +202,112 @@ export class EligibilityService {
     return results;
   }
 
-  // In src/services/eligibility.service.ts - Update the verifySecondaryRule method:
+  private async verifySecondaryRule(
+    wallet: string, 
+    rule: BadgeRules['secondary'][0]
+  ): Promise<{ verified: boolean; details?: any }> {
+    console.log('🚨 [DEBUG] verifySecondaryRule called for:', rule.method, 'wallet:', wallet);
+    switch (rule.method) {
+      case 'twitter_follow':
+        if (!rule.params?.account) {
+          return {
+            verified: false,
+            details: {
+              error: 'Twitter account not specified in badge rules',
+              requiredAction: 'Contact badge issuer to fix configuration'
+            }
+          };
+        }
+        return await twitterService.verifyFollow(wallet, rule.params.account);
+      
+      case 'discord_member':
+        return await this.mockDiscordMemberCheck(wallet, rule.params);
+      
+      // ✅ REAL SNAPSHOT VERIFICATION
+      case 'snapshot_votes':
+        return await this.checkSnapshotVotes(wallet, rule.params);
+      
+      case 'onchain_activity':
+        return await this.mockOnChainActivityCheck(wallet, rule.params);
+      
+      case 'onchain_governance':
+        return await this.mockOnChainGovernanceCheck(wallet, rule.params);
+      
+      default:
+        logger.warn(`Unsupported verification method: ${rule.method}, using mock`);
+        return await this.mockGenericVerification(wallet, rule.method, rule.params);
+    }
+  }
 
-private async verifySecondaryRule(
-  wallet: string, 
-  rule: BadgeRules['secondary'][0]
-): Promise<{ verified: boolean; details?: any }> {
-  switch (rule.method) {
-    case 'twitter_follow':
-      if (!rule.params?.account) {
+  // ✅ REAL SNAPSHOT VERIFICATION METHOD
+  // In eligibility.service.ts - update the checkSnapshotVotes method:
+  private async checkSnapshotVotes(
+    wallet: string, 
+    params: any
+  ): Promise<{ verified: boolean; details?: any }> {
+    console.log('🔍 [ELIGIBILITY] REAL Snapshot check called for wallet:', wallet);
+    
+    try {
+      const minVotes = params?.minVotes || 1;
+      const spaceId = params?.space;
+      const proposalId = params?.proposal;
+      const timeframe = params?.timeframe;
+  
+      const requirements: any = {};
+      if (minVotes !== undefined) requirements.minVotes = minVotes;
+      if (spaceId) requirements.spaceId = spaceId;
+      if (proposalId) requirements.proposalId = proposalId;
+      if (timeframe) requirements.timeframe = { days: timeframe.days || 365 };
+  
+      console.log('   Requirements:', requirements);
+      
+      const result = await snapshotService.checkVoteRequirements(wallet, requirements);
+      
+      console.log('   Snapshot service result:', {
+        meetsRequirements: result.meetsRequirements,
+        totalVotes: result.details?.totalVotes,
+        message: result.details?.message,
+        apiError: result.details?.apiError
+      });
+      
+      // ✅ CRITICAL: If API error occurred, verification fails
+      if (result.details?.apiError) {
+        console.log('   ❌ API error detected - verification fails');
         return {
           verified: false,
           details: {
-            error: 'Twitter account not specified in badge rules',
-            requiredAction: 'Contact badge issuer to fix configuration'
+            ...result.details,
+            requirement: 'Snapshot voting verification',
+            requiredAction: 'Try again later - Snapshot API is unavailable',
+            apiError: true
           }
         };
       }
-      // Use REAL Twitter verification instead of mock
-      return await twitterService.verifyFollow(wallet, rule.params.account);
-    
-    case 'onchain_activity':
-      return await this.mockOnChainActivityCheck(wallet, rule.params); // Keep mock for now
-    
-    case 'snapshot_votes':
-      return await this.mockSnapshotVotesCheck(wallet, rule.params); // Keep mock for now
-    
-    case 'onchain_governance':
-      return await this.mockOnChainGovernanceCheck(wallet, rule.params); // Keep mock for now
-    
-    case 'discord_member':
-      return await this.mockDiscordMemberCheck(wallet, rule.params); // Keep mock for now
-    
-    default:
-      logger.warn(`Unsupported verification method: ${rule.method}, using mock`);
-      return await this.mockGenericVerification(wallet, rule.method, rule.params);
+      
+      return {
+        verified: result.meetsRequirements,
+        details: {
+          ...result.details,
+          requirement: `Minimum ${minVotes} Snapshot vote(s)${spaceId ? ` in ${spaceId}` : ''}${timeframe ? ` within last ${timeframe.days} days` : ''}`,
+          requiredAction: spaceId 
+            ? `Vote on proposals in ${spaceId} Snapshot space`
+            : `Participate in Snapshot governance voting`,
+        }
+      };
+    } catch (error) {
+      console.error('❌ [ELIGIBILITY] Snapshot check error:', error);
+      return {
+        verified: false,
+        details: {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          requirement: 'Snapshot voting verification',
+          requiredAction: 'Try again later or contact support',
+          checkedAt: new Date().toISOString(),
+          apiError: true
+        }
+      };
+    }
   }
-}
 
   // Mock implementations - will be replaced with real adapters
   private async mockTwitterFollowCheck(wallet: string, params: any): Promise<{ verified: boolean; details?: any }> {
@@ -302,39 +372,7 @@ private async verifySecondaryRule(
     };
   }
 
-  private async mockSnapshotVotesCheck(wallet: string, params: any): Promise<{ verified: boolean; details?: any }> {
-    const minVotes = params?.minVotes || 1;
-    const space = params?.space || 'daospace.eth';
-    
-    if (minVotes < 0) {
-      return {
-        verified: false,
-        details: {
-          minVotes,
-          requirement: `Minimum ${minVotes} vote(s) in ${space} Snapshot space`,
-          checkedAt: new Date().toISOString(),
-          mock: true,
-          note: 'Invalid configuration - minVotes must be >= 0'
-        }
-      };
-    }
-
-    // Mock: Random vote count between 0-5
-    const voteCount = Math.floor(Math.random() * 6);
-    const verified = voteCount >= minVotes;
-    
-    return {
-      verified,
-      details: {
-        voteCount,
-        minRequired: minVotes,
-        space,
-        requirement: `Minimum ${minVotes} vote(s) in ${space} Snapshot space`,
-        mock: true,
-        note: 'This is a mock implementation - will be replaced with real Snapshot API'
-      }
-    };
-  }
+  // ✅ REMOVED mockSnapshotVotesCheck method - now using real checkSnapshotVotes above
 
   private async mockOnChainGovernanceCheck(wallet: string, params: any): Promise<{ verified: boolean; details?: any }> {
     const minVotes = params?.minVotes || 1;

@@ -6,7 +6,6 @@ import { createServer } from 'http';
 import { config } from './config';
 import { initializeDatabase } from './db/datasource';
 import { webSocketService } from './services/websocket.service';
-import { webSocketEventsService } from './services/websocket-events.service';
 import authRoutes from './routes/auth.routes';
 import { healthRoutes } from './routes/health.routes';
 import { protectedRoutes } from './routes/protected.routes';
@@ -24,6 +23,7 @@ import { twitterVerificationRoutes } from './routes/twitter-verification.routes'
 import userRoutes from './routes/user.routes';
 import { issuerDashboardRoutes } from './routes/issuer-dashboard.routes'; 
 import { discordVerificationRoutes } from './routes/discord-verification.routes';
+import snapshotVerificationRoutes from './routes/snapshot-verification.routes';
 import { logger } from './utils/logger'; 
 import path from 'path';
 
@@ -85,6 +85,7 @@ app.use('/api/admin/users', userManagementRoutes);
 app.use('/api/admin/badges', badgeManagementRoutes);
 app.use('/api/verify/twitter', twitterVerificationRoutes);
 app.use('/api/verify/discord', discordVerificationRoutes);
+app.use('/api/verify/snapshot', snapshotVerificationRoutes);
 app.use('/api/issuer-dashboard', issuerDashboardRoutes);
 app.use('/', healthRoutes);
 

@@ -433,6 +433,9 @@
                 const existing = verifications.find(v => v.provider === verification.provider);
                 const statusDisplay = getVerificationStatusDisplay(existing);
                 
+                // ✅ FIX: Primary verifications should use startVerification, NOT verifySnapshot
+                const onClickFunction = `startVerification('${verification.provider}')`;
+                
                 return `
                     <div class="verification-card ${getCardClass(existing)}">
                         <div class="verification-icon">${verification.icon}</div>
@@ -446,7 +449,7 @@
                         <p style="margin-bottom: 1rem; color: #666;">${verification.description}</p>
                         ${verification.required ? '<div style="color: #dc3545; font-size: 0.8rem; margin-bottom: 0.5rem;">Required for most badges</div>' : ''}
                         <button class="verify-btn ${statusDisplay.isVerified ? 'verified' : ''}" 
-                                onclick="startVerification('${verification.provider}')" 
+                                onclick="${onClickFunction}" 
                                 ${statusDisplay.isVerified ? 'disabled' : ''}
                                 id="btn-${verification.provider}">
                             ${getButtonText(existing, verification.provider)}
@@ -460,12 +463,17 @@
                 const existing = verifications.find(v => v.provider === verification.provider);
                 const statusDisplay = getVerificationStatusDisplay(existing);
                 
-                // SPECIAL HANDLING FOR TWITTER & DISCORD - use real OAuth
-                const onClickFunction = verification.provider === 'twitter_follow' 
-                    ? 'startTwitterVerification()'
-                    : verification.provider === 'discord_member' 
-                    ? 'startDiscordVerification()' 
-                    : `startVerification('${verification.provider}')`;
+                // ✅ FIXED: Special handling for each verification type
+                let onClickFunction;
+                if (verification.provider === 'twitter_follow') {
+                    onClickFunction = 'startTwitterVerification()';
+                } else if (verification.provider === 'discord_member') {
+                    onClickFunction = 'startDiscordVerification()';
+                } else if (verification.provider === 'snapshot_votes') {
+                    onClickFunction = 'verifySnapshot()';  // ✅ Use the real Snapshot function
+                } else {
+                    onClickFunction = `startVerification('${verification.provider}')`;
+                }
                 
                 return `
                     <div class="verification-card ${getCardClass(existing)}">
@@ -550,6 +558,58 @@
                 button.textContent = originalText;
                 button.disabled = false;
                 button.classList.remove('loading');
+            }
+        }
+
+        // ✅ MOVED OUTSIDE: Real Snapshot verification function
+        async function verifySnapshot() {
+            const button = document.getElementById('btn-snapshot_votes');
+            const originalText = button?.textContent || 'Check Snapshot Activity';
+            
+            try {
+                // Show loading on button
+                if (button) {
+                    button.classList.add('loading');
+                    button.disabled = true;
+                }
+                
+                showToast('🔍 Checking Snapshot voting activity...', 'info');
+                
+                const response = await fetch('/api/verify/snapshot/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userToken}`
+                    },
+                    body: JSON.stringify({
+                        wallet: userWallet
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    if (result.data.verified) {
+                        showToast(`✅ Found ${result.data.details.totalVotes} Snapshot votes!`, 'success');
+                    } else {
+                        showToast(`❌ ${result.data.details.message || 'No sufficient Snapshot activity'}`, 'error');
+                    }
+                    
+                    loadVerifications(); // Refresh the UI
+                } else {
+                    throw new Error('Failed to verify Snapshot activity');
+                }
+                
+            } catch (error) {
+                console.error('Snapshot verification error:', error);
+                showToast('Failed to check Snapshot activity', 'error');
+            } finally {
+                // Restore button
+                if (button) {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    button.classList.remove('loading');
+                }
             }
         }
     
