@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify Your Identity - Badge System</title>
     <style>
+        /* Add these styles to your existing CSS */
+        .verification-card.connected {
+            border-color: #007bff;
+            background: #f0f8ff;
+        }
+
+        .status-connected {
+            background: #cce5ff;
+            color: #004085;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; }
         .header { background: white; padding: 1rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
@@ -33,6 +43,110 @@
         .progress-text { text-align: center; color: #666; font-size: 0.9rem; }
         .loading { text-align: center; padding: 2rem; color: #666; }
         .error { background: #f8d7da; color: #721c24; padding: 1rem; border-radius: 5px; margin-bottom: 1rem; display: none; }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-text {
+            height: 1em;
+            margin: 0.5em 0;
+        }
+
+        .skeleton-button {
+            height: 40px;
+            width: 100%;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+            max-width: 400px;
+        }
+
+        .toast-success {
+            background: #28a745;
+        }
+
+        .toast-error {
+            background: #dc3545;
+        }
+
+        .toast-info {
+            background: #17a2b8;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* Button loading state */
+        .verify-btn.loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .verify-btn.loading::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Verification detail */
+        .verification-detail {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.2rem;
+            margin-bottom: 0.5rem;
+            min-height: 1.2em;
+        }
     </style>
 </head>
 <body>
@@ -59,14 +173,14 @@
         <div class="section">
             <h3 class="section-title">Primary Verifications (Required)</h3>
             <div class="verification-grid" id="primary-verifications">
-                <div class="loading">Loading primary verifications...</div>
+                <!-- Skeleton loading will be inserted here -->
             </div>
         </div>
 
         <div class="section">
             <h3 class="section-title">Social & On-chain Verifications</h3>
             <div class="verification-grid" id="secondary-verifications">
-                <div class="loading">Loading additional verifications...</div>
+                <!-- Skeleton loading will be inserted here -->
             </div>
         </div>
     </div>
@@ -91,10 +205,32 @@
             errorDiv.textContent = message;
             errorDiv.style.display = 'block';
             setTimeout(() => errorDiv.style.display = 'none', 5000);
+            showToast(message, 'error');
+        }
+
+        function showToast(message, type = 'success') {
+            // Remove existing toasts
+            document.querySelectorAll('.toast').forEach(toast => toast.remove());
+            
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            // Remove after animation
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 3000);
         }
     
         async function loadVerifications() {
             try {
+                // Show skeleton loading
+                showSkeletonLoading();
+                
                 // Load user's current verifications
                 const response = await fetch(`${API_BASE}/verifications`, {
                     headers: { 'Authorization': `Bearer ${userToken}` }
@@ -109,13 +245,41 @@
                 }
             } catch (error) {
                 showError('Failed to load verifications: ' + error.message);
+                // Fallback to empty state
+                displayVerifications([]);
             }
+        }
+
+        function showSkeletonLoading() {
+            const primaryContainer = document.getElementById('primary-verifications');
+            const secondaryContainer = document.getElementById('secondary-verifications');
+            
+            // Primary verifications skeleton (2 cards)
+            primaryContainer.innerHTML = Array(2).fill(`
+                <div class="verification-card">
+                    <div class="skeleton" style="width: 60px; height: 60px; margin: 0 auto 1rem;"></div>
+                    <div class="skeleton skeleton-text" style="width: 70%; margin: 0 auto 0.5rem;"></div>
+                    <div class="skeleton skeleton-text" style="width: 50%; margin: 0 auto 1rem;"></div>
+                    <div class="skeleton skeleton-text" style="width: 40%; margin: 0 auto 0.5rem;"></div>
+                    <div class="skeleton skeleton-button"></div>
+                </div>
+            `).join('');
+            
+            // Secondary verifications skeleton (5 cards)
+            secondaryContainer.innerHTML = Array(5).fill(`
+                <div class="verification-card">
+                    <div class="skeleton" style="width: 60px; height: 60px; margin: 0 auto 1rem;"></div>
+                    <div class="skeleton skeleton-text" style="width: 70%; margin: 0 auto 0.5rem;"></div>
+                    <div class="skeleton skeleton-text" style="width: 50%; margin: 0 auto 1rem;"></div>
+                    <div class="skeleton skeleton-button"></div>
+                </div>
+            `).join('');
         }
     
         function displayVerifications(verifications) {
             const primaryContainer = document.getElementById('primary-verifications');
             const secondaryContainer = document.getElementById('secondary-verifications');
-    
+
             const primaryVerifications = [
                 { 
                     provider: 'polygonid', 
@@ -132,7 +296,7 @@
                     required: true
                 }
             ];
-    
+
             const secondaryVerifications = [
                 { 
                     provider: 'twitter_follow', 
@@ -170,36 +334,131 @@
                     required: false
                 }
             ];
-    
+
+            // Helper function to get proper status display
+            function getVerificationStatusDisplay(existing) {
+                if (!existing) {
+                    return {
+                        statusClass: 'status-not-verified',
+                        statusText: 'Not Connected',
+                        isConnected: false,
+                        isVerified: false
+                    };
+                }
+                
+                const status = existing.status;
+                const type = existing.type || 'follow_verified';
+                const metadata = existing.metadata || {};
+                
+                if (status === 'completed') {
+                    if (type === 'connection_only' || metadata.permissionWarning) {
+                        return {
+                            statusClass: 'status-connected',
+                            statusText: '✓ Connected',
+                            detailText: 'Follow verification pending permissions',
+                            isConnected: true,
+                            isVerified: false
+                        };
+                    } else {
+                        return {
+                            statusClass: 'status-verified',
+                            statusText: '✓ Verified',
+                            isConnected: true,
+                            isVerified: true
+                        };
+                    }
+                } else if (status === 'pending') {
+                    return {
+                        statusClass: 'status-pending',
+                        statusText: 'Pending',
+                        isConnected: false,
+                        isVerified: false
+                    };
+                } else if (status === 'failed') {
+                    return {
+                        statusClass: 'status-not-verified',
+                        statusText: 'Not Verified',
+                        detailText: existing.errorMessage || 'Verification failed',
+                        isConnected: metadata.twitterUsername || metadata.discordUsername ? true : false,
+                        isVerified: false
+                    };
+                } else {
+                    return {
+                        statusClass: 'status-not-verified',
+                        statusText: 'Not Connected',
+                        isConnected: false,
+                        isVerified: false
+                    };
+                }
+            }
+
+            // Helper function to get button text
+            function getButtonText(existing, provider) {
+                if (!existing) {
+                    return 'Verify Now';
+                }
+                
+                const statusDisplay = getVerificationStatusDisplay(existing);
+                
+                if (statusDisplay.isVerified) {
+                    return 'Verified ✓';
+                } else if (existing.status === 'pending') {
+                    return 'Verification Pending...';
+                } else if (statusDisplay.isConnected) {
+                    return 'Re-verify';
+                } else {
+                    return 'Verify Now';
+                }
+            }
+
+            // Helper function to get card class
+            function getCardClass(existing) {
+                if (!existing) return '';
+                
+                const statusDisplay = getVerificationStatusDisplay(existing);
+                
+                if (statusDisplay.isVerified) {
+                    return 'verified';
+                } else if (statusDisplay.isConnected) {
+                    return 'connected';
+                } else if (existing.status === 'pending') {
+                    return 'pending';
+                } else {
+                    return '';
+                }
+            }
+
             // Display primary verifications
             primaryContainer.innerHTML = primaryVerifications.map(verification => {
                 const existing = verifications.find(v => v.provider === verification.provider);
-                const isVerified = existing && existing.status === 'completed';
-                const isPending = existing && existing.status === 'pending';
+                const statusDisplay = getVerificationStatusDisplay(existing);
                 
                 return `
-                    <div class="verification-card ${isVerified ? 'verified' : isPending ? 'pending' : ''}">
+                    <div class="verification-card ${getCardClass(existing)}">
                         <div class="verification-icon">${verification.icon}</div>
                         <div class="verification-name">${verification.name}</div>
-                        <div class="verification-status ${isVerified ? 'status-verified' : isPending ? 'status-pending' : 'status-not-verified'}">
-                            ${isVerified ? 'Verified' : isPending ? 'Pending' : 'Not Verified'}
+                        <div class="verification-status ${statusDisplay.statusClass}">
+                            ${statusDisplay.statusText}
                         </div>
+                        ${statusDisplay.detailText ? 
+                            `<div class="verification-detail">${statusDisplay.detailText}</div>` : 
+                            '<div class="verification-detail">&nbsp;</div>'}
                         <p style="margin-bottom: 1rem; color: #666;">${verification.description}</p>
                         ${verification.required ? '<div style="color: #dc3545; font-size: 0.8rem; margin-bottom: 0.5rem;">Required for most badges</div>' : ''}
-                        <button class="verify-btn ${isVerified ? 'verified' : ''}" 
+                        <button class="verify-btn ${statusDisplay.isVerified ? 'verified' : ''}" 
                                 onclick="startVerification('${verification.provider}')" 
-                                ${isVerified ? 'disabled' : ''}>
-                            ${isVerified ? 'Verified ✓' : isPending ? 'Verification Pending...' : 'Verify Now'}
+                                ${statusDisplay.isVerified ? 'disabled' : ''}
+                                id="btn-${verification.provider}">
+                            ${getButtonText(existing, verification.provider)}
                         </button>
                     </div>
                 `;
             }).join('');
-    
+
             // Display secondary verifications
             secondaryContainer.innerHTML = secondaryVerifications.map(verification => {
                 const existing = verifications.find(v => v.provider === verification.provider);
-                const isVerified = existing && existing.status === 'completed';
-                const isPending = existing && existing.status === 'pending';
+                const statusDisplay = getVerificationStatusDisplay(existing);
                 
                 // SPECIAL HANDLING FOR TWITTER & DISCORD - use real OAuth
                 const onClickFunction = verification.provider === 'twitter_follow' 
@@ -209,17 +468,21 @@
                     : `startVerification('${verification.provider}')`;
                 
                 return `
-                    <div class="verification-card ${isVerified ? 'verified' : isPending ? 'pending' : ''}">
+                    <div class="verification-card ${getCardClass(existing)}">
                         <div class="verification-icon">${verification.icon}</div>
                         <div class="verification-name">${verification.name}</div>
-                        <div class="verification-status ${isVerified ? 'status-verified' : isPending ? 'status-pending' : 'status-not-verified'}">
-                            ${isVerified ? 'Verified' : isPending ? 'Pending' : 'Not Verified'}
+                        <div class="verification-status ${statusDisplay.statusClass}">
+                            ${statusDisplay.statusText}
                         </div>
+                        ${statusDisplay.detailText ? 
+                            `<div class="verification-detail">${statusDisplay.detailText}</div>` : 
+                            '<div class="verification-detail">&nbsp;</div>'}
                         <p style="margin-bottom: 1rem; color: #666;">${verification.description}</p>
-                        <button class="verify-btn ${isVerified ? 'verified' : ''}" 
+                        <button class="verify-btn ${statusDisplay.isVerified ? 'verified' : ''}" 
                                 onclick="${onClickFunction}" 
-                                ${isVerified ? 'disabled' : ''}>
-                            ${isVerified ? 'Verified ✓' : isPending ? 'Verification Pending...' : 'Verify Now'}
+                                ${statusDisplay.isVerified ? 'disabled' : ''}
+                                id="btn-${verification.provider}">
+                            ${getButtonText(existing, verification.provider)}
                         </button>
                     </div>
                 `;
@@ -238,13 +501,15 @@
     
         // Mock verification for non-OAuth providers
         async function startVerification(provider) {
+            const button = document.getElementById(`btn-${provider}`);
+            if (!button) return;
+            
+            const originalText = button.textContent;
+            
             try {
-                // Show verification in progress
-                const buttons = document.querySelectorAll(`.verify-btn[onclick="startVerification('${provider}')"]`);
-                buttons.forEach(btn => {
-                    btn.textContent = 'Verifying...';
-                    btn.disabled = true;
-                });
+                // Show loading state
+                button.classList.add('loading');
+                button.disabled = true;
     
                 // Simulate verification process (2 seconds)
                 await new Promise(resolve => setTimeout(resolve, 2000));
@@ -267,9 +532,9 @@
                     const result = await response.json();
                     showError(''); // Clear any errors
                     
-                    // Show success message
+                    // Show success toast
                     const providerName = getProviderName(provider);
-                    alert(`✅ ${providerName} verification completed successfully!`);
+                    showToast(`✅ ${providerName} verification completed successfully!`);
                     
                     // Refresh verifications AND update dashboard via localStorage
                     localStorage.setItem('shouldRefreshDashboard', 'true');
@@ -282,13 +547,9 @@
                 }
             } catch (error) {
                 showError(`Verification failed: ${error.message}`);
-                
-                // Reset buttons
-                const buttons = document.querySelectorAll(`.verify-btn[onclick="startVerification('${provider}')"]`);
-                buttons.forEach(btn => {
-                    btn.textContent = 'Verify Now';
-                    btn.disabled = false;
-                });
+                button.textContent = originalText;
+                button.disabled = false;
+                button.classList.remove('loading');
             }
         }
     
@@ -311,8 +572,17 @@
     
         // Enhanced Twitter verification with real OAuth
         async function startTwitterVerification() {
+            const button = document.getElementById('btn-twitter_follow');
+            const originalText = button?.textContent || 'Connect Twitter';
+            
             try {
                 showError(''); // Clear any errors
+                
+                // Show loading on button
+                if (button) {
+                    button.classList.add('loading');
+                    button.disabled = true;
+                }
                 
                 const response = await fetch('/api/verify/twitter/oauth/initiate', {
                     method: 'POST',
@@ -344,6 +614,11 @@
                     
                     if (!popup) {
                         showError('Popup blocked! Please allow popups for this site and try again.');
+                        if (button) {
+                            button.textContent = originalText;
+                            button.disabled = false;
+                            button.classList.remove('loading');
+                        }
                         return;
                     }
                     
@@ -352,6 +627,12 @@
                         if (popup.closed) {
                             clearInterval(checkPopup);
                             checkTwitterConnection();
+                            // Restore button
+                            if (button) {
+                                button.textContent = originalText;
+                                button.disabled = false;
+                                button.classList.remove('loading');
+                            }
                         }
                     }, 1000);
                     
@@ -362,6 +643,12 @@
             } catch (error) {
                 console.error('Twitter OAuth error:', error);
                 showError('Twitter verification failed: ' + error.message);
+                // Restore button
+                if (button) {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    button.classList.remove('loading');
+                }
             }
         }
         
@@ -373,10 +660,9 @@
                     const data = await response.json();
                     
                     if (data.data.connected) {
-                        alert('✅ Twitter account connected successfully! @' + data.data.username);
+                        showToast('✅ Twitter account connected successfully!');
                         loadVerifications(); // Refresh the UI
                     } else {
-                        // User might have canceled or there was an error
                         console.log('Twitter connection not completed');
                     }
                 }
@@ -395,79 +681,88 @@
         
         // Complete OAuth with code and state
         async function completeTwitterOAuth(code, state) {
-    try {
-        const codeVerifier = localStorage.getItem('twitter_code_verifier');
-        const storedState = localStorage.getItem('twitter_oauth_state');
-        const wallet = localStorage.getItem('twitter_wallet');
-        
-        if (state !== storedState) {
-            throw new Error('OAuth state mismatch - possible security issue');
-        }
-
-        if (!wallet || wallet !== userWallet) {
-            throw new Error('Wallet mismatch');
-        }
-
-        const response = await fetch('/api/verify/twitter/callback', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${userToken}`
-            },
-            body: JSON.stringify({
-                wallet: wallet,
-                code: code,
-                state: state,
-                code_verifier: codeVerifier
-            })
-        });
-
-        if (response.ok) {
-            const result = await response.json();
-            console.log('Twitter OAuth completed:', result);
-            
-            // ✅ ADD THIS: Wait a moment for the verification record to be created
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // ✅ CHECK ACTUAL VERIFICATION STATUS
-            const verificationResponse = await fetch(`${API_BASE}/verifications`, {
-                headers: { 'Authorization': `Bearer ${userToken}` }
-            });
-            
-            if (verificationResponse.ok) {
-                const verifications = await verificationResponse.json();
-                const twitterVerification = verifications.find(v => v.provider === 'twitter_follow');
+            try {
+                const codeVerifier = localStorage.getItem('twitter_code_verifier');
+                const storedState = localStorage.getItem('twitter_oauth_state');
+                const wallet = localStorage.getItem('twitter_wallet');
                 
-                if (twitterVerification && twitterVerification.status === 'completed') {
-                    alert('✅ Twitter follow verification completed successfully!');
-                } else if (twitterVerification && twitterVerification.status === 'failed') {
-                    alert('❌ Twitter connected, but you need to follow the required accounts');
-                } else {
-                    alert('✅ Twitter account connected! Verification pending...');
+                if (state !== storedState) {
+                    throw new Error('OAuth state mismatch - possible security issue');
                 }
-            } else {
-                alert('✅ Twitter account connected successfully! @' + result.data.twitterUser.username);
+
+                if (!wallet || wallet !== userWallet) {
+                    throw new Error('Wallet mismatch');
+                }
+
+                const response = await fetch('/api/verify/twitter/callback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userToken}`
+                    },
+                    body: JSON.stringify({
+                        wallet: wallet,
+                        code: code,
+                        state: state,
+                        code_verifier: codeVerifier
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Twitter OAuth completed:', result);
+                    
+                    // Wait a moment for the verification record to be created
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // CHECK ACTUAL VERIFICATION STATUS
+                    const verificationResponse = await fetch(`${API_BASE}/verifications`, {
+                        headers: { 'Authorization': `Bearer ${userToken}` }
+                    });
+                    
+                    if (verificationResponse.ok) {
+                        const verifications = await verificationResponse.json();
+                        const twitterVerification = verifications.find(v => v.provider === 'twitter_follow');
+                        
+                        if (twitterVerification && twitterVerification.status === 'completed') {
+                            showToast('✅ Twitter follow verification completed successfully!');
+                        } else if (twitterVerification && twitterVerification.status === 'failed') {
+                            showToast('❌ Twitter connected, but you need to follow the required accounts');
+                        } else {
+                            showToast('✅ Twitter account connected! Verification pending...');
+                        }
+                    } else {
+                        showToast('✅ Twitter account connected successfully!');
+                    }
+                    
+                    loadVerifications(); // Refresh the UI
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to complete Twitter OAuth');
+                }
+            } catch (error) {
+                console.error('Twitter OAuth completion error:', error);
+                showError('Failed to complete Twitter connection: ' + error.message);
+            } finally {
+                // Clean up
+                localStorage.removeItem('twitter_code_verifier');
+                localStorage.removeItem('twitter_oauth_state');
+                localStorage.removeItem('twitter_wallet');
             }
-            
-            loadVerifications(); // Refresh the UI
-        } else {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to complete Twitter OAuth');
         }
-    } catch (error) {
-        console.error('Twitter OAuth completion error:', error);
-        showError('Failed to complete Twitter connection: ' + error.message);
-    } finally {
-        // Clean up
-        localStorage.removeItem('twitter_code_verifier');
-        localStorage.removeItem('twitter_oauth_state');
-        localStorage.removeItem('twitter_wallet');
-    }
-}
     
         // Discord verification functions
         async function startDiscordVerification() {
+            const button = document.getElementById('btn-discord_member');
+            const originalText = button?.textContent || 'Connect Discord';
+            
             try {
+                // Show loading on button
+                if (button) {
+                    button.classList.add('loading');
+                    button.disabled = true;
+                }
+                
                 const response = await fetch('/api/verify/discord/oauth/initiate', {
                     method: 'POST',
                     headers: {
@@ -497,6 +792,11 @@
                     
                     if (!popup) {
                         showError('Popup blocked! Please allow popups for this site and try again.');
+                        if (button) {
+                            button.textContent = originalText;
+                            button.disabled = false;
+                            button.classList.remove('loading');
+                        }
                         return;
                     }
                     
@@ -505,6 +805,12 @@
                         if (popup.closed) {
                             clearInterval(checkPopup);
                             checkDiscordConnection();
+                            // Restore button
+                            if (button) {
+                                button.textContent = originalText;
+                                button.disabled = false;
+                                button.classList.remove('loading');
+                            }
                         }
                     }, 1000);
                     
@@ -513,6 +819,12 @@
                 }
             } catch (error) {
                 showError('Discord verification failed: ' + error.message);
+                // Restore button
+                if (button) {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    button.classList.remove('loading');
+                }
             }
         }
         
@@ -524,7 +836,7 @@
                     const data = await response.json();
                     
                     if (data.data.connected) {
-                        alert('✅ Discord account connected successfully! ' + data.data.username);
+                        showToast('✅ Discord account connected successfully!');
                         loadVerifications(); // Refresh the UI
                     } else {
                         console.log('Discord connection not completed');
@@ -573,7 +885,7 @@
                 if (response.ok) {
                     const result = await response.json();
                     console.log('Discord OAuth completed:', result);
-                    alert('✅ Discord account connected successfully! ' + result.data.discordUser.username);
+                    showToast('✅ Discord account connected successfully!');
                     loadVerifications(); // Refresh the UI
                 } else {
                     const errorData = await response.json();
@@ -589,6 +901,5 @@
             }
         }
     </script>
-
 </body>
 </html>
