@@ -445,6 +445,48 @@
             margin-left: auto;
             margin-right: auto;
         }
+        .issuer-search {
+        position: relative;
+    }
+    
+    .search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .search-result-item {
+        padding: 10px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .search-result-item:hover {
+        background: #f5f5f5;
+    }
+    
+    .search-result-item.selected {
+        background: #e8f4fc;
+        font-weight: 600;
+    }
+    
+    .search-result-name {
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+    
+    .search-result-desc {
+        font-size: 0.8rem;
+        color: #666;
+    }
     </style>
 </head>
 <body>
@@ -459,6 +501,15 @@
                 </select>
             </div>
             <button class="back-btn" onclick="goToDashboard()">Dashboard</button>
+        </div>
+        <!-- Search bar for issuers -->
+        <div class="issuer-search" style="margin-top: 10px; display: none;">
+            <input type="text" 
+                id="issuerSearch" 
+                placeholder="Search issuers..." 
+                style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;"
+                oninput="filterIssuers(this.value)">
+            <div id="issuerSearchResults" class="search-results" style="display: none;"></div>
         </div>
     </div>
 
@@ -588,35 +639,54 @@
             }
         });
     
+        // Add this function right before initializeApp
+function setupIssuerSearch() {
+    const issuerSelector = document.querySelector('.issuer-selector');
+    if (!issuerSelector) return;
+    
+    // Add search button
+    const searchButton = document.createElement('button');
+    searchButton.innerHTML = '🔍';
+    searchButton.style.cssText = 'background:none; border:none; cursor:pointer; font-size:16px; margin-left:5px;';
+    searchButton.title = 'Search issuers';
+    // searchButton.onclick = function() {
+    //     alert('Search functionality coming soon');
+    // };
+    
+    // issuerSelector.appendChild(searchButton);
+}
         // ========== INITIALIZATION FUNCTIONS ==========
         async function initializeApp() {
-            try {
-                showSkeletonLoading();
-                
-                // Load issuers for dropdown
-                await loadIssuers();
-                
-                // Load user verifications
-                await loadVerifications();
-                
-                // Load issuer rules if issuer is selected
-                if (currentIssuerId) {
-                    await loadIssuerRules(currentIssuerId);
-                    await loadIssuerInfo(currentIssuerId);
-                    updateIssuerDropdown();
-                    updateModeIndicator();
-                } else {
-                    updateModeIndicator();
-                }
-                
-                // Load badges for selector
-                await loadAvailableBadges();
-                
-            } catch (error) {
-                console.error('Initialization error:', error);
-                showError('Failed to initialize: ' + error.message);
-            }
+    try {
+        showSkeletonLoading();
+        
+        // Load issuers for dropdown
+        await loadIssuers();
+        
+        // Setup issuer search functionality
+        setupIssuerSearch();
+        
+        // Load user verifications
+        await loadVerifications();
+        
+        // Load issuer rules if issuer is selected
+        if (currentIssuerId) {
+            await loadIssuerRules(currentIssuerId);
+            await loadIssuerInfo(currentIssuerId);
+            updateIssuerDropdown();
+            updateModeIndicator();
+        } else {
+            updateModeIndicator();
         }
+        
+        // Load badges for selector
+        await loadAvailableBadges();
+        
+    } catch (error) {
+        console.error('Initialization error:', error);
+        showError('Failed to initialize: ' + error.message);
+    }
+}
     
         async function loadIssuers() {
             try {
@@ -1760,6 +1830,89 @@
                 localStorage.removeItem('discord_issuer_id');
             }
         }
+
+        // ========== ISSUER SEARCH FUNCTIONS ==========
+
+function toggleIssuerSearch() {
+    const searchContainer = document.querySelector('.issuer-search');
+    const searchResults = document.getElementById('issuerSearchResults');
+    
+    if (searchContainer.style.display === 'none') {
+        searchContainer.style.display = 'block';
+        searchResults.style.display = 'none';
+    } else {
+        searchContainer.style.display = 'none';
+        searchResults.style.display = 'none';
+    }
+}
+
+function filterIssuers(searchTerm) {
+    const searchResults = document.getElementById('issuerSearchResults');
+    const searchInput = document.getElementById('issuerSearch');
+    
+    if (!searchTerm || searchTerm.length < 2) {
+        searchResults.style.display = 'none';
+        return;
+    }
+    
+    const term = searchTerm.toLowerCase();
+    const filteredIssuers = allIssuers.filter(issuer => 
+        issuer.name.toLowerCase().includes(term) || 
+        (issuer.description && issuer.description.toLowerCase().includes(term))
+    );
+    
+    if (filteredIssuers.length === 0) {
+        searchResults.innerHTML = '<div class="search-result-item" style="text-align: center; color: #999;">No issuers found</div>';
+        searchResults.style.display = 'block';
+        return;
+    }
+    
+    let html = '';
+    filteredIssuers.forEach(issuer => {
+        html += `
+            <div class="search-result-item" onclick="selectIssuerFromSearch('${issuer.id}')">
+                <div class="search-result-name">${issuer.name}</div>
+                <div class="search-result-desc">${issuer.description || 'No description'}</div>
+            </div>
+        `;
+    });
+    
+    searchResults.innerHTML = html;
+    searchResults.style.display = 'block';
+}
+
+function selectIssuerFromSearch(issuerId) {
+    const select = document.getElementById('currentIssuer');
+    select.value = issuerId;
+    
+    // Hide search results
+    document.getElementById('issuerSearchResults').style.display = 'none';
+    document.getElementById('issuerSearch').value = '';
+    document.querySelector('.issuer-search').style.display = 'none';
+    
+    // Trigger the change
+    changeIssuer(issuerId);
+}
+
+// Add search button to issuer selector
+document.addEventListener('DOMContentLoaded', function() {
+    // Add search icon/button next to issuer dropdown
+    const issuerSelector = document.querySelector('.issuer-selector');
+    if (issuerSelector) {
+        const searchButton = document.createElement('button');
+        searchButton.innerHTML = '🔍';
+        searchButton.style.background = 'none';
+        searchButton.style.border = 'none';
+        searchButton.style.cursor = 'pointer';
+        searchButton.style.fontSize = '16px';
+        searchButton.style.marginLeft = '5px';
+        searchButton.title = 'Search issuers';
+        searchButton.onclick = toggleIssuerSearch;
+        
+        issuerSelector.appendChild(searchButton);
+    }
+});
+
     </script>
 </body>
 </html>
