@@ -54,4 +54,4 @@ Thumbs.db
 !contracts/BadgeSBT.sol  # Keep your main contract
 
 # TypeScript
-*.tsbuildinfo
+*.tsbuildinfo.DS_Store
