@@ -404,24 +404,7 @@ Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 
 ## 📸 Screenshots
 
-### Admin & User Dashboards
-| Admin Dashboard | User Verification Portal |
-|----------------|--------------------------|
-| ![Admin Dashboard](https://via.placeholder.com/600x400/1e40af/ffffff?text=Admin+Dashboard) | ![Verification Portal](https://via.placeholder.com/600x400/7c3aed/ffffff?text=Verification+Portal) |
-| *Complete system administration with real-time analytics* | *Social verification dashboard with connection status* |
 
-| Badge Management | Real-time Notifications |
-|------------------|-------------------------|
-| ![Badge Management](https://via.placeholder.com/600x400/059669/ffffff?text=Badge+Management) | ![WebSocket Demo](https://via.placeholder.com/600x400/d97706/ffffff?text=WebSocket+Events) |
-| *Create and manage badge types with eligibility rules* | *Live WebSocket events for badge minting and verification* |
-
-### Issuer Platform
-| Issuer Dashboard | Badge Creator |
-|------------------|---------------|
-| ![Issuer Dashboard](https://via.placeholder.com/600x400/dc2626/ffffff?text=Issuer+Dashboard) | ![Badge Creator](https://via.placeholder.com/600x400/9333ea/ffffff?text=Badge+Creator) |
-| *Multi-tenant platform for badge issuers* | *Visual badge creation with templates* |
-
-*Note: Replace placeholder images with actual screenshots from your `public/` directory*
 
 [⬆ Back to Top](#-table-of-contents)
 
