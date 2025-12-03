@@ -6,7 +6,69 @@
 ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 ![WebSocket](https://img.shields.io/badge/WebSocket-010101?style=for-the-badge&logo=websocket&logoColor=white)
 
-A **complete badge verification backend system** with DID authentication, real-time WebSocket notifications, social verification integrations, and multi-tenant issuer dashboard. Built for issuing verifiable credentials and soulbound tokens (SBTs) with flexible rule-based eligibility checking.
+**Sybil-resistant credential platform combining DID authentication with social verification for web3 identity proof.**
+
+> A decentralized identity system that uses **DID verification** (Polygon ID/IdOS) as primary identity and **social verification** as secondary proof of human activity, creating robust sybil-resistant credentials.
+
+---
+
+## 🎯 **The Problem We Solve**
+
+### **The Identity Trilemma in Web3**
+Current solutions fail at one or more:
+1. **Privacy-invasive**: KYC exposes personal data
+2. **Centralized**: Relies on trusted third parties  
+3. **Sybil-vulnerable**: Easy to create fake identities
+
+### **Sybil Attacks Are Everywhere**
+- 🚫 **Governance farming**: Fake accounts manipulate DAO votes
+- 🚫 **Airdrop draining**: One person claims multiple rewards  
+- 🚫 **Community dilution**: Bots overwhelm genuine discussion
+
+---
+
+## 🛡️ **Our Solution: Layered Identity Verification**
+
+### **Layer 1: DID Authentication (Primary Identity)**
+```mermaid
+graph TD
+    User[Real Person] --> DID[Decentralized Identifier]
+    DID -->|Proves Unique Identity| PolygonID[Polygon ID]
+    DID -->|Zero-Knowledge Proofs| IdOS[IdOS Protocol]
+    PolygonID -->|Issues| VC1[Verifiable Credential]
+    IdOS -->|Issues| VC2[Verifiable Credential]
+    VC1 --> BaseID[✅ Base Identity Layer]
+    VC2 --> BaseID
+---
+
+## How it Works
+
+sequenceDiagram
+    participant U as User
+    participant DID as DID Provider
+    participant S as Social Platforms
+    participant B as Badge System
+    participant BC as Blockchain
+
+    Note over U: Step 1: Base Identity
+    U->>DID: Request DID Verification
+    DID-->>U: ✅ Issues Verifiable Credential
+    
+    Note over U: Step 2: Activity Proof
+    U->>S: Connect Twitter/Discord
+    S-->>B: Verify Real Activity
+    U->>S: Check Snapshot Voting
+    S-->>B: Verify Governance Participation
+    
+    Note over B: Step 3: Sybil Analysis
+    B->>B: Cross-reference activity<br>across platforms
+    B->>B: Time correlation analysis
+    B->>B: Pattern recognition
+    
+    Note over B: Step 4: Credential Issuance
+    B->>BC: Mint Soulbound Token
+    BC-->>B: ✅ On-chain credential
+    B-->>U: 🎖️ Sybil-resistant badge
 
 ---
 
