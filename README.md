@@ -6,6 +6,7 @@
 ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 ![WebSocket](https://img.shields.io/badge/WebSocket-010101?style=for-the-badge&logo=websocket&logoColor=white)
 
+
 **Sybil-resistant credential platform combining DID authentication with social verification for web3 identity proof.**
 
 > A decentralized identity system that uses **DID verification** (Polygon ID/IdOS) as primary identity and **social verification** as secondary proof of human activity, creating robust sybil-resistant credentials.
@@ -39,8 +40,37 @@ graph TD
     IdOS -->|Issues| VC2[Verifiable Credential]
     VC1 --> BaseID[✅ Base Identity Layer]
     VC2 --> BaseID
+```
 ---
 
+sequenceDiagram
+    participant U as User
+    participant DID as DID Provider
+    participant S as Social Platforms
+    participant B as Badge System
+    participant BC as Blockchain
+
+    Note over U: Step 1: Base Identity
+    U->>DID: Request DID Verification
+    DID-->>U: ✅ Issues Verifiable Credential
+    
+    Note over U: Step 2: Activity Proof
+    U->>S: Connect Twitter/Discord
+    S-->>B: Verify Real Activity
+    U->>S: Check Snapshot Voting
+    S-->>B: Verify Governance Participation
+    
+    Note over B: Step 3: Sybil Analysis
+    B->>B: Cross-reference activity<br>across platforms
+    B->>B: Time correlation analysis
+    B->>B: Pattern recognition
+    
+    Note over B: Step 4: Credential Issuance
+    B->>BC: Mint Soulbound Token
+    BC-->>B: ✅ On-chain credential
+    B-->>U: 🎖️ Sybil-resistant badge
+
+---
 ## 📋 Table of Contents
 
 - [✨ Features](#-features)
@@ -87,7 +117,7 @@ graph TD
 - **Real-time Analytics**: Track badge issuance and user engagement
 
 ---
-```
+
 ## 🏗️ Architecture
 
 ```mermaid
