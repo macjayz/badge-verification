@@ -1,4 +1,3 @@
-// UPDATED
 import { Router } from 'express';
 import { UserController } from '../controllers/user.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
@@ -17,10 +16,15 @@ router.get('/verifications', UserController.getUserVerifications);
 router.get('/achievements', UserController.getAchievements);
 router.post('/achievements/initialize', UserController.initializeAchievements);
 
-
 // Badge minting endpoints
 router.post('/mint-badge', UserController.mintBadge);
 router.post('/check-eligibility', UserController.checkEligibility);
 router.post('/complete-verification', UserController.completeVerification); // NEW
+
+// NEW: Issuer-specific routes
+router.get('/issuers', UserController.getUserIssuers);
+router.get('/issuer/:issuerId/requirements', UserController.getIssuerVerificationRequirements);
+router.get('/issuer/:issuerId/eligibility', UserController.checkIssuerEligibility);
+router.get('/issuer/:issuerId/status', UserController.getIssuerVerificationStatus);
 
 export default router;

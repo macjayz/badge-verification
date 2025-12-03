@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { twitterService } from '../services/twitter.service';
 import { logger } from '../utils/logger';
+import { verificationService } from '../services/verification.service'; // ADDED
 
 export class TwitterVerificationController {
   /**
@@ -9,7 +10,7 @@ export class TwitterVerificationController {
    */
   async initiateOAuth(req: Request, res: Response) {
     try {
-      const { wallet } = req.body;
+      const { wallet, issuerId, targetAccount } = req.body; // ADDED issuerId, targetAccount
       
       if (!wallet) {
         return res.status(400).json({
@@ -18,7 +19,16 @@ export class TwitterVerificationController {
         });
       }
 
-      const oauthResponse = await twitterService.initiateOAuth(wallet);
+      // ADDED: Store issuer context if provided
+      let metadata: any = {};
+      if (issuerId) {
+        metadata.issuerId = issuerId;
+      }
+      if (targetAccount) {
+        metadata.targetAccount = targetAccount;
+      }
+
+      const oauthResponse = await twitterService.initiateOAuth(wallet, metadata); // UPDATED: Pass metadata
       
       res.json({
         success: true,
@@ -38,7 +48,7 @@ export class TwitterVerificationController {
    * Handle Twitter OAuth callback
    */
   // In src/controllers/twitter-verification.controller.ts - Update the GET callback part
-async handleCallback(req: Request, res: Response) {
+  async handleCallback(req: Request, res: Response) {
     try {
       console.log('Twitter callback received - Method:', req.method);
       console.log('Query params:', req.query);
@@ -49,6 +59,7 @@ async handleCallback(req: Request, res: Response) {
       const state = req.query.state || req.body.state;
       const wallet = req.body.wallet;
       const codeVerifier = req.body.code_verifier;
+      const issuerId = req.body.issuerId; // ADDED
   
       if (!code || !state) {
         return res.status(400).json({
@@ -60,7 +71,7 @@ async handleCallback(req: Request, res: Response) {
       // For GET requests (Twitter redirect)
       if (req.method === 'GET') {
         // Return an HTML page that automatically sends the OAuth data back
-const html = `
+        const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -141,7 +152,8 @@ const html = `
         wallet as string, 
         code as string, 
         state as string, 
-        codeVerifier as string
+        codeVerifier as string,
+        issuerId // ADDED: Pass issuerId to service
       );
       
       res.json({
@@ -195,11 +207,12 @@ const html = `
   }
 
   /**
-   * Get Twitter connection status
+   * Get Twitter connection status - UPDATED to accept issuerId
    */
   async getConnectionStatus(req: Request, res: Response) {
     try {
       const { wallet } = req.params;
+      const { issuerId } = req.query; // ADDED: Optional issuerId query param
       
       if (!wallet) {
         return res.status(400).json({
@@ -208,7 +221,7 @@ const html = `
         });
       }
 
-      const status = await twitterService.getConnectionStatus(wallet);
+      const status = await twitterService.getConnectionStatus(wallet, issuerId as string); // UPDATED
       
       res.json({
         success: true,
@@ -225,11 +238,11 @@ const html = `
   }
 
   /**
-   * Disconnect Twitter account
+   * Disconnect Twitter account - UPDATED to handle issuer-specific connections
    */
   async disconnect(req: Request, res: Response) {
     try {
-      const { wallet } = req.body;
+      const { wallet, issuerId } = req.body; // ADDED issuerId
       
       if (!wallet) {
         return res.status(400).json({
@@ -238,12 +251,14 @@ const html = `
         });
       }
 
-      await twitterService.disconnect(wallet);
+      await twitterService.disconnect(wallet, issuerId); // UPDATED
       
       res.json({
         success: true,
         data: {
-          message: 'Twitter account disconnected successfully'
+          message: issuerId ? 
+            `Twitter account disconnected for issuer ${issuerId}` : 
+            'Twitter account disconnected successfully'
         }
       });
 
@@ -257,20 +272,38 @@ const html = `
   }
 
   /**
-   * Verify Twitter follow (for testing)
+   * Verify Twitter follow (for testing) - UPDATED to accept issuerId
    */
   async verifyFollow(req: Request, res: Response) {
     try {
-      const { wallet, targetUsername } = req.body;
+      const { wallet, targetUsername, issuerId } = req.body; // ADDED issuerId
       
-      if (!wallet || !targetUsername) {
+      if (!wallet) {
         return res.status(400).json({
           success: false,
-          error: 'Wallet and targetUsername are required'
+          error: 'Wallet is required'
         });
       }
 
-      const result = await twitterService.verifyFollow(wallet, targetUsername);
+      // If issuerId provided but no targetUsername, get issuer's Twitter handle
+      let finalTargetUsername = targetUsername;
+      if (issuerId && !targetUsername) {
+        // In real implementation, fetch issuer's Twitter handle from database
+        // For now, we'll use a placeholder
+        const issuerHandle = await this.getIssuerTwitterHandle(issuerId);
+        if (issuerHandle) {
+          finalTargetUsername = issuerHandle;
+        }
+      }
+
+      if (!finalTargetUsername) {
+        return res.status(400).json({
+          success: false,
+          error: 'Target username is required'
+        });
+      }
+
+      const result = await twitterService.verifyFollow(wallet, finalTargetUsername, issuerId); // UPDATED
       
       res.json({
         success: true,
@@ -283,6 +316,98 @@ const html = `
         success: false,
         error: 'Failed to verify Twitter follow'
       });
+    }
+  }
+
+  /**
+   * NEW: Get issuer-specific verification requirements
+   */
+  async getIssuerRequirements(req: Request, res: Response) {
+    try {
+      const { issuerId } = req.params;
+      const { wallet } = req.query;
+      
+      if (!issuerId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Issuer ID is required'
+        });
+      }
+
+      // In real implementation, fetch issuer's Twitter requirements from ProjectSocialRules
+      // For now, return mock data
+      const issuerRequirements = {
+        ruleType: 'twitter_follow',
+        name: 'Twitter Follow',
+        description: 'Follow the issuer on Twitter',
+        parameters: {
+          account: 'issuer_twitter_handle', // This would come from database
+          minFollowers: 1
+        },
+        isRequired: true
+      };
+
+      let status = 'not_started';
+      let existingVerification = null;
+
+      // Check if user has existing verification for this issuer
+      if (wallet) {
+        const verifications = await verificationService.getAllVerifications(wallet as string, {
+          provider: 'twitter_follow'
+        });
+        
+        existingVerification = verifications.verifications.find(v => 
+          v.metadata?.issuerId === issuerId
+        );
+        
+        if (existingVerification) {
+          status = existingVerification.status === 'completed' ? 'completed' : 
+                   existingVerification.status === 'failed' ? 'failed' : 'pending';
+        }
+      }
+
+      res.json({
+        success: true,
+        data: {
+          issuerId,
+          requirement: issuerRequirements,
+          status,
+          existingVerification: existingVerification ? {
+            id: existingVerification.id,
+            status: existingVerification.status,
+            metadata: existingVerification.metadata,
+            completedAt: existingVerification.completedAt
+          } : null,
+          actionRequired: `Follow @${issuerRequirements.parameters.account} on Twitter`
+        }
+      });
+
+    } catch (error) {
+      logger.error('Get issuer Twitter requirements error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get issuer Twitter requirements'
+      });
+    }
+  }
+
+  /**
+   * Helper: Get issuer's Twitter handle (mock implementation)
+   */
+  private async getIssuerTwitterHandle(issuerId: string): Promise<string | null> {
+    try {
+      // In real implementation, fetch from ProjectSocialRules
+      // For now, return mock data
+      const issuerHandles: Record<string, string> = {
+        'test-issuer-1': 'Web3AcademyDAO',
+        'test-issuer-2': 'DAOCollective',
+        'test-issuer-3': 'NFTGalleryHQ'
+      };
+      
+      return issuerHandles[issuerId] || null;
+    } catch (error) {
+      logger.error(`Error getting Twitter handle for issuer ${issuerId}:`, error);
+      return null;
     }
   }
 }

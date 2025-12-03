@@ -1,4 +1,4 @@
-// src/services/discord.service.ts
+// src/services/discord.service.ts - UPDATED METHOD SIGNATURES
 import { AppDataSource } from '../db/datasource';
 import { UserSocialConnection } from '../entities/UserSocialConnection';
 import { Verification, VerificationStatus, VerificationType } from '../entities/Verification';
@@ -50,7 +50,10 @@ export class DiscordService {
     this.botToken = process.env.DISCORD_BOT_TOKEN;
   }
 
-  async initiateOAuth(wallet: string): Promise<DiscordOAuthResponse> {
+  /**
+   * Initiate Discord OAuth flow - UPDATED: Accept metadata parameter
+   */
+  async initiateOAuth(wallet: string, metadata?: any): Promise<DiscordOAuthResponse> {
     const state = crypto.randomBytes(16).toString('hex');
     
     const params = new URLSearchParams({
@@ -63,7 +66,7 @@ export class DiscordService {
 
     const authUrl = `https://discord.com/api/oauth2/authorize?${params.toString()}`;
 
-    logger.info(`Initiated Discord OAuth for wallet: ${wallet}, state: ${state}`);
+    logger.info(`Initiated Discord OAuth for wallet: ${wallet}, state: ${state}${metadata?.issuerId ? `, issuer: ${metadata.issuerId}` : ''}`);
 
     return {
       authUrl,
@@ -71,8 +74,10 @@ export class DiscordService {
     };
   }
 
-// Then update the handleCallback method:
-async handleCallback(wallet: string, code: string, state: string): Promise<DiscordUser> {
+  /**
+   * Handle Discord OAuth callback - UPDATED: Accept issuerId parameter
+   */
+  async handleCallback(wallet: string, code: string, state: string, issuerId?: string): Promise<DiscordUser> {
     try {
         // Exchange code for access token
         const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
@@ -116,13 +121,13 @@ async handleCallback(wallet: string, code: string, state: string): Promise<Disco
             avatar: userData.avatar,
         };
 
-        // Save social connection
-        await this.saveSocialConnection(wallet, discordUser, accessToken);
+        // Save social connection with issuer context
+        await this.saveSocialConnection(wallet, discordUser, accessToken, issuerId);
 
-        // ✅ ADD THIS: Create verification record
-        await this.createDiscordVerification(wallet, discordUser);
+        // ✅ Create verification record with issuer context
+        await this.createDiscordVerification(wallet, discordUser, issuerId);
 
-        logger.info(`Discord OAuth completed for wallet: ${wallet}, Discord user: ${discordUser.username}#${discordUser.discriminator}`);
+        logger.info(`Discord OAuth completed for wallet: ${wallet}, Discord user: ${discordUser.username}#${discordUser.discriminator}${issuerId ? `, issuer: ${issuerId}` : ''}`);
         return discordUser;
 
     } catch (error) {
@@ -131,8 +136,10 @@ async handleCallback(wallet: string, code: string, state: string): Promise<Disco
     }
 }
 
-// ✅ ADD THIS METHOD to create verification record
-private async createDiscordVerification(wallet: string, discordUser: DiscordUser): Promise<void> {
+  /**
+   * Create Discord verification record - UPDATED: Accept issuerId parameter
+   */
+  private async createDiscordVerification(wallet: string, discordUser: DiscordUser, issuerId?: string): Promise<void> {
     try {
         const verificationRepository = AppDataSource.getRepository(Verification);
         
@@ -144,17 +151,27 @@ private async createDiscordVerification(wallet: string, discordUser: DiscordUser
             }
         });
 
+        // Prepare verification metadata with issuer context
+        const verificationMetadata: any = {
+            discordUsername: `${discordUser.username}#${discordUser.discriminator}`,
+            discordId: discordUser.id,
+            connectedAt: new Date().toISOString()
+        };
+
+        // Add issuer context if provided
+        if (issuerId) {
+            verificationMetadata.issuerId = issuerId;
+        }
+
         if (verification) {
-            // Update existing verification using the entity's helper method
-            verification.markCompleted(
-                `did:discord:${discordUser.id}`,
-                { 
-                    discordUsername: `${discordUser.username}#${discordUser.discriminator}`,
-                    discordId: discordUser.id,
-                    connectedAt: new Date().toISOString()
-                },
-                `discord_${discordUser.id}`
-            );
+            // Update existing verification
+            verification.status = VerificationStatus.COMPLETED;
+            verification.type = VerificationType.SECONDARY;
+            verification.did = `did:discord:${discordUser.id}`;
+            verification.metadata = verificationMetadata;
+            verification.verificationId = `discord_${discordUser.id}${issuerId ? `_issuer_${issuerId}` : ''}`;
+            verification.completedAt = new Date();
+            verification.updatedAt = new Date();
         } else {
             // Create new verification
             verification = verificationRepository.create({
@@ -163,12 +180,8 @@ private async createDiscordVerification(wallet: string, discordUser: DiscordUser
                 type: VerificationType.SECONDARY,
                 status: VerificationStatus.COMPLETED,
                 did: `did:discord:${discordUser.id}`,
-                metadata: {
-                    discordUsername: `${discordUser.username}#${discordUser.discriminator}`,
-                    discordId: discordUser.id,
-                    connectedAt: new Date().toISOString()
-                },
-                verificationId: `discord_${discordUser.id}`,
+                metadata: verificationMetadata,
+                verificationId: `discord_${discordUser.id}${issuerId ? `_issuer_${issuerId}` : ''}`,
                 completedAt: new Date(),
                 createdAt: new Date(),
                 updatedAt: new Date()
@@ -176,7 +189,7 @@ private async createDiscordVerification(wallet: string, discordUser: DiscordUser
         }
 
         await verificationRepository.save(verification);
-        logger.info(`Created Discord verification for wallet: ${wallet}`);
+        logger.info(`Created Discord verification for wallet: ${wallet}${issuerId ? ` (issuer: ${issuerId})` : ''}`);
         
     } catch (error) {
         logger.error('Failed to create Discord verification record:', error);
@@ -185,10 +198,14 @@ private async createDiscordVerification(wallet: string, discordUser: DiscordUser
 }
   
 
+  /**
+   * Save social connection - UPDATED: Add issuerId support
+   */
   private async saveSocialConnection(
     wallet: string, 
     discordUser: DiscordUser, 
-    accessToken: string
+    accessToken: string,
+    issuerId?: string
   ): Promise<void> {
     let connection = await socialConnectionRepository.findOne({
       where: { 
@@ -199,10 +216,25 @@ private async createDiscordVerification(wallet: string, discordUser: DiscordUser
 
     const username = `${discordUser.username}#${discordUser.discriminator}`;
 
+    // Prepare profileData with issuer context if provided
+    const profileData = issuerId ? {
+      issuerId,
+      discordId: discordUser.id,
+      username: discordUser.username,
+      discriminator: discordUser.discriminator,
+      avatar: discordUser.avatar
+    } : {
+      discordId: discordUser.id,
+      username: discordUser.username,
+      discriminator: discordUser.discriminator,
+      avatar: discordUser.avatar
+    };
+
     if (connection) {
       connection.platformUserId = discordUser.id;
       connection.platformHandle = username;
       connection.accessToken = accessToken;
+      connection.profileData = profileData;
       connection.isActive = true;
       connection.connectedAt = new Date();
     } else {
@@ -212,17 +244,21 @@ private async createDiscordVerification(wallet: string, discordUser: DiscordUser
         platformUserId: discordUser.id,
         platformHandle: username,
         accessToken,
+        profileData,
         isActive: true,
         connectedAt: new Date()
       });
     }
 
     await socialConnectionRepository.save(connection);
-    logger.info(`Saved Discord connection for wallet: ${wallet}, Discord: ${username}`);
+    logger.info(`Saved Discord connection for wallet: ${wallet}, Discord: ${username}${issuerId ? ` (issuer: ${issuerId})` : ''}`);
   }
 
-  async getConnectionStatus(wallet: string): Promise<{ connected: boolean; username?: string }> {
-    const connection = await socialConnectionRepository.findOne({
+  /**
+   * Get Discord connection status - UPDATED: Accept issuerId parameter
+   */
+  async getConnectionStatus(wallet: string, issuerId?: string): Promise<{ connected: boolean; username?: string }> {
+    const connections = await socialConnectionRepository.find({
       where: { 
         wallet: wallet.toLowerCase(), 
         platform: 'discord',
@@ -230,18 +266,64 @@ private async createDiscordVerification(wallet: string, discordUser: DiscordUser
       }
     });
 
+    // If issuerId specified, filter connections for that issuer
+    if (issuerId) {
+      const issuerConnections = connections.filter(conn => {
+        if (!conn.profileData) return false;
+        try {
+          return conn.profileData.issuerId === issuerId;
+        } catch {
+          return false;
+        }
+      });
+
+      if (issuerConnections.length > 0) {
+        return {
+          connected: true,
+          username: issuerConnections[0].platformHandle
+        };
+      }
+      return { connected: false };
+    }
+
+    // Return any connection if no issuer filter
+    const connection = connections[0];
     return {
       connected: !!connection,
       username: connection?.platformHandle || undefined
     };
   }
 
-  async verifyServerMembership(wallet: string, serverId: string): Promise<{ verified: boolean; details: any }> {
-    // Implementation for checking if user is in a specific Discord server
-    // This requires the guilds.members.read scope and proper bot permissions
+  /**
+   * Verify Discord server membership - UPDATED: Accept issuerId parameter
+   */
+  async verifyServerMembership(wallet: string, serverId: string, issuerId?: string): Promise<{ verified: boolean; details: any }> {
+    // First check if the user has a connection for this issuer
+    const connection = await this.getConnectionStatus(wallet, issuerId);
+    
+    if (!connection.connected) {
+      return {
+        verified: false,
+        details: { 
+          error: 'Discord account not connected',
+          connected: false,
+          issuerId
+        }
+      };
+    }
+
+    // For now, return mock implementation
+    // In production, this would check actual Discord server membership
+    const isMember = Math.random() > 0.3; // Mock for now
+    
     return {
-      verified: Math.random() > 0.3, // Mock for now
-      details: { mock: true, serverId }
+      verified: isMember,
+      details: { 
+        mock: true, 
+        serverId,
+        issuerId,
+        checkedAt: new Date().toISOString()
+      }
     };
   }
 }

@@ -1,4 +1,4 @@
-// src/services/twitter.service.ts - FIXED TYPE ERRORS
+// src/services/twitter.service.ts - FIXED WITH CORRECT ENTITY PROPERTIES
 import { AppDataSource } from '../db/datasource';
 import { UserSocialConnection } from '../entities/UserSocialConnection';
 import { Verification, VerificationStatus, VerificationType } from '../entities/Verification';
@@ -68,9 +68,9 @@ export class TwitterService {
   }
 
   /**
-   * Initiate Twitter OAuth flow
+   * Initiate Twitter OAuth flow - UPDATED: Accept metadata parameter
    */
-  async initiateOAuth(wallet: string): Promise<TwitterOAuthResponse> {
+  async initiateOAuth(wallet: string, metadata?: any): Promise<TwitterOAuthResponse> {
     const { codeVerifier, codeChallenge } = this.generatePKCE();
     const state = crypto.randomBytes(16).toString('hex');
 
@@ -96,9 +96,9 @@ export class TwitterService {
   }
 
   /**
-   * Handle Twitter OAuth callback
+   * Handle Twitter OAuth callback - UPDATED: Accept issuerId parameter
    */
-  async handleCallback(wallet: string, code: string, state: string, codeVerifier: string): Promise<TwitterUser> {
+  async handleCallback(wallet: string, code: string, state: string, codeVerifier: string, issuerId?: string): Promise<TwitterUser> {
     try {
       console.log('=== TWITTER OAUTH DEBUG ===');
       
@@ -149,10 +149,10 @@ export class TwitterService {
       };
   
       // Save social connection
-      await this.saveSocialConnection(wallet, twitterUser, accessToken);
+      await this.saveSocialConnection(wallet, twitterUser, accessToken, issuerId);
 
       // ✅ Create verification record
-      await this.createTwitterVerification(wallet, twitterUser);
+      await this.createTwitterVerification(wallet, twitterUser, issuerId);
   
       logger.info(`Twitter OAuth completed for wallet: ${wallet}, Twitter user: @${twitterUser.username}`);
       return twitterUser;
@@ -164,11 +164,13 @@ export class TwitterService {
   }
 
   /**
-   * Create Twitter verification record
+   * Create Twitter verification record - UPDATED: Accept issuerId parameter
    */
-  private async createTwitterVerification(wallet: string, twitterUser: TwitterUser): Promise<void> {
+  private async createTwitterVerification(wallet: string, twitterUser: TwitterUser, issuerId?: string): Promise<void> {
     try {
       console.log('=== 🐦 TWITTER VERIFICATION START ===');
+      console.log(`Issuer context: ${issuerId || 'None (global verification)'}`);
+      
       const verificationRepository = AppDataSource.getRepository(Verification);
       
       const requiredAccounts = ['X']; // Accounts to follow
@@ -200,6 +202,12 @@ export class TwitterService {
         followChecks: {},
         requiredAccounts: requiredAccounts
       };
+
+      // Add issuer context to metadata if provided
+      if (issuerId) {
+        verificationDetails.issuerId = issuerId;
+        console.log(`📌 Verification includes issuer context: ${issuerId}`);
+      }
   
       // ✅ BYPASS LOGIC: Try to check follows, but auto-succeed if API fails
       for (const account of requiredAccounts) {
@@ -278,6 +286,7 @@ export class TwitterService {
   
       console.log('\n📊 FINAL STATUS:');
       console.log('  Type:', verificationType);
+      console.log('  Issuer context:', issuerId || 'Global');
       console.log('  Details:', JSON.stringify(verificationDetails, null, 2));
       console.log('=== 🐦 TWITTER VERIFICATION END ===\n');
   
@@ -288,12 +297,37 @@ export class TwitterService {
           provider: 'twitter_follow'
         }
       });
+
+      // If issuerId provided, check for issuer-specific verification
+      if (issuerId) {
+        const allVerifications = await verificationRepository.find({
+          where: { 
+            wallet: wallet,
+            provider: 'twitter_follow'
+          }
+        });
+
+        // Find verification with matching issuerId in metadata
+        for (const v of allVerifications) {
+          if (v.metadata && typeof v.metadata === 'string') {
+            try {
+              const metadata = JSON.parse(v.metadata);
+              if (metadata.issuerId === issuerId) {
+                verification = v;
+                break;
+              }
+            } catch {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
   
       if (verification) {
         verification.status = verificationStatus;
         verification.type = verificationType as any;
         verification.did = `did:twitter:${twitterUser.id}`;
-        verification.metadata = verificationDetails;
+        verification.metadata = JSON.stringify(verificationDetails);
         verification.updatedAt = new Date();
         verification.completedAt = new Date();
       } else {
@@ -303,8 +337,8 @@ export class TwitterService {
           type: verificationType as any,
           status: verificationStatus,
           did: `did:twitter:${twitterUser.id}`,
-          metadata: verificationDetails,
-          verificationId: `twitter_${twitterUser.id}`,
+          metadata: JSON.stringify(verificationDetails),
+          verificationId: `twitter_${twitterUser.id}${issuerId ? `_issuer_${issuerId}` : ''}`,
           completedAt: new Date(),
           createdAt: new Date(),
           updatedAt: new Date()
@@ -312,7 +346,7 @@ export class TwitterService {
       }
   
       await verificationRepository.save(verification);
-      console.log(`💾 Verification saved: ${verificationStatus} (${verificationType})`);
+      console.log(`💾 Verification saved: ${verificationStatus} (${verificationType})${issuerId ? ` for issuer ${issuerId}` : ''}`);
       
     } catch (error: any) {
       console.log('💥 CRITICAL ERROR in verification:', error.message);
@@ -407,12 +441,13 @@ export class TwitterService {
   }
 
   /**
-   * Save social connection
+   * Save social connection - UPDATED: Add issuerId support (stored in profileData)
    */
   private async saveSocialConnection(
     wallet: string, 
     twitterUser: TwitterUser, 
-    accessToken: string
+    accessToken: string,
+    issuerId?: string
   ): Promise<void> {
     let connection = await socialConnectionRepository.findOne({
       where: { 
@@ -421,12 +456,25 @@ export class TwitterService {
       }
     });
 
+    // Prepare profileData with issuer context if provided
+    const profileData = issuerId ? { 
+      issuerId,
+      twitterId: twitterUser.id,
+      username: twitterUser.username,
+      name: twitterUser.name 
+    } : {
+      twitterId: twitterUser.id,
+      username: twitterUser.username,
+      name: twitterUser.name
+    };
+
     if (connection) {
       connection.platformUserId = twitterUser.id;
       connection.platformHandle = twitterUser.username;
       connection.accessToken = accessToken;
       connection.isActive = true;
       connection.connectedAt = new Date();
+      connection.profileData = profileData;
     } else {
       connection = socialConnectionRepository.create({
         wallet: wallet.toLowerCase(),
@@ -434,20 +482,21 @@ export class TwitterService {
         platformUserId: twitterUser.id,
         platformHandle: twitterUser.username,
         accessToken,
+        profileData,
         isActive: true,
         connectedAt: new Date()
       });
     }
 
     await socialConnectionRepository.save(connection);
-    console.log(`💾 Saved Twitter connection: @${twitterUser.username}`);
+    console.log(`💾 Saved Twitter connection: @${twitterUser.username}${issuerId ? ` for issuer ${issuerId}` : ''}`);
   }
 
   /**
-   * Get user's Twitter connection status
+   * Get user's Twitter connection status - UPDATED: Accept issuerId parameter
    */
-  async getConnectionStatus(wallet: string): Promise<{ connected: boolean; username?: string }> {
-    const connection = await socialConnectionRepository.findOne({
+  async getConnectionStatus(wallet: string, issuerId?: string): Promise<{ connected: boolean; username?: string }> {
+    const connections = await socialConnectionRepository.find({
       where: { 
         wallet: wallet.toLowerCase(), 
         platform: 'twitter',
@@ -455,6 +504,28 @@ export class TwitterService {
       }
     });
 
+    // If issuerId specified, filter connections for that issuer
+    if (issuerId) {
+      const issuerConnections = connections.filter(conn => {
+        if (!conn.profileData) return false;
+        try {
+          return conn.profileData.issuerId === issuerId;
+        } catch {
+          return false;
+        }
+      });
+
+      if (issuerConnections.length > 0) {
+        return {
+          connected: true,
+          username: issuerConnections[0].platformHandle
+        };
+      }
+      return { connected: false };
+    }
+
+    // Return any connection if no issuer filter
+    const connection = connections[0];
     return {
       connected: !!connection,
       username: connection?.platformHandle || undefined
@@ -462,35 +533,60 @@ export class TwitterService {
   }
 
   /**
-   * Disconnect Twitter account
+   * Disconnect Twitter account - UPDATED: Accept issuerId parameter
    */
-  async disconnect(wallet: string): Promise<void> {
-    const connection = await socialConnectionRepository.findOne({
+  async disconnect(wallet: string, issuerId?: string): Promise<void> {
+    const connections = await socialConnectionRepository.find({
       where: { 
         wallet: wallet.toLowerCase(), 
-        platform: 'twitter' 
+        platform: 'twitter',
+        isActive: true 
       }
     });
-  
-    if (connection) {
-      connection.isActive = false;
-      connection.accessToken = undefined;
-      await socialConnectionRepository.save(connection);
-      console.log(`🔓 Disconnected Twitter for wallet: ${wallet}`);
+
+    let disconnectedCount = 0;
+
+    for (const connection of connections) {
+      // If issuerId specified, only disconnect connections for that issuer
+      if (issuerId) {
+        if (connection.profileData) {
+          try {
+            if (connection.profileData.issuerId === issuerId) {
+              connection.isActive = false;
+              connection.accessToken = undefined;
+              await socialConnectionRepository.save(connection);
+              disconnectedCount++;
+            }
+          } catch {
+            // Skip if profileData is invalid
+          }
+        }
+      } else {
+        // Disconnect all Twitter connections
+        connection.isActive = false;
+        connection.accessToken = undefined;
+        await socialConnectionRepository.save(connection);
+        disconnectedCount++;
+      }
     }
+
+    console.log(`🔓 Disconnected ${disconnectedCount} Twitter connection(s) for wallet: ${wallet}${issuerId ? ` (issuer: ${issuerId})` : ''}`);
   }
 
-  // Add this method to your twitter.service.ts
-async verifyFollow(wallet: string, targetUsername: string): Promise<{ verified: boolean; details: any }> {
+  /**
+   * Verify Twitter follow - UPDATED: Accept issuerId parameter
+   */
+  async verifyFollow(wallet: string, targetUsername: string, issuerId?: string): Promise<{ verified: boolean; details: any }> {
     try {
-      const connection = await this.getConnectionStatus(wallet);
+      const connection = await this.getConnectionStatus(wallet, issuerId);
       
       if (!connection.connected) {
         return {
           verified: false,
           details: {
             error: 'Twitter account not connected',
-            connected: false
+            connected: false,
+            issuerId
           }
         };
       }
@@ -502,6 +598,7 @@ async verifyFollow(wallet: string, targetUsername: string): Promise<{ verified: 
           connected: true,
           userTwitterHandle: connection.username,
           targetUsername,
+          issuerId,
           note: 'Standalone Twitter App - Follow verification not available',
           checkedAt: new Date().toISOString()
         }
@@ -513,7 +610,8 @@ async verifyFollow(wallet: string, targetUsername: string): Promise<{ verified: 
         verified: false,
         details: {
           error: error.message,
-          connected: false
+          connected: false,
+          issuerId
         }
       };
     }

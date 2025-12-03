@@ -15,34 +15,222 @@
             background: #cce5ff;
             color: #004085;
         }
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; }
-        .header { background: white; padding: 1rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        
+        .header { 
+            background: white; 
+            padding: 1rem 2rem; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        
         .logo { font-size: 1.5rem; font-weight: bold; color: #667eea; }
-        .user-info { display: flex; align-items: center; gap: 1rem; }
-        .wallet-address { background: #f8f9fa; padding: 0.5rem 1rem; border-radius: 20px; font-family: monospace; font-size: 0.9rem; }
-        .main-container { max-width: 1000px; margin: 2rem auto; padding: 0 2rem; }
-        .section { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem; }
-        .section-title { font-size: 1.5rem; margin-bottom: 1rem; color: #333; }
-        .verification-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
-        .verification-card { border: 2px solid #e9ecef; border-radius: 10px; padding: 1.5rem; text-align: center; transition: all 0.3s ease; }
-        .verification-card.verified { border-color: #28a745; background: #f8fff9; }
-        .verification-card.pending { border-color: #ffc107; background: #fffdf6; }
+        
+        .user-info { 
+            display: flex; 
+            align-items: center; 
+            gap: 1rem; 
+            flex-wrap: wrap;
+        }
+        
+        .wallet-address { 
+            background: #f8f9fa; 
+            padding: 0.5rem 1rem; 
+            border-radius: 20px; 
+            font-family: monospace; 
+            font-size: 0.9rem; 
+        }
+        
+        .issuer-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f8f9fa;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+        }
+        
+        .issuer-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        #currentIssuer {
+            font-weight: 600;
+            color: #3498db;
+            background: none;
+            border: none;
+            padding: 0.3rem 0.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        #currentIssuer:hover {
+            background: rgba(52, 152, 219, 0.1);
+        }
+        
+        .main-container { max-width: 1200px; margin: 2rem auto; padding: 0 2rem; }
+        
+        .section { 
+            background: white; 
+            padding: 2rem; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            margin-bottom: 2rem; 
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-title { 
+            font-size: 1.5rem; 
+            margin-bottom: 0;
+            color: #333; 
+        }
+        
+        .verification-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 1.5rem; 
+        }
+        
+        .verification-card { 
+            border: 2px solid #e9ecef; 
+            border-radius: 10px; 
+            padding: 1.5rem; 
+            text-align: center; 
+            transition: all 0.3s ease; 
+            position: relative;
+        }
+        
+        .verification-card.verified { 
+            border-color: #28a745; 
+            background: #f8fff9; 
+        }
+        
+        .verification-card.connected { 
+            border-color: #007bff; 
+            background: #f0f8ff; 
+        }
+        
+        .verification-card.pending { 
+            border-color: #ffc107; 
+            background: #fffdf6; 
+        }
+        
+        .verification-card.issuer-specific {
+            border-left: 4px solid #9b59b6;
+        }
+        
+        .issuer-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #9b59b6;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        
         .verification-icon { font-size: 3rem; margin-bottom: 1rem; }
-        .verification-name { font-weight: bold; margin-bottom: 0.5rem; font-size: 1.2rem; }
-        .verification-status { font-size: 0.9rem; padding: 0.3rem 0.8rem; border-radius: 15px; display: inline-block; margin-bottom: 1rem; }
+        
+        .verification-name { 
+            font-weight: bold; 
+            margin-bottom: 0.5rem; 
+            font-size: 1.2rem; 
+        }
+        
+        .verification-status { 
+            font-size: 0.9rem; 
+            padding: 0.3rem 0.8rem; 
+            border-radius: 15px; 
+            display: inline-block; 
+            margin-bottom: 1rem; 
+        }
+        
         .status-verified { background: #d4edda; color: #155724; }
         .status-pending { background: #fff3cd; color: #856404; }
         .status-not-verified { background: #f8d7da; color: #721c24; }
-        .verify-btn { background: #667eea; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 5px; cursor: pointer; font-size: 1rem; width: 100%; }
-        .verify-btn:disabled { background: #6c757d; cursor: not-allowed; }
-        .verify-btn.verified { background: #28a745; }
-        .back-btn { background: #6c757d; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; margin-bottom: 1rem; }
-        .progress-bar { background: #e9ecef; border-radius: 10px; height: 10px; margin: 1rem 0; overflow: hidden; }
-        .progress-fill { background: #667eea; height: 100%; transition: width 0.3s ease; }
-        .progress-text { text-align: center; color: #666; font-size: 0.9rem; }
-        .loading { text-align: center; padding: 2rem; color: #666; }
-        .error { background: #f8d7da; color: #721c24; padding: 1rem; border-radius: 5px; margin-bottom: 1rem; display: none; }
+        .status-connected { background: #cce5ff; color: #004085; }
+        
+        .verify-btn { 
+            background: #667eea; 
+            color: white; 
+            border: none; 
+            padding: 0.8rem 1.5rem; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 1rem; 
+            width: 100%; 
+        }
+        
+        .verify-btn:disabled { 
+            background: #6c757d; 
+            cursor: not-allowed; 
+        }
+        
+        .verify-btn.verified { 
+            background: #28a745; 
+        }
+        
+        .verify-btn.connected { 
+            background: #007bff; 
+        }
+        
+        .back-btn { 
+            background: #6c757d; 
+            color: white; 
+            border: none; 
+            padding: 0.5rem 1rem; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            margin-bottom: 1rem; 
+        }
+        
+        .progress-bar { 
+            background: #e9ecef; 
+            border-radius: 10px; 
+            height: 10px; 
+            margin: 1rem 0; 
+            overflow: hidden; 
+        }
+        
+        .progress-fill { 
+            background: #667eea; 
+            height: 100%; 
+            transition: width 0.3s ease; 
+        }
+        
+        .progress-text { 
+            text-align: center; 
+            color: #666; 
+            font-size: 0.9rem; 
+        }
+        
+        .loading { 
+            text-align: center; 
+            padding: 2rem; 
+            color: #666; 
+        }
+        
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            padding: 1rem; 
+            border-radius: 5px; 
+            margin-bottom: 1rem; 
+            display: none; 
+        }
 
         /* Loading Spinner */
         .spinner {
@@ -147,6 +335,116 @@
             margin-bottom: 0.5rem;
             min-height: 1.2em;
         }
+        
+        /* Parameter display */
+        .verification-parameter {
+            font-size: 0.85rem;
+            color: #495057;
+            margin: 0.3rem 0;
+            padding: 0.3rem 0.6rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        /* Issuer info */
+        .issuer-info {
+            background: #e8f4fc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #3498db;
+        }
+        
+        .issuer-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.3rem;
+        }
+        
+        .issuer-description {
+            color: #546e7a;
+            font-size: 0.9rem;
+        }
+        
+        /* Badge selector */
+        .badge-selector {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .badge-selector label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .badge-select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .badge-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        /* Mode switcher */
+        .mode-switcher {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 0.3rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        
+        .mode-btn.active {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .empty-title {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: #495057;
+        }
+        
+        .empty-description {
+            margin-bottom: 1.5rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
     </style>
 </head>
 <body>
@@ -154,22 +452,53 @@
         <div class="logo">🎖️ Badge System - Identity Verification</div>
         <div class="user-info">
             <div class="wallet-address" id="walletAddress">Loading...</div>
+            <div class="issuer-selector">
+                <span class="issuer-label">For:</span>
+                <select id="currentIssuer" onchange="changeIssuer(this.value)">
+                    <option value="">Select Issuer</option>
+                </select>
+            </div>
             <button class="back-btn" onclick="goToDashboard()">Dashboard</button>
         </div>
     </div>
 
     <div class="main-container">
         <div id="error-message" class="error"></div>
+        
+        <!-- Issuer Info Section -->
+        <div id="issuerInfo" class="issuer-info" style="display: none;">
+            <div class="issuer-name" id="issuerName"></div>
+            <div class="issuer-description" id="issuerDescription"></div>
+        </div>
+
+        <!-- Mode Switcher -->
+        <div class="mode-switcher">
+            <button class="mode-btn active" onclick="switchMode('all')">All Verifications</button>
+            <button class="mode-btn" onclick="switchMode('issuer')">Issuer-Specific</button>
+            <button class="mode-btn" onclick="switchMode('primary')">Primary Only</button>
+        </div>
+
+        <!-- Badge Selector (for badge-centric flow) -->
+        <div id="badgeSelector" class="badge-selector" style="display: none;">
+            <label for="badgeSelect">Select a badge to verify requirements:</label>
+            <select id="badgeSelect" class="badge-select" onchange="selectBadge(this.value)">
+                <option value="">Select a badge...</option>
+            </select>
+        </div>
 
         <div class="section">
-            <h2 class="section-title">Identity Verification Progress</h2>
+            <div class="section-header">
+                <h2 class="section-title">Identity Verification Progress</h2>
+                <div id="modeIndicator"></div>
+            </div>
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill" style="width: 0%"></div>
             </div>
             <div class="progress-text" id="progressText">0% Complete</div>
-            <p>Complete these verifications to become eligible for badges. Primary verifications are required for most badges.</p>
+            <p id="verificationContext">Complete these verifications to become eligible for badges. Primary verifications are required for most badges.</p>
         </div>
 
+        <!-- Primary Verifications Section -->
         <div class="section">
             <h3 class="section-title">Primary Verifications (Required)</h3>
             <div class="verification-grid" id="primary-verifications">
@@ -177,19 +506,60 @@
             </div>
         </div>
 
+        <!-- Secondary Verifications Section -->
         <div class="section">
-            <h3 class="section-title">Social & On-chain Verifications</h3>
+            <div class="section-header">
+                <h3 class="section-title">Social & On-chain Verifications</h3>
+                <div id="secondaryCount">Loading...</div>
+            </div>
             <div class="verification-grid" id="secondary-verifications">
                 <!-- Skeleton loading will be inserted here -->
             </div>
         </div>
+        
+        <!-- Empty State for Issuer Mode -->
+        <div id="emptyIssuerState" class="empty-state" style="display: none;">
+            <div class="empty-icon">🏢</div>
+            <div class="empty-title">No Issuer Selected</div>
+            <div class="empty-description">
+                Select an issuer from the dropdown above to see their specific verification requirements.
+                <br><br>
+                Or choose a badge to view its exact requirements.
+            </div>
+            <button class="verify-btn" onclick="showBadgeSelector()" style="width: auto; padding: 0.8rem 2rem;">
+                Browse Badges
+            </button>
+        </div>
+        
+        <!-- Empty State for No Requirements -->
+        <div id="emptyRequirements" class="empty-state" style="display: none;">
+            <div class="empty-icon">✅</div>
+            <div class="empty-title">All Requirements Met</div>
+            <div class="empty-description">
+                You have completed all verification requirements for the selected issuer/badge.
+                You are now eligible!
+            </div>
+            <button class="verify-btn verified" onclick="checkEligibility()" style="width: auto; padding: 0.8rem 2rem;">
+                Check Eligibility
+            </button>
+        </div>
     </div>
 
     <script>
+        // ========== CONFIGURATION ==========
         const API_BASE = '/api/user';
+        const VERIFY_API_BASE = '/api/verify';
         let userToken = localStorage.getItem('userToken');
         let userWallet = localStorage.getItem('userWallet');
+        let currentIssuerId = null;
+        let currentIssuerData = null;
+        let currentMode = 'all'; // 'all', 'issuer', 'primary'
+        let userVerifications = [];
+        let issuerRules = [];
+        let allIssuers = [];
+        let allBadges = [];
     
+        // ========== INITIALIZATION ==========
         if (!userToken || !userWallet) {
             window.location.href = '/user-login.html';
         }
@@ -197,59 +567,584 @@
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('walletAddress').textContent = 
                 userWallet.substring(0, 6) + '...' + userWallet.substring(38);
-            loadVerifications();
+            
+            // Get issuerId from URL if present
+            const urlParams = new URLSearchParams(window.location.search);
+            const issuerIdFromUrl = urlParams.get('issuerId');
+            const badgeIdFromUrl = urlParams.get('badgeId');
+            
+            if (issuerIdFromUrl) {
+                currentIssuerId = issuerIdFromUrl;
+                localStorage.setItem('currentIssuerId', currentIssuerId);
+            } else {
+                currentIssuerId = localStorage.getItem('currentIssuerId');
+            }
+            
+            initializeApp();
+            
+            // If badgeId is provided, load badge requirements
+            if (badgeIdFromUrl) {
+                loadBadgeRequirements(badgeIdFromUrl);
+            }
         });
     
-        function showError(message) {
-            const errorDiv = document.getElementById('error-message');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            setTimeout(() => errorDiv.style.display = 'none', 5000);
-            showToast(message, 'error');
-        }
-
-        function showToast(message, type = 'success') {
-            // Remove existing toasts
-            document.querySelectorAll('.toast').forEach(toast => toast.remove());
-            
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            toast.textContent = message;
-            
-            document.body.appendChild(toast);
-            
-            // Remove after animation
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.remove();
-                }
-            }, 3000);
-        }
-    
-        async function loadVerifications() {
+        // ========== INITIALIZATION FUNCTIONS ==========
+        async function initializeApp() {
             try {
-                // Show skeleton loading
                 showSkeletonLoading();
                 
-                // Load user's current verifications
-                const response = await fetch(`${API_BASE}/verifications`, {
+                // Load issuers for dropdown
+                await loadIssuers();
+                
+                // Load user verifications
+                await loadVerifications();
+                
+                // Load issuer rules if issuer is selected
+                if (currentIssuerId) {
+                    await loadIssuerRules(currentIssuerId);
+                    await loadIssuerInfo(currentIssuerId);
+                    updateIssuerDropdown();
+                    updateModeIndicator();
+                } else {
+                    updateModeIndicator();
+                }
+                
+                // Load badges for selector
+                await loadAvailableBadges();
+                
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showError('Failed to initialize: ' + error.message);
+            }
+        }
+    
+        async function loadIssuers() {
+            try {
+                const response = await fetch(API_BASE + '/issuers', {
+                    headers: { 'Authorization': `Bearer ${userToken}` }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        allIssuers = result.data.issuers || [];
+                    } else {
+                        allIssuers = [];
+                    }
+                } else {
+                    allIssuers = [];
+                }
+                
+                updateIssuerDropdown();
+                
+            } catch (error) {
+                console.error('Error loading issuers:', error);
+                allIssuers = [];
+            }
+        }
+    
+        async function loadAvailableBadges() {
+            try {
+                const response = await fetch(API_BASE + '/badges', {
+                    headers: { 'Authorization': `Bearer ${userToken}` }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    allBadges = result || [];
+                    updateBadgeSelector();
+                }
+            } catch (error) {
+                console.error('Error loading badges:', error);
+                allBadges = [];
+            }
+        }
+    
+        async function loadIssuerRules(issuerId) {
+            try {
+                const response = await fetch(`${API_BASE}/issuer/${issuerId}/requirements`, {
+                    headers: { 'Authorization': `Bearer ${userToken}` }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data.requirement) {
+                        issuerRules = [result.data.requirement];
+                        return true;
+                    }
+                }
+                
+                // Fallback: create default rules
+                issuerRules = [
+                    {
+                        ruleType: 'twitter_follow',
+                        name: 'Twitter Follow',
+                        parameters: { account: 'testissuer' },
+                        isRequired: true
+                    },
+                    {
+                        ruleType: 'discord_member', 
+                        name: 'Discord Member',
+                        parameters: { serverId: 'test_server_123', serverName: 'Test Discord' },
+                        isRequired: true
+                    },
+                    {
+                        ruleType: 'snapshot_votes',
+                        name: 'Snapshot Votes',
+                        parameters: { spaceId: 'testissuer.eth', minVotes: 2 },
+                        isRequired: false
+                    }
+                ];
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Error loading issuer rules:', error);
+                issuerRules = [];
+                return false;
+            }
+        }
+    
+        async function loadIssuerInfo(issuerId) {
+            try {
+                // Get issuer from the allIssuers array
+                const issuer = allIssuers.find(i => i.id === issuerId);
+                if (issuer) {
+                    currentIssuerData = issuer;
+                    displayIssuerInfo();
+                }
+            } catch (error) {
+                console.error('Error loading issuer info:', error);
+            }
+        }
+    
+        // ========== UI UPDATE FUNCTIONS ==========
+        function updateIssuerDropdown() {
+            const select = document.getElementById('currentIssuer');
+            select.innerHTML = '<option value="">Select Issuer</option>';
+            
+            allIssuers.forEach(issuer => {
+                const option = document.createElement('option');
+                option.value = issuer.id;
+                option.textContent = issuer.name;
+                if (issuer.id === currentIssuerId) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+    
+        function displayIssuerInfo() {
+            if (!currentIssuerData) {
+                document.getElementById('issuerInfo').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('issuerInfo').style.display = 'block';
+            document.getElementById('issuerName').textContent = currentIssuerData.name;
+            document.getElementById('issuerDescription').textContent = 
+                currentIssuerData.description || 'No description available';
+        }
+    
+        function updateModeIndicator() {
+            const indicator = document.getElementById('modeIndicator');
+            const context = document.getElementById('verificationContext');
+            
+            switch(currentMode) {
+                case 'all':
+                    indicator.innerHTML = '<span style="color: #6c757d; font-size: 0.9rem;">Viewing all available verifications</span>';
+                    context.textContent = 'Complete these verifications to become eligible for badges. Primary verifications are required for most badges.';
+                    break;
+                case 'issuer':
+                    if (currentIssuerId && currentIssuerData) {
+                        indicator.innerHTML = `<span style="color: #9b59b6; font-size: 0.9rem; font-weight: 500;">Verifying for: ${currentIssuerData.name}</span>`;
+                        context.textContent = `Complete these verifications to become eligible for ${currentIssuerData.name}'s badges.`;
+                    } else {
+                        indicator.innerHTML = '<span style="color: #e74c3c; font-size: 0.9rem;">Please select an issuer</span>';
+                        context.textContent = 'Select an issuer to view their specific verification requirements.';
+                    }
+                    break;
+                case 'primary':
+                    indicator.innerHTML = '<span style="color: #3498db; font-size: 0.9rem;">Showing only primary verifications</span>';
+                    context.textContent = 'Primary verifications are required for most badges. Complete these first.';
+                    break;
+            }
+        }
+    
+        function updateBadgeSelector() {
+            const select = document.getElementById('badgeSelect');
+            select.innerHTML = '<option value="">Select a badge...</option>';
+            
+            allBadges.forEach(badge => {
+                const option = document.createElement('option');
+                option.value = badge.id;
+                option.textContent = `${badge.badgeType?.name || badge.name} (${badge.badgeType?.issuer || 'Unknown issuer'})`;
+                select.appendChild(option);
+            });
+        }
+    
+        // ========== LOAD VERIFICATIONS ==========
+        async function loadVerifications() {
+            try {
+                const response = await fetch(API_BASE + '/verifications', {
                     headers: { 'Authorization': `Bearer ${userToken}` }
                 });
     
                 if (response.ok) {
-                    const verifications = await response.json();
-                    displayVerifications(verifications);
-                    updateProgress(verifications);
+                    const result = await response.json();
+                    userVerifications = result || [];
+                    displayVerifications();
+                    updateProgress();
                 } else {
                     throw new Error('Failed to load verifications');
                 }
             } catch (error) {
                 showError('Failed to load verifications: ' + error.message);
-                // Fallback to empty state
                 displayVerifications([]);
             }
         }
-
+    
+        function displayVerifications() {
+            const primaryContainer = document.getElementById('primary-verifications');
+            const secondaryContainer = document.getElementById('secondary-verifications');
+            const emptyIssuerState = document.getElementById('emptyIssuerState');
+            const emptyRequirements = document.getElementById('emptyRequirements');
+            
+            // Show/hide empty states based on mode
+            if (currentMode === 'issuer' && !currentIssuerId) {
+                primaryContainer.innerHTML = '';
+                secondaryContainer.innerHTML = '';
+                emptyIssuerState.style.display = 'block';
+                emptyRequirements.style.display = 'none';
+                return;
+            }
+            
+            emptyIssuerState.style.display = 'none';
+            
+            // Get verifications to display based on current mode
+            let primaryVerifications = getPrimaryVerifications();
+            let secondaryVerifications = getSecondaryVerifications();
+            
+            // Check if all requirements are met (for issuer mode)
+            if (currentMode === 'issuer' && currentIssuerId && 
+                secondaryVerifications.length === 0 && issuerRules.length > 0) {
+                const allCompleted = checkAllRequirementsMet();
+                if (allCompleted) {
+                    emptyRequirements.style.display = 'block';
+                    primaryContainer.innerHTML = '';
+                    secondaryContainer.innerHTML = '';
+                    return;
+                }
+            }
+            
+            emptyRequirements.style.display = 'none';
+            
+            // Display primary verifications
+            primaryContainer.innerHTML = primaryVerifications.map(verification => 
+                createVerificationCard(verification)
+            ).join('');
+    
+            // Display secondary verifications
+            secondaryContainer.innerHTML = secondaryVerifications.map(verification => 
+                createVerificationCard(verification)
+            ).join('');
+            
+            // Update secondary count
+            document.getElementById('secondaryCount').textContent = 
+                `${secondaryVerifications.length} verification${secondaryVerifications.length !== 1 ? 's' : ''} available`;
+        }
+    
+        function getPrimaryVerifications() {
+            const primaryVerifications = [
+                { 
+                    provider: 'polygonid', 
+                    name: 'Polygon ID', 
+                    icon: '🆔', 
+                    description: 'Decentralized Identity Verification using Polygon ID',
+                    required: true,
+                    type: 'primary'
+                },
+                { 
+                    provider: 'idos', 
+                    name: 'IdOS', 
+                    icon: '🔐', 
+                    description: 'Identity Operating System verification',
+                    required: true,
+                    type: 'primary'
+                }
+            ];
+    
+            return primaryVerifications.map(verification => {
+                const existing = userVerifications.find(v => v.provider === verification.provider);
+                return {
+                    ...verification,
+                    existing: existing,
+                    status: getVerificationStatus(existing)
+                };
+            });
+        }
+    
+        function getSecondaryVerifications() {
+            let secondaryVerifications = [];
+            
+            if (currentMode === 'issuer' && currentIssuerId && issuerRules.length > 0) {
+                // Show issuer-specific rules
+                secondaryVerifications = issuerRules.map(rule => ({
+                    provider: rule.ruleType,
+                    name: rule.name,
+                    icon: getIconForRuleType(rule.ruleType),
+                    description: getDescriptionForRuleType(rule.ruleType, rule.parameters),
+                    required: rule.isRequired,
+                    type: 'secondary',
+                    issuerSpecific: true,
+                    ruleId: rule.id,
+                    parameters: rule.parameters
+                }));
+            } else if (currentMode === 'all') {
+                // Show all available verifications
+                secondaryVerifications = [
+                    { 
+                        provider: 'twitter_follow', 
+                        name: 'Twitter Follow', 
+                        icon: '🐦', 
+                        description: 'Follow required community accounts on Twitter',
+                        required: false,
+                        type: 'secondary'
+                    },
+                    { 
+                        provider: 'discord_member', 
+                        name: 'Discord Member', 
+                        icon: '💬', 
+                        description: 'Join and verify membership in community Discord',
+                        required: false,
+                        type: 'secondary'
+                    },
+                    { 
+                        provider: 'snapshot_votes', 
+                        name: 'Snapshot Votes', 
+                        icon: '🗳️', 
+                        description: 'Participate in community governance voting',
+                        required: false,
+                        type: 'secondary'
+                    },
+                    { 
+                        provider: 'onchain_activity', 
+                        name: 'On-chain Activity', 
+                        icon: '⛓️', 
+                        description: 'Complete on-chain transactions and interactions',
+                        required: false,
+                        type: 'secondary'
+                    },
+                    { 
+                        provider: 'onchain_governance', 
+                        name: 'On-chain Governance', 
+                        icon: '🏛️', 
+                        description: 'Participate in on-chain governance proposals',
+                        required: false,
+                        type: 'secondary'
+                    }
+                ];
+            }
+            // For 'primary' mode, return empty array
+    
+            // Add existing verification status
+            return secondaryVerifications.map(verification => {
+                // For issuer-specific verifications, look for issuer-specific records
+                let existing;
+                if (verification.issuerSpecific) {
+                    existing = userVerifications.find(v => 
+                        v.provider === verification.provider && 
+                        v.metadata?.issuerId === currentIssuerId
+                    );
+                } else {
+                    existing = userVerifications.find(v => v.provider === verification.provider);
+                }
+                
+                return {
+                    ...verification,
+                    existing: existing,
+                    status: getVerificationStatus(existing)
+                };
+            });
+        }
+    
+        function getIconForRuleType(ruleType) {
+            const icons = {
+                'twitter_follow': '🐦',
+                'discord_member': '💬',
+                'snapshot_votes': '🗳️',
+                'onchain_activity': '⛓️',
+                'onchain_governance': '🏛️',
+                'github_contributor': '💻',
+                'custom': '⚙️'
+            };
+            return icons[ruleType] || '📋';
+        }
+    
+        function getDescriptionForRuleType(ruleType, parameters) {
+            const descriptions = {
+                'twitter_follow': (params) => `Follow @${params.account || 'required account'} on Twitter`,
+                'discord_member': (params) => `Join ${params.serverName || params.serverId || 'the community'} Discord server`,
+                'snapshot_votes': (params) => `Vote ${params.minVotes ? `at least ${params.minVotes} time(s) ` : ''}in ${params.space || 'Snapshot'} governance`,
+                'onchain_activity': (params) => `Complete ${params.minTransactions || 'required'} on-chain transactions`,
+                'onchain_governance': (params) => `Participate in on-chain governance${params.minVotes ? ` (${params.minVotes} votes minimum)` : ''}`,
+                'github_contributor': (params) => `Contribute to ${params.organization || 'the'} GitHub organization`,
+                'custom': (params) => 'Complete custom verification requirement'
+            };
+            
+            const descFn = descriptions[ruleType] || (() => 'Complete verification requirement');
+            return descFn(parameters || {});
+        }
+    
+        function getVerificationStatus(existing) {
+            if (!existing) {
+                return {
+                    statusClass: 'status-not-verified',
+                    statusText: 'Not Connected',
+                    isConnected: false,
+                    isVerified: false
+                };
+            }
+            
+            const status = existing.status;
+            const type = existing.type || 'follow_verified';
+            const metadata = existing.metadata || {};
+            
+            if (status === 'completed') {
+                if (type === 'connection_only' || metadata.permissionWarning) {
+                    return {
+                        statusClass: 'status-connected',
+                        statusText: '✓ Connected',
+                        detailText: 'Follow verification pending permissions',
+                        isConnected: true,
+                        isVerified: false
+                    };
+                } else {
+                    return {
+                        statusClass: 'status-verified',
+                        statusText: '✓ Verified',
+                        isConnected: true,
+                        isVerified: true
+                    };
+                }
+            } else if (status === 'pending') {
+                return {
+                    statusClass: 'status-pending',
+                    statusText: 'Pending',
+                    isConnected: false,
+                    isVerified: false
+                };
+            } else if (status === 'failed') {
+                return {
+                    statusClass: 'status-not-verified',
+                    statusText: 'Not Verified',
+                    detailText: existing.errorMessage || 'Verification failed',
+                    isConnected: metadata.twitterUsername || metadata.discordUsername ? true : false,
+                    isVerified: false
+                };
+            } else {
+                return {
+                    statusClass: 'status-not-verified',
+                    statusText: 'Not Connected',
+                    isConnected: false,
+                    isVerified: false
+                };
+            }
+        }
+    
+        function createVerificationCard(verification) {
+            const status = verification.status;
+            const isIssuerSpecific = verification.issuerSpecific;
+            const parameters = verification.parameters || {};
+            
+            // Determine card class
+            let cardClass = '';
+            if (status.isVerified) cardClass = 'verified';
+            else if (status.isConnected) cardClass = 'connected';
+            else if (verification.existing?.status === 'pending') cardClass = 'pending';
+            if (isIssuerSpecific) cardClass += ' issuer-specific';
+            
+            // Get button text
+            let buttonText = 'Verify Now';
+            if (status.isVerified) buttonText = 'Verified ✓';
+            else if (verification.existing?.status === 'pending') buttonText = 'Verification Pending...';
+            else if (status.isConnected) buttonText = 'Re-verify';
+            
+            // Get onClick function
+            let onClickFunction = `startVerification('${verification.provider}', ${isIssuerSpecific ? "'" + currentIssuerId + "'" : 'null'})`;
+            
+            // Special handling for specific providers
+            if (verification.provider === 'twitter_follow') {
+                onClickFunction = `startTwitterVerification(${isIssuerSpecific ? "'" + currentIssuerId + "'" : 'null'})`;
+            } else if (verification.provider === 'discord_member') {
+                onClickFunction = `startDiscordVerification(${isIssuerSpecific ? "'" + currentIssuerId + "'" : 'null'})`;
+            } else if (verification.provider === 'snapshot_votes') {
+                onClickFunction = `verifySnapshot(${isIssuerSpecific ? "'" + currentIssuerId + "'" : 'null'})`;
+            }
+            
+            // Build parameter display
+            let parameterHTML = '';
+            if (Object.keys(parameters).length > 0) {
+                parameterHTML = '<div style="margin: 0.5rem 0;">';
+                Object.entries(parameters).forEach(([key, value]) => {
+                    if (value && key !== 'customConditions') {
+                        parameterHTML += `<div class="verification-parameter">${key}: ${value}</div>`;
+                    }
+                });
+                parameterHTML += '</div>';
+            }
+            
+            return `
+                <div class="verification-card ${cardClass}">
+                    ${isIssuerSpecific ? '<div class="issuer-badge">Issuer</div>' : ''}
+                    <div class="verification-icon">${verification.icon}</div>
+                    <div class="verification-name">${verification.name}</div>
+                    <div class="verification-status ${status.statusClass}">
+                        ${status.statusText}
+                    </div>
+                    ${status.detailText ? 
+                        `<div class="verification-detail">${status.detailText}</div>` : 
+                        '<div class="verification-detail">&nbsp;</div>'}
+                    ${parameterHTML}
+                    <p style="margin-bottom: 1rem; color: #666; font-size: 0.9rem;">${verification.description}</p>
+                    ${verification.required ? '<div style="color: #dc3545; font-size: 0.8rem; margin-bottom: 0.5rem;">Required</div>' : ''}
+                    <button class="verify-btn ${status.isVerified ? 'verified' : status.isConnected ? 'connected' : ''}" 
+                            onclick="${onClickFunction}" 
+                            ${status.isVerified ? 'disabled' : ''}
+                            id="btn-${verification.provider}${isIssuerSpecific ? '-' + currentIssuerId : ''}">
+                        ${buttonText}
+                    </button>
+                </div>
+            `;
+        }
+    
+        function checkAllRequirementsMet() {
+            if (!currentIssuerId || issuerRules.length === 0) return false;
+            
+            const requiredRules = issuerRules.filter(rule => rule.isRequired);
+            if (requiredRules.length === 0) return true;
+            
+            // Check if all required rules have completed verifications
+            return requiredRules.every(rule => {
+                const existing = userVerifications.find(v => 
+                    v.provider === rule.ruleType && 
+                    v.metadata?.issuerId === currentIssuerId &&
+                    v.status === 'completed'
+                );
+                return !!existing;
+            });
+        }
+    
+        function updateProgress() {
+            const totalVerifications = currentMode === 'primary' ? 2 : 7;
+            const completed = userVerifications.filter(v => v.status === 'completed').length;
+            const percentage = Math.round((completed / totalVerifications) * 100);
+            
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = 
+                `${percentage}% Complete (${completed}/${totalVerifications} verifications)`;
+        }
+    
         function showSkeletonLoading() {
             const primaryContainer = document.getElementById('primary-verifications');
             const secondaryContainer = document.getElementById('secondary-verifications');
@@ -276,254 +1171,22 @@
             `).join('');
         }
     
-        function displayVerifications(verifications) {
-            const primaryContainer = document.getElementById('primary-verifications');
-            const secondaryContainer = document.getElementById('secondary-verifications');
-
-            const primaryVerifications = [
-                { 
-                    provider: 'polygonid', 
-                    name: 'Polygon ID', 
-                    icon: '🆔', 
-                    description: 'Decentralized Identity Verification using Polygon ID',
-                    required: true
-                },
-                { 
-                    provider: 'idos', 
-                    name: 'IdOS', 
-                    icon: '🔐', 
-                    description: 'Identity Operating System verification',
-                    required: true
-                }
-            ];
-
-            const secondaryVerifications = [
-                { 
-                    provider: 'twitter_follow', 
-                    name: 'Twitter Follow', 
-                    icon: '🐦', 
-                    description: 'Follow required community accounts on Twitter',
-                    required: false
-                },
-                { 
-                    provider: 'discord_member', 
-                    name: 'Discord Member', 
-                    icon: '💬', 
-                    description: 'Join and verify membership in community Discord',
-                    required: false
-                },
-                { 
-                    provider: 'snapshot_votes', 
-                    name: 'Snapshot Votes', 
-                    icon: '🗳️', 
-                    description: 'Participate in community governance voting',
-                    required: false
-                },
-                { 
-                    provider: 'onchain_activity', 
-                    name: 'On-chain Activity', 
-                    icon: '⛓️', 
-                    description: 'Complete on-chain transactions and interactions',
-                    required: false
-                },
-                { 
-                    provider: 'onchain_governance', 
-                    name: 'On-chain Governance', 
-                    icon: '🏛️', 
-                    description: 'Participate in on-chain governance proposals',
-                    required: false
-                }
-            ];
-
-            // Helper function to get proper status display
-            function getVerificationStatusDisplay(existing) {
-                if (!existing) {
-                    return {
-                        statusClass: 'status-not-verified',
-                        statusText: 'Not Connected',
-                        isConnected: false,
-                        isVerified: false
-                    };
-                }
-                
-                const status = existing.status;
-                const type = existing.type || 'follow_verified';
-                const metadata = existing.metadata || {};
-                
-                if (status === 'completed') {
-                    if (type === 'connection_only' || metadata.permissionWarning) {
-                        return {
-                            statusClass: 'status-connected',
-                            statusText: '✓ Connected',
-                            detailText: 'Follow verification pending permissions',
-                            isConnected: true,
-                            isVerified: false
-                        };
-                    } else {
-                        return {
-                            statusClass: 'status-verified',
-                            statusText: '✓ Verified',
-                            isConnected: true,
-                            isVerified: true
-                        };
-                    }
-                } else if (status === 'pending') {
-                    return {
-                        statusClass: 'status-pending',
-                        statusText: 'Pending',
-                        isConnected: false,
-                        isVerified: false
-                    };
-                } else if (status === 'failed') {
-                    return {
-                        statusClass: 'status-not-verified',
-                        statusText: 'Not Verified',
-                        detailText: existing.errorMessage || 'Verification failed',
-                        isConnected: metadata.twitterUsername || metadata.discordUsername ? true : false,
-                        isVerified: false
-                    };
-                } else {
-                    return {
-                        statusClass: 'status-not-verified',
-                        statusText: 'Not Connected',
-                        isConnected: false,
-                        isVerified: false
-                    };
-                }
-            }
-
-            // Helper function to get button text
-            function getButtonText(existing, provider) {
-                if (!existing) {
-                    return 'Verify Now';
-                }
-                
-                const statusDisplay = getVerificationStatusDisplay(existing);
-                
-                if (statusDisplay.isVerified) {
-                    return 'Verified ✓';
-                } else if (existing.status === 'pending') {
-                    return 'Verification Pending...';
-                } else if (statusDisplay.isConnected) {
-                    return 'Re-verify';
-                } else {
-                    return 'Verify Now';
-                }
-            }
-
-            // Helper function to get card class
-            function getCardClass(existing) {
-                if (!existing) return '';
-                
-                const statusDisplay = getVerificationStatusDisplay(existing);
-                
-                if (statusDisplay.isVerified) {
-                    return 'verified';
-                } else if (statusDisplay.isConnected) {
-                    return 'connected';
-                } else if (existing.status === 'pending') {
-                    return 'pending';
-                } else {
-                    return '';
-                }
-            }
-
-            // Display primary verifications
-            primaryContainer.innerHTML = primaryVerifications.map(verification => {
-                const existing = verifications.find(v => v.provider === verification.provider);
-                const statusDisplay = getVerificationStatusDisplay(existing);
-                
-                // ✅ FIX: Primary verifications should use startVerification, NOT verifySnapshot
-                const onClickFunction = `startVerification('${verification.provider}')`;
-                
-                return `
-                    <div class="verification-card ${getCardClass(existing)}">
-                        <div class="verification-icon">${verification.icon}</div>
-                        <div class="verification-name">${verification.name}</div>
-                        <div class="verification-status ${statusDisplay.statusClass}">
-                            ${statusDisplay.statusText}
-                        </div>
-                        ${statusDisplay.detailText ? 
-                            `<div class="verification-detail">${statusDisplay.detailText}</div>` : 
-                            '<div class="verification-detail">&nbsp;</div>'}
-                        <p style="margin-bottom: 1rem; color: #666;">${verification.description}</p>
-                        ${verification.required ? '<div style="color: #dc3545; font-size: 0.8rem; margin-bottom: 0.5rem;">Required for most badges</div>' : ''}
-                        <button class="verify-btn ${statusDisplay.isVerified ? 'verified' : ''}" 
-                                onclick="${onClickFunction}" 
-                                ${statusDisplay.isVerified ? 'disabled' : ''}
-                                id="btn-${verification.provider}">
-                            ${getButtonText(existing, verification.provider)}
-                        </button>
-                    </div>
-                `;
-            }).join('');
-
-            // Display secondary verifications
-            secondaryContainer.innerHTML = secondaryVerifications.map(verification => {
-                const existing = verifications.find(v => v.provider === verification.provider);
-                const statusDisplay = getVerificationStatusDisplay(existing);
-                
-                // ✅ FIXED: Special handling for each verification type
-                let onClickFunction;
-                if (verification.provider === 'twitter_follow') {
-                    onClickFunction = 'startTwitterVerification()';
-                } else if (verification.provider === 'discord_member') {
-                    onClickFunction = 'startDiscordVerification()';
-                } else if (verification.provider === 'snapshot_votes') {
-                    onClickFunction = 'verifySnapshot()';  // ✅ Use the real Snapshot function
-                } else {
-                    onClickFunction = `startVerification('${verification.provider}')`;
-                }
-                
-                return `
-                    <div class="verification-card ${getCardClass(existing)}">
-                        <div class="verification-icon">${verification.icon}</div>
-                        <div class="verification-name">${verification.name}</div>
-                        <div class="verification-status ${statusDisplay.statusClass}">
-                            ${statusDisplay.statusText}
-                        </div>
-                        ${statusDisplay.detailText ? 
-                            `<div class="verification-detail">${statusDisplay.detailText}</div>` : 
-                            '<div class="verification-detail">&nbsp;</div>'}
-                        <p style="margin-bottom: 1rem; color: #666;">${verification.description}</p>
-                        <button class="verify-btn ${statusDisplay.isVerified ? 'verified' : ''}" 
-                                onclick="${onClickFunction}" 
-                                ${statusDisplay.isVerified ? 'disabled' : ''}
-                                id="btn-${verification.provider}">
-                            ${getButtonText(existing, verification.provider)}
-                        </button>
-                    </div>
-                `;
-            }).join('');
-        }
-    
-        function updateProgress(verifications) {
-            const totalVerifications = 7; // 2 primary + 5 secondary
-            const completed = verifications.filter(v => v.status === 'completed').length;
-            const percentage = Math.round((completed / totalVerifications) * 100);
-            
-            document.getElementById('progressFill').style.width = percentage + '%';
-            document.getElementById('progressText').textContent = 
-                `${percentage}% Complete (${completed}/${totalVerifications} verifications)`;
-        }
-    
-        // Mock verification for non-OAuth providers
-        async function startVerification(provider) {
-            const button = document.getElementById(`btn-${provider}`);
+        // ========== VERIFICATION FUNCTIONS ==========
+        async function startVerification(provider, issuerId = null) {
+            const buttonId = issuerId ? `btn-${provider}-${issuerId}` : `btn-${provider}`;
+            const button = document.getElementById(buttonId);
             if (!button) return;
             
             const originalText = button.textContent;
             
             try {
-                // Show loading state
                 button.classList.add('loading');
                 button.disabled = true;
     
-                // Simulate verification process (2 seconds)
-                await new Promise(resolve => setTimeout(resolve, 2000));
-    
-                // Complete verification via API
-                const response = await fetch(`${API_BASE}/complete-verification`, {
+                // Add issuer context to verification
+                const metadata = issuerId ? { issuerId: issuerId } : {};
+                
+                const response = await fetch(API_BASE + '/complete-verification', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -532,22 +1195,14 @@
                     body: JSON.stringify({
                         provider: provider,
                         did: `did:${provider}:test:${Date.now()}`,
-                        status: 'completed'
+                        status: 'completed',
+                        metadata: metadata
                     })
                 });
     
                 if (response.ok) {
                     const result = await response.json();
-                    showError(''); // Clear any errors
-                    
-                    // Show success toast
-                    const providerName = getProviderName(provider);
-                    showToast(`✅ ${providerName} verification completed successfully!`);
-                    
-                    // Refresh verifications AND update dashboard via localStorage
-                    localStorage.setItem('shouldRefreshDashboard', 'true');
-                    
-                    // Reload verifications to update UI
+                    showToast(`✅ ${getProviderName(provider)} verification completed!`, 'success');
                     loadVerifications();
                 } else {
                     const errorData = await response.json();
@@ -560,112 +1215,57 @@
                 button.classList.remove('loading');
             }
         }
-
-        // ✅ MOVED OUTSIDE: Real Snapshot verification function
-        async function verifySnapshot() {
-            const button = document.getElementById('btn-snapshot_votes');
-            const originalText = button?.textContent || 'Check Snapshot Activity';
-            
-            try {
-                // Show loading on button
-                if (button) {
-                    button.classList.add('loading');
-                    button.disabled = true;
-                }
-                
-                showToast('🔍 Checking Snapshot voting activity...', 'info');
-                
-                const response = await fetch('/api/verify/snapshot/verify', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${userToken}`
-                    },
-                    body: JSON.stringify({
-                        wallet: userWallet
-                    })
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    
-                    if (result.data.verified) {
-                        showToast(`✅ Found ${result.data.details.totalVotes} Snapshot votes!`, 'success');
-                    } else {
-                        showToast(`❌ ${result.data.details.message || 'No sufficient Snapshot activity'}`, 'error');
-                    }
-                    
-                    loadVerifications(); // Refresh the UI
-                } else {
-                    throw new Error('Failed to verify Snapshot activity');
-                }
-                
-            } catch (error) {
-                console.error('Snapshot verification error:', error);
-                showToast('Failed to check Snapshot activity', 'error');
-            } finally {
-                // Restore button
-                if (button) {
-                    button.textContent = originalText;
-                    button.disabled = false;
-                    button.classList.remove('loading');
-                }
-            }
-        }
     
-        function getProviderName(provider) {
-            const names = {
-                'polygonid': 'Polygon ID',
-                'idos': 'IdOS',
-                'twitter_follow': 'Twitter Follow',
-                'discord_member': 'Discord Member',
-                'snapshot_votes': 'Snapshot Votes',
-                'onchain_activity': 'On-chain Activity',
-                'onchain_governance': 'On-chain Governance'
-            };
-            return names[provider] || provider;
-        }
-    
-        function goToDashboard() {
-            window.location.href = '/user-dashboard.html';
-        }
-    
-        // Enhanced Twitter verification with real OAuth
-        async function startTwitterVerification() {
-            const button = document.getElementById('btn-twitter_follow');
+        async function startTwitterVerification(issuerId = null) {
+            const buttonId = issuerId ? `btn-twitter_follow-${issuerId}` : `btn-twitter_follow`;
+            const button = document.getElementById(buttonId);
             const originalText = button?.textContent || 'Connect Twitter';
             
             try {
-                showError(''); // Clear any errors
+                showError('');
                 
-                // Show loading on button
                 if (button) {
                     button.classList.add('loading');
                     button.disabled = true;
                 }
                 
-                const response = await fetch('/api/verify/twitter/oauth/initiate', {
+                // Get target account if issuer-specific
+                let targetAccount = null;
+                if (issuerId) {
+                    const twitterRule = issuerRules.find(r => r.ruleType === 'twitter_follow');
+                    if (twitterRule && twitterRule.parameters.account) {
+                        targetAccount = twitterRule.parameters.account;
+                    }
+                }
+                
+                const body = {
+                    wallet: userWallet,
+                    issuerId: issuerId
+                };
+                
+                if (targetAccount) {
+                    body.targetAccount = targetAccount;
+                }
+    
+                const response = await fetch(VERIFY_API_BASE + '/twitter/oauth/initiate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${userToken}`
                     },
-                    body: JSON.stringify({
-                        wallet: userWallet
-                    })
+                    body: JSON.stringify(body)
                 });
         
                 if (response.ok) {
                     const data = await response.json();
                     
-                    // Store the code verifier and state for the callback
                     localStorage.setItem('twitter_code_verifier', data.data.codeVerifier);
                     localStorage.setItem('twitter_oauth_state', data.data.state);
                     localStorage.setItem('twitter_wallet', userWallet);
+                    if (issuerId) {
+                        localStorage.setItem('twitter_issuer_id', issuerId);
+                    }
                     
-                    console.log('Opening Twitter OAuth:', data.data.authUrl);
-                    
-                    // Open Twitter OAuth in a popup
                     const popup = window.open(
                         data.data.authUrl, 
                         'twitter_oauth', 
@@ -682,12 +1282,10 @@
                         return;
                     }
                     
-                    // Check for OAuth completion every second
                     const checkPopup = setInterval(() => {
                         if (popup.closed) {
                             clearInterval(checkPopup);
                             checkTwitterConnection();
-                            // Restore button
                             if (button) {
                                 button.textContent = originalText;
                                 button.disabled = false;
@@ -703,7 +1301,6 @@
             } catch (error) {
                 console.error('Twitter OAuth error:', error);
                 showError('Twitter verification failed: ' + error.message);
-                // Restore button
                 if (button) {
                     button.textContent = originalText;
                     button.disabled = false;
@@ -711,139 +1308,113 @@
                 }
             }
         }
-        
-        // Check Twitter connection status
-        async function checkTwitterConnection() {
-            try {
-                const response = await fetch(`/api/verify/twitter/status/${userWallet}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    if (data.data.connected) {
-                        showToast('✅ Twitter account connected successfully!');
-                        loadVerifications(); // Refresh the UI
-                    } else {
-                        console.log('Twitter connection not completed');
-                    }
-                }
-            } catch (error) {
-                console.error('Error checking Twitter connection:', error);
-            }
-        }
-        
-        // Listen for OAuth completion message from popup (backup method)
-        window.addEventListener('message', function(event) {
-            if (event.data.type === 'TWITTER_OAUTH_SUCCESS') {
-                console.log('Received OAuth success message:', event.data);
-                completeTwitterOAuth(event.data.code, event.data.state);
-            }
-        });
-        
-        // Complete OAuth with code and state
-        async function completeTwitterOAuth(code, state) {
-            try {
-                const codeVerifier = localStorage.getItem('twitter_code_verifier');
-                const storedState = localStorage.getItem('twitter_oauth_state');
-                const wallet = localStorage.getItem('twitter_wallet');
-                
-                if (state !== storedState) {
-                    throw new Error('OAuth state mismatch - possible security issue');
-                }
-
-                if (!wallet || wallet !== userWallet) {
-                    throw new Error('Wallet mismatch');
-                }
-
-                const response = await fetch('/api/verify/twitter/callback', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${userToken}`
-                    },
-                    body: JSON.stringify({
-                        wallet: wallet,
-                        code: code,
-                        state: state,
-                        code_verifier: codeVerifier
-                    })
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('Twitter OAuth completed:', result);
-                    
-                    // Wait a moment for the verification record to be created
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    
-                    // CHECK ACTUAL VERIFICATION STATUS
-                    const verificationResponse = await fetch(`${API_BASE}/verifications`, {
-                        headers: { 'Authorization': `Bearer ${userToken}` }
-                    });
-                    
-                    if (verificationResponse.ok) {
-                        const verifications = await verificationResponse.json();
-                        const twitterVerification = verifications.find(v => v.provider === 'twitter_follow');
-                        
-                        if (twitterVerification && twitterVerification.status === 'completed') {
-                            showToast('✅ Twitter follow verification completed successfully!');
-                        } else if (twitterVerification && twitterVerification.status === 'failed') {
-                            showToast('❌ Twitter connected, but you need to follow the required accounts');
-                        } else {
-                            showToast('✅ Twitter account connected! Verification pending...');
-                        }
-                    } else {
-                        showToast('✅ Twitter account connected successfully!');
-                    }
-                    
-                    loadVerifications(); // Refresh the UI
-                } else {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to complete Twitter OAuth');
-                }
-            } catch (error) {
-                console.error('Twitter OAuth completion error:', error);
-                showError('Failed to complete Twitter connection: ' + error.message);
-            } finally {
-                // Clean up
-                localStorage.removeItem('twitter_code_verifier');
-                localStorage.removeItem('twitter_oauth_state');
-                localStorage.removeItem('twitter_wallet');
-            }
-        }
     
-        // Discord verification functions
-        async function startDiscordVerification() {
-            const button = document.getElementById('btn-discord_member');
-            const originalText = button?.textContent || 'Connect Discord';
+        async function verifySnapshot(issuerId = null) {
+            const buttonId = issuerId ? `btn-snapshot_votes-${issuerId}` : `btn-snapshot_votes`;
+            const button = document.getElementById(buttonId);
+            const originalText = button?.textContent || 'Check Snapshot Activity';
             
             try {
-                // Show loading on button
                 if (button) {
                     button.classList.add('loading');
                     button.disabled = true;
                 }
                 
-                const response = await fetch('/api/verify/discord/oauth/initiate', {
+                showToast('🔍 Checking Snapshot voting activity...', 'info');
+                
+                // Get spaceId if issuer-specific
+                let spaceId = null;
+                if (issuerId) {
+                    const snapshotRule = issuerRules.find(r => r.ruleType === 'snapshot_votes');
+                    if (snapshotRule && snapshotRule.parameters.space) {
+                        spaceId = snapshotRule.parameters.space;
+                    }
+                }
+                
+                const body = {
+                    wallet: userWallet
+                };
+                
+                if (issuerId) body.issuerId = issuerId;
+                if (spaceId) body.spaceId = spaceId;
+    
+                const response = await fetch(VERIFY_API_BASE + '/snapshot/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userToken}`
+                    },
+                    body: JSON.stringify(body)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    if (result.data.verified) {
+                        showToast(`✅ Found ${result.data.details.totalVotes} Snapshot votes!`, 'success');
+                    } else {
+                        showToast(`❌ ${result.data.details.message || 'No sufficient Snapshot activity'}`, 'error');
+                    }
+                    
+                    loadVerifications();
+                } else {
+                    throw new Error('Failed to verify Snapshot activity');
+                }
+                
+            } catch (error) {
+                console.error('Snapshot verification error:', error);
+                showToast('Failed to check Snapshot activity', 'error');
+            } finally {
+                if (button) {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    button.classList.remove('loading');
+                }
+            }
+        }
+    
+        async function startDiscordVerification(issuerId = null) {
+            const buttonId = issuerId ? `btn-discord_member-${issuerId}` : `btn-discord_member`;
+            const button = document.getElementById(buttonId);
+            const originalText = button?.textContent || 'Connect Discord';
+            
+            try {
+                if (button) {
+                    button.classList.add('loading');
+                    button.disabled = true;
+                }
+                
+                // Get server info if issuer-specific
+                let serverInfo = null;
+                if (issuerId) {
+                    const discordRule = issuerRules.find(r => r.ruleType === 'discord_member');
+                    if (discordRule && discordRule.parameters) {
+                        serverInfo = discordRule.parameters;
+                    }
+                }
+    
+                const response = await fetch(VERIFY_API_BASE + '/discord/oauth/initiate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${userToken}`
                     },
                     body: JSON.stringify({
-                        wallet: userWallet
+                        wallet: userWallet,
+                        issuerId: issuerId,
+                        serverInfo: serverInfo
                     })
                 });
         
                 if (response.ok) {
                     const data = await response.json();
                     
-                    // Store the state for the callback
                     localStorage.setItem('discord_oauth_state', data.data.state);
                     localStorage.setItem('discord_wallet', userWallet);
+                    if (issuerId) {
+                        localStorage.setItem('discord_issuer_id', issuerId);
+                    }
                     
-                    console.log('Opening Discord OAuth:', data.data.authUrl);
-                    
-                    // Open Discord OAuth in a popup
                     const popup = window.open(
                         data.data.authUrl, 
                         'discord_oauth', 
@@ -860,12 +1431,10 @@
                         return;
                     }
                     
-                    // Check for OAuth completion every second
                     const checkPopup = setInterval(() => {
                         if (popup.closed) {
                             clearInterval(checkPopup);
                             checkDiscordConnection();
-                            // Restore button
                             if (button) {
                                 button.textContent = originalText;
                                 button.disabled = false;
@@ -879,7 +1448,6 @@
                 }
             } catch (error) {
                 showError('Discord verification failed: ' + error.message);
-                // Restore button
                 if (button) {
                     button.textContent = originalText;
                     button.disabled = false;
@@ -887,39 +1455,271 @@
                 }
             }
         }
-        
-        // Check Discord connection status
+    
+        // ========== UTILITY FUNCTIONS ==========
+        function getProviderName(provider) {
+            const names = {
+                'polygonid': 'Polygon ID',
+                'idos': 'IdOS',
+                'twitter_follow': 'Twitter Follow',
+                'discord_member': 'Discord Member',
+                'snapshot_votes': 'Snapshot Votes',
+                'onchain_activity': 'On-chain Activity',
+                'onchain_governance': 'On-chain Governance'
+            };
+            return names[provider] || provider;
+        }
+    
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => errorDiv.style.display = 'none', 5000);
+            showToast(message, 'error');
+        }
+    
+        function showToast(message, type = 'success') {
+            document.querySelectorAll('.toast').forEach(toast => toast.remove());
+            
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 3000);
+        }
+    
+        // ========== EVENT HANDLERS ==========
+        function changeIssuer(issuerId) {
+            currentIssuerId = issuerId || null;
+            localStorage.setItem('currentIssuerId', currentIssuerId);
+            
+            if (issuerId) {
+                loadIssuerRules(issuerId);
+                loadIssuerInfo(issuerId);
+            } else {
+                currentIssuerData = null;
+                issuerRules = [];
+                document.getElementById('issuerInfo').style.display = 'none';
+            }
+            
+            displayVerifications();
+            updateModeIndicator();
+        }
+    
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // Update mode buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                if (btn.textContent.toLowerCase().includes(mode)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // Show/hide badge selector
+            if (mode === 'issuer') {
+                document.getElementById('badgeSelector').style.display = 'block';
+            } else {
+                document.getElementById('badgeSelector').style.display = 'none';
+            }
+            
+            updateModeIndicator();
+            displayVerifications();
+        }
+    
+        function showBadgeSelector() {
+            document.getElementById('badgeSelector').style.display = 'block';
+        }
+    
+        async function selectBadge(badgeId) {
+            if (!badgeId) return;
+            
+            // Load badge details and get issuerId
+            try {
+                const response = await fetch(API_BASE + '/badges/' + badgeId, {
+                    headers: { 'Authorization': `Bearer ${userToken}` }
+                });
+                
+                if (response.ok) {
+                    const badge = await response.json();
+                    if (badge.issuerId) {
+                        changeIssuer(badge.issuerId);
+                        switchMode('issuer');
+                        showToast(`Loading requirements for: ${badge.name}`, 'info');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading badge:', error);
+                showError('Failed to load badge requirements');
+            }
+        }
+    
+        async function loadBadgeRequirements(badgeId) {
+            await selectBadge(badgeId);
+        }
+    
+        async function checkEligibility() {
+            if (!currentIssuerId) {
+                showToast('Please select an issuer first', 'error');
+                return;
+            }
+            
+            try {
+                showToast('Checking eligibility...', 'info');
+                
+                // Get issuer's badges and check eligibility
+                const response = await fetch(`${API_BASE}/issuer/${currentIssuerId}/eligibility?wallet=${userWallet}`, {
+                    headers: { 'Authorization': `Bearer ${userToken}` }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data.eligibleBadges && result.data.eligibleBadges.length > 0) {
+                        const badgeNames = result.data.eligibleBadges.map(b => b.badgeName).join(', ');
+                        showToast(`✅ Eligible for: ${badgeNames}`, 'success');
+                    } else {
+                        showToast('Not yet eligible for any badges', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Eligibility check error:', error);
+                showToast('Failed to check eligibility', 'error');
+            }
+        }
+    
+        function goToDashboard() {
+            window.location.href = '/user-dashboard.html';
+        }
+    
+        // ========== OAUTH COMPLETION HANDLERS ==========
+        async function checkTwitterConnection() {
+            try {
+                const response = await fetch(VERIFY_API_BASE + `/twitter/status/${userWallet}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.data.connected) {
+                        showToast('✅ Twitter account connected successfully!');
+                        loadVerifications();
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking Twitter connection:', error);
+            }
+        }
+    
         async function checkDiscordConnection() {
             try {
-                const response = await fetch(`/api/verify/discord/status/${userWallet}`);
+                const response = await fetch(VERIFY_API_BASE + `/discord/status/${userWallet}`);
                 if (response.ok) {
                     const data = await response.json();
                     
                     if (data.data.connected) {
                         showToast('✅ Discord account connected successfully!');
-                        loadVerifications(); // Refresh the UI
-                    } else {
-                        console.log('Discord connection not completed');
+                        loadVerifications();
                     }
                 }
             } catch (error) {
                 console.error('Error checking Discord connection:', error);
             }
         }
-        
-        // Listen for OAuth completion message from popup
+    
         window.addEventListener('message', function(event) {
-            if (event.data.type === 'DISCORD_OAUTH_SUCCESS') {
+            if (event.data.type === 'TWITTER_OAUTH_SUCCESS') {
+                console.log('Received Twitter OAuth success message:', event.data);
+                completeTwitterOAuth(event.data.code, event.data.state);
+            } else if (event.data.type === 'DISCORD_OAUTH_SUCCESS') {
                 console.log('Received Discord OAuth success message:', event.data);
                 completeDiscordOAuth(event.data.code, event.data.state);
             }
         });
-        
-        // Complete OAuth with code and state
+    
+        async function completeTwitterOAuth(code, state) {
+            try {
+                const codeVerifier = localStorage.getItem('twitter_code_verifier');
+                const storedState = localStorage.getItem('twitter_oauth_state');
+                const wallet = localStorage.getItem('twitter_wallet');
+                const issuerId = localStorage.getItem('twitter_issuer_id');
+                
+                if (state !== storedState) {
+                    throw new Error('OAuth state mismatch - possible security issue');
+                }
+    
+                if (!wallet || wallet !== userWallet) {
+                    throw new Error('Wallet mismatch');
+                }
+    
+                const response = await fetch(VERIFY_API_BASE + '/twitter/callback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userToken}`
+                    },
+                    body: JSON.stringify({
+                        wallet: wallet,
+                        code: code,
+                        state: state,
+                        code_verifier: codeVerifier,
+                        issuerId: issuerId
+                    })
+                });
+    
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const verificationResponse = await fetch(API_BASE + '/verifications', {
+                        headers: { 'Authorization': `Bearer ${userToken}` }
+                    });
+                    
+                    if (verificationResponse.ok) {
+                        const verifications = await verificationResponse.json();
+                        const twitterVerification = verifications.find(v => 
+                            v.provider === 'twitter_follow' && 
+                            (!issuerId || v.metadata?.issuerId === issuerId)
+                        );
+                        
+                        if (twitterVerification && twitterVerification.status === 'completed') {
+                            showToast('✅ Twitter follow verification completed successfully!');
+                        } else if (twitterVerification && twitterVerification.status === 'failed') {
+                            showToast('❌ Twitter connected, but you need to follow the required accounts');
+                        } else {
+                            showToast('✅ Twitter account connected! Verification pending...');
+                        }
+                    } else {
+                        showToast('✅ Twitter account connected successfully!');
+                    }
+                    
+                    loadVerifications();
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to complete Twitter OAuth');
+                }
+            } catch (error) {
+                console.error('Twitter OAuth completion error:', error);
+                showError('Failed to complete Twitter connection: ' + error.message);
+            } finally {
+                localStorage.removeItem('twitter_code_verifier');
+                localStorage.removeItem('twitter_oauth_state');
+                localStorage.removeItem('twitter_wallet');
+                localStorage.removeItem('twitter_issuer_id');
+            }
+        }
+    
         async function completeDiscordOAuth(code, state) {
             try {
                 const storedState = localStorage.getItem('discord_oauth_state');
                 const wallet = localStorage.getItem('discord_wallet');
+                const issuerId = localStorage.getItem('discord_issuer_id');
                 
                 if (state !== storedState) {
                     throw new Error('OAuth state mismatch - possible security issue');
@@ -929,7 +1729,7 @@
                     throw new Error('Wallet mismatch');
                 }
         
-                const response = await fetch('/api/verify/discord/callback', {
+                const response = await fetch(VERIFY_API_BASE + '/discord/callback', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -938,15 +1738,15 @@
                     body: JSON.stringify({
                         wallet: wallet,
                         code: code,
-                        state: state
+                        state: state,
+                        issuerId: issuerId
                     })
                 });
         
                 if (response.ok) {
                     const result = await response.json();
-                    console.log('Discord OAuth completed:', result);
                     showToast('✅ Discord account connected successfully!');
-                    loadVerifications(); // Refresh the UI
+                    loadVerifications();
                 } else {
                     const errorData = await response.json();
                     throw new Error(errorData.error || 'Failed to complete Discord OAuth');
@@ -955,9 +1755,9 @@
                 console.error('Discord OAuth completion error:', error);
                 showError('Failed to complete Discord connection: ' + error.message);
             } finally {
-                // Clean up
                 localStorage.removeItem('discord_oauth_state');
                 localStorage.removeItem('discord_wallet');
+                localStorage.removeItem('discord_issuer_id');
             }
         }
     </script>
