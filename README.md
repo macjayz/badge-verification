@@ -42,7 +42,7 @@ graph TD
     VC2 --> BaseID
 ```
 ---
-
+```mermaid
 sequenceDiagram
     participant U as User
     participant DID as DID Provider
@@ -69,7 +69,7 @@ sequenceDiagram
     B->>BC: Mint Soulbound Token
     BC-->>B: ✅ On-chain credential
     B-->>U: 🎖️ Sybil-resistant badge
-
+```
 ---
 ## 📋 Table of Contents
 
