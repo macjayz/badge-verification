@@ -87,7 +87,7 @@ graph TD
 - **Real-time Analytics**: Track badge issuance and user engagement
 
 ---
-
+```
 ## 🏗️ Architecture
 
 ```mermaid
