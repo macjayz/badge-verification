@@ -41,37 +41,6 @@ graph TD
     VC2 --> BaseID
 ---
 
-## How it Works
-
-sequenceDiagram
-    participant U as User
-    participant DID as DID Provider
-    participant S as Social Platforms
-    participant B as Badge System
-    participant BC as Blockchain
-
-    Note over U: Step 1: Base Identity
-    U->>DID: Request DID Verification
-    DID-->>U: ✅ Issues Verifiable Credential
-    
-    Note over U: Step 2: Activity Proof
-    U->>S: Connect Twitter/Discord
-    S-->>B: Verify Real Activity
-    U->>S: Check Snapshot Voting
-    S-->>B: Verify Governance Participation
-    
-    Note over B: Step 3: Sybil Analysis
-    B->>B: Cross-reference activity<br>across platforms
-    B->>B: Time correlation analysis
-    B->>B: Pattern recognition
-    
-    Note over B: Step 4: Credential Issuance
-    B->>BC: Mint Soulbound Token
-    BC-->>B: ✅ On-chain credential
-    B-->>U: 🎖️ Sybil-resistant badge
-
----
-
 ## 📋 Table of Contents
 
 - [✨ Features](#-features)
