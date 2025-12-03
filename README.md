@@ -1,4 +1,4 @@
-I'll modify your original README with all the enhancements. Here's the complete updated version:
+Excellent idea! I'll add proper anchor links to the table of contents. Here's the updated README with working internal links:
 
 ```markdown
 # 🎖️ Badge Verification System
@@ -21,19 +21,56 @@ A **complete badge verification backend system** with DID authentication, real-t
 - [🏆 Project Showcase](#-project-showcase)
 - [🏗️ Architecture](#️-architecture)
 - [🚀 Quick Start](#-quick-start)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Docker Setup (Alternative)](#docker-setup-alternative)
 - [🔧 Configuration](#-configuration)
+  - [Environment Variables](#environment-variables)
+  - [Database Setup](#database-setup)
 - [📁 Project Structure](#-project-structure)
 - [🔌 API Endpoints](#-api-endpoints)
+  - [Authentication](#authentication)
+  - [User Management](#user-management)
+  - [Badge Management](#badge-management)
+  - [Social Verification](#social-verification-1)
+  - [Admin Endpoints](#admin-endpoints)
+  - [WebSocket](#websocket)
 - [🎮 Demo](#-demo)
+  - [Live Demo URLs](#live-demo-urls-when-running-locally)
+  - [Default Test Accounts](#default-test-accounts)
 - [📸 Screenshots](#-screenshots)
 - [🤝 Social Verification](#-social-verification)
+  - [Twitter Integration](#twitter-integration)
+  - [Discord Integration](#discord-integration)
+  - [Snapshot Integration](#snapshot-integration)
+  - [Mock Services](#mock-services)
 - [🛠️ Development](#️-development)
+  - [Available Scripts](#available-scripts)
+  - [Adding New Verification Methods](#adding-new-verification-methods)
+  - [Debugging](#debugging)
 - [🧪 Testing](#-testing)
+  - [Test Structure](#test-structure)
+  - [Running Tests](#running-tests)
+  - [Test Data](#test-data)
 - [🔧 Troubleshooting Guide](#-troubleshooting-guide)
+  - [Common Issues & Solutions](#common-issues--solutions)
+  - [Still Stuck?](#still-stuck)
 - [📝 Lessons Learned & Technical Insights](#-lessons-learned--technical-insights)
+  - [Challenges & Solutions](#challenges--solutions)
+  - [Architecture Decisions That Paid Off](#architecture-decisions-that-paid-off)
+  - [Key Takeaways](#key-takeaways)
 - [🗺️ Development Roadmap](#️-development-roadmap)
+  - [Phase 1: MVP (✅ Completed)](#phase-1-mvp--completed)
+  - [Phase 2: Enhanced Features (🚧 In Progress)](#phase-2-enhanced-features--in-progress)
+  - [Phase 3: Advanced Features (📅 Planned)](#phase-3-advanced-features--planned)
+  - [Phase 4: Scaling & Enterprise](#phase-4-scaling--enterprise)
+  - [Contributing to the Roadmap](#contributing-to-the-roadmap)
 - [🤔 FAQ](#-faq)
 - [📄 License](#-license)
+- [🙏 Acknowledgments](#-acknowledgments)
+- [📞 Support & Contact](#-support--contact)
+  - [Getting Help](#getting-help)
+  - [Community](#community)
 
 ---
 
@@ -64,6 +101,8 @@ A **complete badge verification backend system** with DID authentication, real-t
 - **Dynamic Rule Configuration**: Configure verification rules per project
 - **Real-time Analytics**: Track badge issuance and user engagement
 
+[⬆ Back to Top](#-table-of-contents)
+
 ---
 
 ## 🏆 Project Showcase
@@ -89,6 +128,8 @@ A **complete badge verification backend system** with DID authentication, real-t
 - **Multi-tenant Architecture** supporting unlimited issuers
 - **Real-time Analytics** with WebSocket updates
 - **TypeScript Coverage**: 100% typed codebase
+
+[⬆ Back to Top](#-table-of-contents)
 
 ---
 
@@ -141,6 +182,8 @@ graph TB
     G --> P
 ```
 
+[⬆ Back to Top](#-table-of-contents)
+
 ---
 
 ## 🚀 Quick Start
@@ -188,6 +231,8 @@ docker-compose up -d
 docker build -t badge-backend .
 docker run -p 3001:3001 -v $(pwd)/.env:/app/.env badge-backend
 ```
+
+[⬆ Back to Top](#-table-of-contents)
 
 ---
 
@@ -248,6 +293,8 @@ npm run typeorm migration:run
 npm run db:seed
 ```
 
+[⬆ Back to Top](#-table-of-contents)
+
 ---
 
 ## 📁 Project Structure
@@ -285,6 +332,8 @@ badge-backend/
 └── docker/              # Docker configurations
 ```
 
+[⬆ Back to Top](#-table-of-contents)
+
 ---
 
 ## 🔌 API Endpoints
@@ -320,6 +369,8 @@ badge-backend/
 - `ws://localhost:3001` - Real-time events
 - Events: `badge_minted`, `verification_completed`, `eligibility_updated`
 
+[⬆ Back to Top](#-table-of-contents)
+
 ---
 
 ## 🎮 Demo
@@ -347,6 +398,8 @@ Address: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 ```
 
+[⬆ Back to Top](#-table-of-contents)
+
 ---
 
 ## 📸 Screenshots
@@ -369,6 +422,8 @@ Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 | *Multi-tenant platform for badge issuers* | *Visual badge creation with templates* |
 
 *Note: Replace placeholder images with actual screenshots from your `public/` directory*
+
+[⬆ Back to Top](#-table-of-contents)
 
 ---
 
@@ -402,6 +457,8 @@ Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 - **On-chain Activity**: Random transaction count (0-20)
 - **On-chain Governance**: Random participation check
 - **Generic Verification**: Fallback for unsupported methods
+
+[⬆ Back to Top](#-table-of-contents)
 
 ---
 
@@ -472,6 +529,8 @@ npm run db:info
 npm run db:tables
 ```
 
+[⬆ Back to Top](#-table-of-contents)
+
 ---
 
 ## 🧪 Testing
@@ -526,6 +585,8 @@ node scripts/test-snapshot-api.js
 # Debug eligibility engine
 node scripts/debug-eligibility.js
 ```
+
+[⬆ Back to Top](#-table-of-contents)
 
 ---
 
@@ -607,6 +668,8 @@ npm run db:tables
    - Steps to reproduce
    - Environment details
 
+[⬆ Back to Top](#-table-of-contents)
+
 ---
 
 ## 📝 Lessons Learned & Technical Insights
@@ -653,6 +716,8 @@ npm run db:tables
 3. **Stub modes accelerate development** - Being able to develop without real DID providers was crucial
 4. **Clear status communication matters** - Differentiating "Connected" vs "Verified" prevented user confusion
 
+[⬆ Back to Top](#-table-of-contents)
+
 ---
 
 ## 🗺️ Development Roadmap
@@ -688,6 +753,8 @@ npm run db:tables
 ### Contributing to the Roadmap
 Have ideas or want to contribute? Check out our [Contributing Guide](CONTRIBUTING.md) or open an issue!
 
+[⬆ Back to Top](#-table-of-contents)
+
 ---
 
 ## 🤔 FAQ
@@ -714,6 +781,8 @@ Have ideas or want to contribute? Check out our [Contributing Guide](CONTRIBUTIN
 
 ### Q: Can this issue real blockchain badges?
 **A:** Yes! The Web3 service is configured for development with Hardhat. Replace with real contract addresses and RPC URLs for production deployment.
+
+[⬆ Back to Top](#-table-of-contents)
 
 ---
 
@@ -742,6 +811,8 @@ OUT OF OR IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+[⬆ Back to Top](#-table-of-contents)
+
 ---
 
 ## 🙏 Acknowledgments
@@ -751,6 +822,8 @@ SOFTWARE.
 - **Twitter Developer Platform** for OAuth 2.0 implementation
 - **Discord** for their developer-friendly API
 - **TypeORM & Express.js** communities for excellent documentation
+
+[⬆ Back to Top](#-table-of-contents)
 
 ---
 
@@ -782,3 +855,38 @@ For questions, issues, or contributions:
 *Last Updated: December 2024 | Version: 1.0.0 | Status: Production Ready*
 ```
 
+## 🎯 **Key Navigation Features Added:**
+
+1. **Complete internal linking** - All table of contents items link to their sections
+2. **"Back to Top" links** - At the end of each major section for easy navigation
+3. **Nested section links** - Subsections in table of contents for deep navigation
+4. **Consistent anchor format** - Using emoji + kebab-case for reliable linking
+
+## 🔗 **How It Works:**
+
+- **Section anchors**: `#-features`, `#-project-showcase`, etc.
+- **Subsection anchors**: `#prerequisites`, `#installation`, `#docker-setup-alternative`
+- **Back to top**: `[⬆ Back to Top](#-table-of-contents)` on each section
+
+## 💡 **User Experience Benefits:**
+
+1. **One-click navigation** from table of contents to any section
+2. **Easy return to top** from anywhere in the document
+3. **Deep linking** to subsections for precise navigation
+4. **PDF-like experience** within GitHub's markdown viewer
+5. **Keyboard navigation** - Users can tab through links
+
+## 📱 **Works Everywhere:**
+
+- **GitHub web interface** - Links work perfectly
+- **GitHub mobile app** - Navigation works on mobile
+- **Markdown editors** - Compatible with VS Code, Typora, etc.
+- **GitHub Pages** - If you deploy documentation
+
+Now your README will function like a proper interactive document! Users can:
+- Click any item in the table of contents to jump directly to that section
+- Use "Back to Top" links to return to the navigation
+- Share direct links to specific sections
+- Navigate quickly without scrolling
+
+Perfect for portfolio presentation! 🚀
