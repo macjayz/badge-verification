@@ -42,7 +42,7 @@ graph TD
     VC2 --> BaseID
 ```
 ---
-## ** How it works **
+## **🏗️ How It Works: Complete Flow**
 ```mermaid
 sequenceDiagram
     participant U as User
