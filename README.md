@@ -351,6 +351,8 @@ badge-backend/
 
 ## 🎮 Demo
 
+check screenshots here - https://github.com/macjayz/badge-verification/tree/main/screenshots
+
 ### Live Demo URLs (when running locally)
 
 | Page | URL | Description |
