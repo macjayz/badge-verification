@@ -180,40 +180,41 @@ graph TB
 
 ### Installation
 
+No external accounts or API keys are required to run this locally — DID
+verification and on-chain minting run in mock mode by default, and the
+default `.env.example` values work as-is.
+
 ```bash
 # Clone the repository
 git clone https://github.com/macjayz/badge-verification.git
-cd badge-backend
+cd badge-verification
+
+# Start Postgres & Redis
+docker-compose up -d
 
 # Install dependencies
 npm install
 
-# Set up environment variables
+# Set up environment variables (defaults already match docker-compose)
 cp .env.example .env
-# Edit .env with your configuration
 
-# Initialize database
-npm run db:reset
-
-# Build the project
-npm run build
-
-# Start the server
-npm start
-
-# For development with hot reload
+# Start the dev server (schema auto-syncs against the empty DB)
 npm run dev
 ```
 
-### Docker Setup (Alternative)
+The server listens on `http://localhost:3000` (or `PORT` in `.env`). Open
+[http://localhost:3000/user-login.html](http://localhost:3000/user-login.html)
+or [http://localhost:3000/admin-login.html](http://localhost:3000/admin-login.html)
+(`admin` / `admin123`, dev-only default — see [Configuration](#-configuration))
+to explore the UI. The database starts empty, so use the Admin/Issuer
+dashboards to create an issuer and a badge type before testing eligibility
+and minting.
+
+For a production-style run instead of hot reload:
 
 ```bash
-# Using Docker Compose
-docker-compose up -d
-
-# Or build manually
-docker build -t badge-backend .
-docker run -p 3001:3001 -v $(pwd)/.env:/app/.env badge-backend
+npm run build
+npm start
 ```
 
 ---
@@ -222,57 +223,60 @@ docker run -p 3001:3001 -v $(pwd)/.env:/app/.env badge-backend
 
 ### Environment Variables
 
-Create a `.env` file in the root directory:
+`.env.example` in the repo root has working defaults for everything below —
+copy it to `.env` and you're done. Only the CORE block is required to run
+the app; everything else is OPTIONAL and only needed if you want to
+exercise real social/DID/on-chain verification instead of mock mode.
 
 ```env
-# Server Configuration
+# --- CORE (required) ---
 NODE_ENV=development
-PORT=3001
+PORT=3000
 
-# Database
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=5433              # matches docker-compose.yml
 DB_USERNAME=postgres
 DB_PASSWORD=postgres
 DB_NAME=badgedb
 
-# Redis
-REDIS_URL=redis://localhost:6379
+REDIS_URL=redis://localhost:6380   # matches docker-compose.yml
 
-# JWT Authentication
-JWT_SECRET=your-super-secure-jwt-secret-change-in-production
+JWT_SECRET=dev-only-secret-change-me
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
 
-# CORS
-ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:5173
+USE_REAL_ADAPTERS=false   # true only once the OPTIONAL keys below are filled in
 
-# Social Verification APIs
-TWITTER_CLIENT_ID=your_twitter_client_id
-TWITTER_CLIENT_SECRET=your_twitter_client_secret
-TWITTER_REDIRECT_URI=http://localhost:3001/api/verify/twitter/callback
+# --- OPTIONAL: social verification ---
+# TWITTER_CLIENT_ID=your_twitter_client_id
+# TWITTER_CLIENT_SECRET=your_twitter_client_secret
+# TWITTER_REDIRECT_URI=http://localhost:3000/api/verify/twitter/callback
+# DISCORD_CLIENT_ID=your_discord_client_id
+# DISCORD_CLIENT_SECRET=your_discord_client_secret
+# DISCORD_REDIRECT_URI=http://localhost:3000/api/verify/discord/callback
 
-DISCORD_CLIENT_ID=your_discord_client_id
-DISCORD_CLIENT_SECRET=your_discord_client_secret
-DISCORD_REDIRECT_URI=http://localhost:3001/api/verify/discord/callback
-
-# Snapshot API (no key required for basic usage)
-# SNAPSHOT_API_KEY=optional_for_higher_limits
-
-# Blockchain (Development)
-DEPLOYER_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-SEPOLIA_RPC_URL=http://localhost:8545
+# --- OPTIONAL: on-chain minting (Sepolia/Mumbai testnets only) ---
+# CONTRACT_ADDRESS=
+# SEPOLIA_RPC_URL=
+# DEPLOYER_PRIVATE_KEY=      # a dedicated testnet-only key, never one holding real funds
 ```
+
+> **Never commit a real `.env`.** An earlier revision of this repo
+> accidentally committed one with live API keys and a deployer private key;
+> those credentials have been rotated and history has been scrubbed. If
+> you forked or cloned this repo before that cleanup, treat any keys you
+> may have pulled as compromised.
 
 ### Database Setup
 
+The dev server (`npm run dev`) uses TypeORM's `synchronize: true` in
+development, so the schema is created automatically on first boot — no
+manual migration step is needed for local testing.
+
+If you're running against a non-Docker Postgres instance:
+
 ```bash
-# Create database (if not using docker-compose)
 createdb badgedb
-
-# Run migrations
-npm run typeorm migration:run
-
-# Seed initial data
-npm run db:seed
+npm run migrate   # applies src/migrations/**/*.ts, if any
 ```
 
 ---
@@ -344,7 +348,7 @@ badge-backend/
 - `GET /api/admin/analytics` - System analytics
 
 ### WebSocket
-- `ws://localhost:3001` - Real-time events
+- `ws://localhost:3000` - Real-time events
 - Events: `badge_minted`, `verification_completed`, `eligibility_updated`
 
 ---
@@ -357,24 +361,30 @@ check screenshots here - https://github.com/macjayz/badge-verification/tree/main
 
 | Page | URL | Description |
 |------|-----|-------------|
-| Admin Dashboard | http://localhost:3001/admin-dashboard.html | System administration |
-| User Login | http://localhost:3001/user-login.html | User authentication |
-| User Dashboard | http://localhost:3001/user-dashboard.html | User badge management |
-| Verification Portal | http://localhost:3001/user-verifications.html | Social verification |
-| Issuer Dashboard | http://localhost:3001/issuer-dashboard.html | Badge issuer platform |
-| WebSocket Test | http://localhost:3001/websocket-demo.html | Real-time events test |
+| Admin Dashboard | http://localhost:3000/admin-dashboard.html | System administration |
+| User Login | http://localhost:3000/user-login.html | User authentication |
+| User Dashboard | http://localhost:3000/user-dashboard.html | User badge management |
+| Verification Portal | http://localhost:3000/user-verifications.html | Social verification |
+| Issuer Dashboard | http://localhost:3000/issuer-dashboard.html | Badge issuer platform |
+| WebSocket Test | http://localhost:3000/websocket-demo.html | Real-time events test |
 
 ### Default Test Accounts
 
 ```javascript
-// Admin User
+// Admin User (dev-only hardcoded default, see src/controllers/admin-auth.controller.ts)
 Username: admin
 Password: admin123
-
-// Test User Wallet (for SIWE)
-Address: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
-Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 ```
+
+For SIWE (Sign-In with Ethereum) testing, use any wallet you control on a
+testnet, or run a local chain and use one of its throwaway accounts:
+
+```bash
+npx hardhat node   # prints funded local test accounts + private keys
+```
+
+Never reuse an account printed by `hardhat node` (or any other "test"
+private key) for anything holding real funds.
 
 ---
 
@@ -418,24 +428,25 @@ Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 ```bash
 # Development
 npm run dev              # Start with hot reload
-npm run build           # Build TypeScript
-npm run start           # Start production server
+npm run build            # Build TypeScript
+npm start                # Start production server (after build)
 
 # Database
-npm run db:reset        # Reset database with seed data
-npm run db:seed         # Seed initial data
+npm run migrate          # Run TypeORM migrations
 npm run typeorm -- <command>  # TypeORM CLI
 
-# Code Quality
-npm run lint            # ESLint checking
-npm run format          # Prettier formatting
-npm run type-check      # TypeScript type checking
+# Contracts (Hardhat)
+npm run compile          # Compile contracts
+npm run test:contract    # Run contract tests
+npm run deploy:sepolia   # Deploy to Sepolia (needs OPTIONAL blockchain env vars)
 
 # Testing
-npm test               # Run all tests
-npm run test:unit      # Unit tests only
-npm run test:e2e       # E2E tests
+npm test                 # Run Jest tests
 ```
+
+Code quality tools (`eslint`, `prettier`) are installed as dev dependencies
+but not yet wired up as npm scripts — run them directly with
+`npx eslint .` / `npx prettier --write .`.
 
 ### Adding New Verification Methods
 
@@ -470,8 +481,8 @@ case 'new_method':
 DEBUG=badge-backend:* npm run dev
 
 # Test specific endpoints
-curl http://localhost:3001/health
-curl http://localhost:3001/api/user/verifications
+curl http://localhost:3000/health
+curl http://localhost:3000/api/user/verifications
 
 # Database inspection
 npm run db:info

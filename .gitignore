@@ -51,7 +51,10 @@ Thumbs.db
 
 # Hardhat specific (keep source contracts)
 /contracts/
-!contracts/BadgeSBT.sol  # Keep your main contract
+!contracts/BadgeSBT.sol
 
 # TypeScript
-*.tsbuildinfo.DS_Store
+*.tsbuildinfo
+
+# Redis dumps
+*.rdb
