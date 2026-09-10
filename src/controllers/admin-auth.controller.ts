@@ -3,11 +3,14 @@ import { Request, Response } from 'express';
 import { jwtService } from '../services/jwt.service';
 import { logger } from '../utils/logger';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
+import { config } from '../config';
 
-// Simple admin credentials (in production, use proper user management)
+// Admin credentials come from ADMIN_USERNAME / ADMIN_PASSWORD. In development
+// they fall back to admin/admin123; production refuses to boot unless they are
+// overridden (see assertProductionConfig in src/config).
 const ADMIN_CREDENTIALS = {
-  username: 'admin',
-  password: 'admin123', // Change this in production!
+  username: config.admin.username,
+  password: config.admin.password,
   role: 'admin'
 };
 

@@ -3,7 +3,7 @@ import 'reflect-metadata';
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
-import { config } from './config';
+import { config, assertProductionConfig } from './config';
 import { initializeDatabase } from './db/datasource';
 import { webSocketService } from './services/websocket.service';
 import authRoutes from './routes/auth.routes';
@@ -250,6 +250,9 @@ function gracefulShutdown() {
 
 const startServer = async () => {
   try {
+    // Fail fast if production is still running on development credentials
+    assertProductionConfig();
+
     // Initialize database
     await initializeDatabase();
 

@@ -1,4 +1,5 @@
 // src/db/datasource.ts - UPDATED
+import path from 'path';
 import { DataSource } from 'typeorm';
 import { config } from '../config';
 import { User } from '../entities/User';
@@ -31,7 +32,9 @@ export const AppDataSource = new DataSource({
     IssuerProfile, // ADD THIS
     ProjectSocialRules // ADD THIS
   ],
-  migrations: ['src/migrations/**/*.ts'],
+  // Resolved relative to this file so it works both under ts-node (src/) and
+  // from the compiled build (dist/).
+  migrations: [path.join(__dirname, '..', 'migrations', '*.{ts,js}')],
   subscribers: [],
   extra: {
     max: 20,

@@ -276,8 +276,11 @@ If you're running against a non-Docker Postgres instance:
 
 ```bash
 createdb badgedb
-npm run migrate   # applies src/migrations/**/*.ts, if any
+npm run migration:run   # applies src/migrations/
 ```
+
+**In production the schema is _not_ created automatically** — running the
+migration is a required deployment step. See [Deployment](#-deployment).
 
 ---
 
@@ -322,7 +325,7 @@ badge-backend/
 
 ### Authentication
 - `POST /api/auth/siwe` - Sign-In with Ethereum
-- `POST /api/auth/admin/login` - Admin login
+- `POST /api/admin/auth/login` - Admin login
 - `POST /api/auth/refresh` - Refresh JWT token
 
 ### User Management
@@ -432,7 +435,10 @@ npm run build            # Build TypeScript
 npm start                # Start production server (after build)
 
 # Database
-npm run migrate          # Run TypeORM migrations
+npm run migration:run       # Apply migrations (from TS sources)
+npm run migration:run:prod  # Apply migrations (from compiled dist/)
+npm run migration:generate src/migrations/YourChange  # Diff entities -> new migration
+npm run migration:revert    # Roll back the last migration
 npm run typeorm -- <command>  # TypeORM CLI
 
 # Contracts (Hardhat)
@@ -548,77 +554,78 @@ node scripts/debug-eligibility.js
 
 ## 📈 Deployment
 
-### Production Checklist
+### Important: schema is not auto-created in production
 
-- [ ] Update `NODE_ENV=production`
-- [ ] Set strong `JWT_SECRET`
-- [ ] Configure production database
-- [ ] Set up Redis cluster
-- [ ] Configure SSL/TLS certificates
-- [ ] Set up monitoring (Prometheus/Grafana)
-- [ ] Configure logging (Winston/ELK)
-- [ ] Set up backup strategy
-- [ ] Configure CDN for static files
+In development the app auto-syncs the database schema on boot. In production
+that is switched off, so **you must run the migration once** or the app will
+start against an empty database and every request will fail:
 
-### Deployment Options
-
-**Option 1: Traditional VPS**
 ```bash
-# Build and deploy
-npm run build
-pm2 start dist/index.js --name badge-backend
-
-# With nginx reverse proxy
-# See deployment/nginx.conf.example
+npm run migration:run:prod    # compiled build (dist/)
+npm run migration:run         # from TypeScript sources
 ```
 
-**Option 2: Docker Deployment**
+### Required environment variables
+
+The app **refuses to start** in production unless these are set to
+non-default values — this is deliberate, so a deploy can't silently go live
+with a public signing key or a public admin password:
+
+| Variable | Requirement |
+|----------|-------------|
+| `NODE_ENV` | `production` |
+| `JWT_SECRET` | Not the dev default, at least 32 chars (`openssl rand -base64 48`) |
+| `ADMIN_PASSWORD` | Not `admin123` |
+| `ADMIN_USERNAME` | Optional, defaults to `admin` |
+| `DB_HOST` / `DB_PORT` / `DB_USERNAME` / `DB_PASSWORD` / `DB_NAME` | Your database |
+| `REDIS_URL` | Your Redis instance |
+| `ALLOWED_ORIGINS` | Comma-separated origins allowed by CORS |
+
+### Option 1: Docker Compose (whole stack)
+
+```bash
+cp .env.example .env
+# edit .env: set JWT_SECRET and ADMIN_PASSWORD to real values
+
+docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml run --rm app npm run migration:run:prod
+```
+
+App is then on `http://localhost:3000`. (`docker-compose.yml` without `-f`
+remains the development file that starts only Postgres and Redis.)
+
+### Option 2: Docker image against your own database
+
 ```bash
 docker build -t badge-backend:latest .
-docker run -d \
-  --name badge-backend \
-  -p 3001:3001 \
-  --env-file .env.production \
-  badge-backend:latest
+docker run -d --name badge-backend -p 3000:3000 --env-file .env badge-backend:latest
+docker exec badge-backend npm run migration:run:prod
 ```
 
-**Option 3: Kubernetes**
+The image is multi-stage (dev dependencies are pruned) and runs as the
+unprivileged `node` user. It logs to stdout, so `docker logs` works normally.
+
+### Option 3: VPS / PaaS (Render, Railway, Fly, etc.)
+
 ```bash
-kubectl apply -f deployment/k8s/
-# See deployment/k8s/ for manifests
+npm ci
+npm run build
+npm run migration:run:prod
+npm start                     # or: pm2 start dist/index.js --name badge-backend
 ```
 
-**Option 4: Serverless (AWS Lambda)**
-```bash
-# Requires serverless framework
-npm run build:lambda
-sls deploy
-```
+Set the environment variables from the table above in your platform's
+dashboard. The server binds `0.0.0.0` and honours `PORT`, so managed
+platforms route to it without extra configuration.
 
-### Environment Variables for Production
+### Not included
 
-```env
-# Security
-NODE_ENV=production
-JWT_SECRET=use-strong-random-secret-here
-CORS_ORIGINS=https://yourdomain.com
-
-# Database (Production)
-DB_HOST=production-db.cluster-abc.region.rds.amazonaws.com
-DB_PORT=5432
-DB_SSL=true
-
-# Redis (Production)
-REDIS_URL=redis://:password@redis-host:6379/0
-
-# Monitoring
-SENTRY_DSN=https://your-sentry-dsn.ingest.sentry.io/...
-LOGGING_LEVEL=info
-
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-```
+To be explicit about what this repo does **not** ship, so you don't go looking:
+no Kubernetes manifests, no nginx/TLS config, no serverless packaging, no
+rate limiting, no Sentry/APM wiring, and no `DB_SSL` option (the Postgres
+connection is unencrypted — put the database on a private network, or add SSL
+support before pointing this at a managed instance over the public internet).
+There is also no automated test suite yet.
 
 ---
 
