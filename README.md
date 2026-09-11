@@ -625,8 +625,11 @@ platforms route to it without extra configuration.
 
 To be explicit about what this repo does **not** ship, so you don't go looking:
 no Kubernetes manifests, no nginx/TLS config, no serverless packaging, no
-rate limiting, and no Sentry/APM wiring. There is also no automated test
-suite yet.
+rate limiting, and no Sentry/APM wiring.
+
+Test coverage is partial: `npm test` covers the production config guard, JWT
+handling, and the badge eligibility rule logic. The routes, controllers, and
+verification services are not covered yet.
 
 ---
 
