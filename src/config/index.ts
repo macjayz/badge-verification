@@ -24,11 +24,20 @@ export const config = {
     password: process.env.ADMIN_PASSWORD || DEV_ADMIN_PASSWORD
   },
   database: {
+    // Managed providers (Render, Railway, Heroku, Neon, Supabase) hand out a
+    // single connection string. When DATABASE_URL is present it wins and the
+    // discrete DB_* values below are ignored.
+    url: process.env.DATABASE_URL,
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5432'),
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || 'postgres',
-    database: process.env.DB_NAME || 'badgedb'
+    database: process.env.DB_NAME || 'badgedb',
+    // Most managed Postgres instances require TLS. Their certificates are often
+    // signed by a private CA that isn't in the system trust store, which is why
+    // rejectUnauthorized can be turned off separately.
+    ssl: process.env.DB_SSL === 'true',
+    sslRejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false'
   },
   redis: {
     url: process.env.REDIS_URL || 'redis://localhost:6379'

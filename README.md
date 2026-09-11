@@ -578,6 +578,9 @@ with a public signing key or a public admin password:
 | `ADMIN_PASSWORD` | Not `admin123` |
 | `ADMIN_USERNAME` | Optional, defaults to `admin` |
 | `DB_HOST` / `DB_PORT` / `DB_USERNAME` / `DB_PASSWORD` / `DB_NAME` | Your database |
+| `DATABASE_URL` | Alternative to the five `DB_*` values above — if set, it wins. Most managed Postgres providers give you this. |
+| `DB_SSL` | `true` for hosted Postgres (Render, Railway, Heroku, Neon, Supabase all require TLS) |
+| `DB_SSL_REJECT_UNAUTHORIZED` | `false` only if your provider uses a private CA and you hit `self-signed certificate in certificate chain` |
 | `REDIS_URL` | Your Redis instance |
 | `ALLOWED_ORIGINS` | Comma-separated origins allowed by CORS |
 
@@ -622,10 +625,8 @@ platforms route to it without extra configuration.
 
 To be explicit about what this repo does **not** ship, so you don't go looking:
 no Kubernetes manifests, no nginx/TLS config, no serverless packaging, no
-rate limiting, no Sentry/APM wiring, and no `DB_SSL` option (the Postgres
-connection is unencrypted — put the database on a private network, or add SSL
-support before pointing this at a managed instance over the public internet).
-There is also no automated test suite yet.
+rate limiting, and no Sentry/APM wiring. There is also no automated test
+suite yet.
 
 ---
 

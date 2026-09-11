@@ -12,13 +12,27 @@ import { UserSocialConnection } from '../entities/UserSocialConnection';
 import { IssuerProfile } from '../entities/IssuerProfile'; // ADD THIS
 import { ProjectSocialRules } from '../entities/ProjectSocialRules'; // ADD THIS
 
+// TLS settings shared by both connection styles. `false` (rather than
+// undefined) keeps node-postgres from attempting TLS at all for local setups.
+const ssl = config.database.ssl
+  ? { rejectUnauthorized: config.database.sslRejectUnauthorized }
+  : false;
+
+// A DATABASE_URL from a managed provider replaces the discrete DB_* settings.
+const connection = config.database.url
+  ? { url: config.database.url }
+  : {
+      host: config.database.host,
+      port: config.database.port,
+      username: config.database.username,
+      password: config.database.password,
+      database: config.database.database
+    };
+
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  host: config.database.host,
-  port: config.database.port,
-  username: config.database.username,
-  password: config.database.password,
-  database: config.database.database,
+  ...connection,
+  ssl,
   synchronize: config.server.nodeEnv === 'development',
   logging: config.server.nodeEnv === 'development',
   entities: [

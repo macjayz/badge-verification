@@ -20,6 +20,9 @@
     "compile": "npx hardhat compile",
     "test:contract": "npx hardhat test"
   },
+  "overrides": {
+    "qs": "^6.16.0"
+  },
   "dependencies": {
     "@openzeppelin/contracts": "^5.4.0",
     "@types/ws": "^8.18.1",
