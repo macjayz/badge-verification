@@ -2,6 +2,7 @@
 import WebSocket, { WebSocketServer } from 'ws';
 import { Server } from 'http';
 import { logger } from '../utils/logger';
+import { jwtService } from './jwt.service';
 
 export interface WebSocketMessage {
   type: string;
@@ -16,15 +17,32 @@ export interface WebSocketClient {
   isAlive: boolean;
   subscriptions: Set<string>;
   user?: {
-    wallet?: string;
-    userId?: string;
+    wallet: string;
+    userId: string;
+    role?: string;
   };
+  authTimer?: NodeJS.Timeout;
 }
+
+export interface WebSocketServiceOptions {
+  /** How long a new connection has to send its auth message. */
+  authTimeoutMs?: number;
+}
+
+// Close codes in the application range (4000-4999).
+export const WS_CLOSE_UNAUTHORIZED = 4401;
+export const WS_CLOSE_AUTH_TIMEOUT = 4408;
 
 export class WebSocketService {
   private wss: WebSocketServer | null = null;
   private clients: Map<string, WebSocketClient> = new Map();
   private messageHandlers: Map<string, (client: WebSocketClient, message: WebSocketMessage) => void> = new Map();
+  private heartbeat?: NodeJS.Timeout;
+  private readonly authTimeoutMs: number;
+
+  constructor(options: WebSocketServiceOptions = {}) {
+    this.authTimeoutMs = options.authTimeoutMs ?? 10_000;
+  }
 
   initialize(server: Server): void {
     this.wss = new WebSocketServer({ 
@@ -53,8 +71,14 @@ export class WebSocketService {
       this.clients.set(clientId, client);
       logger.info(`WebSocket client connected: ${clientId}`);
 
-      // Extract user info from query params or headers
-      this.authenticateClient(client, request);
+      // Nothing is trusted from the URL. The client must send
+      // { type: 'auth', payload: { token } } before it receives anything.
+      this.warnAboutLegacyWalletParam(client, request);
+      client.authTimer = setTimeout(() => {
+        if (!client.user) {
+          client.socket.close(WS_CLOSE_AUTH_TIMEOUT, 'Authentication required');
+        }
+      }, this.authTimeoutMs);
 
       socket.on('message', (data) => {
         this.handleMessage(client, data.toString());
@@ -76,21 +100,52 @@ export class WebSocketService {
       // Send welcome message
       this.sendToClient(clientId, {
         type: 'connection_established',
-        payload: { clientId, timestamp: new Date().toISOString() },
+        payload: { clientId, authRequired: true, timestamp: new Date().toISOString() },
         timestamp: new Date().toISOString()
       });
     });
   }
 
-  private authenticateClient(client: WebSocketClient, request: any): void {
-    // Extract wallet from query string for simple authentication
+  private warnAboutLegacyWalletParam(client: WebSocketClient, request: any): void {
     const url = new URL(request.url || '', `http://${request.headers.host}`);
-    const wallet = url.searchParams.get('wallet');
-    
-    if (wallet) {
-      client.user = { wallet };
-      logger.info(`WebSocket client ${client.id} authenticated as wallet: ${wallet}`);
+    if (url.searchParams.has('wallet')) {
+      // Older clients claimed a wallet here. Anyone could claim any wallet,
+      // so it is ignored.
+      logger.warn(`WebSocket client ${client.id} sent ?wallet=; ignored, auth message required`);
     }
+  }
+
+  private handleAuth(client: WebSocketClient, message: WebSocketMessage): void {
+    if (client.user) {
+      this.sendError(client.id, 'Already authenticated');
+      return;
+    }
+
+    const token = message.payload?.token;
+    const payload = typeof token === 'string' ? jwtService.verifyToken(token) : null;
+    if (!payload) {
+      this.sendError(client.id, 'Invalid or expired token');
+      client.socket.close(WS_CLOSE_UNAUTHORIZED, 'Invalid or expired token');
+      return;
+    }
+
+    client.user = {
+      wallet: payload.wallet.toLowerCase(),
+      userId: payload.userId,
+      role: payload.role
+    };
+    clearTimeout(client.authTimer);
+
+    this.sendToClient(client.id, {
+      type: 'authenticated',
+      payload: { wallet: client.user.wallet, role: client.user.role ?? 'user' },
+      timestamp: new Date().toISOString()
+    });
+    logger.info(`WebSocket client ${client.id} authenticated as ${client.user.role ?? 'user'} ${client.user.wallet}`);
+  }
+
+  private isAdmin(client: WebSocketClient): boolean {
+    return client.user?.role === 'admin';
   }
 
   private generateClientId(): string {
@@ -109,14 +164,8 @@ export class WebSocketService {
 
       logger.debug(`WebSocket message from ${client.id}:`, message);
 
-      // Handle subscription messages
-      if (message.type === 'subscribe') {
-        this.handleSubscription(client, message);
-        return;
-      }
-
-      if (message.type === 'unsubscribe') {
-        this.handleUnsubscription(client, message);
+      if (message.type === 'auth') {
+        this.handleAuth(client, message);
         return;
       }
 
@@ -126,6 +175,22 @@ export class WebSocketService {
           payload: { timestamp: new Date().toISOString() },
           timestamp: new Date().toISOString()
         });
+        return;
+      }
+
+      if (!client.user) {
+        this.sendError(client.id, 'Authenticate first: send {"type":"auth","payload":{"token":"<your login token>"}}');
+        return;
+      }
+
+      // Handle subscription messages
+      if (message.type === 'subscribe') {
+        this.handleSubscription(client, message);
+        return;
+      }
+
+      if (message.type === 'unsubscribe') {
+        this.handleUnsubscription(client, message);
         return;
       }
 
@@ -161,8 +226,16 @@ export class WebSocketService {
       return;
     }
   
+    // Every channel is a feed of all users' activity (and 'system' exposes
+    // server internals), so only admins may subscribe. A normal user still
+    // gets their own events, which are sent to their wallet directly.
+    if (!this.isAdmin(client)) {
+      this.sendError(client.id, 'Only admins can subscribe to activity feeds');
+      return;
+    }
+
     channels.forEach((channel: string) => {
-      client.subscriptions.add(channel);
+      client.subscriptions.add(String(channel));
     });
   
     this.sendToClient(client.id, {
@@ -202,15 +275,16 @@ export class WebSocketService {
   private handleDisconnect(clientId: string): void {
     const client = this.clients.get(clientId);
     if (client) {
+      clearTimeout(client.authTimer);
       logger.info(`WebSocket client disconnected: ${clientId}`);
       this.clients.delete(clientId);
     }
   }
 
   private startHeartbeat(): void {
-    const interval = setInterval(() => {
+    this.heartbeat = setInterval(() => {
       if (!this.wss) {
-        clearInterval(interval);
+        clearInterval(this.heartbeat);
         return;
       }
 
@@ -244,8 +318,9 @@ export class WebSocketService {
   }
 
   sendToWallet(wallet: string, message: WebSocketMessage): void {
+    const target = wallet.toLowerCase();
     this.clients.forEach((client) => {
-      if (client.user?.wallet === wallet && client.socket.readyState === WebSocket.OPEN) {
+      if (client.user?.wallet === target && client.socket.readyState === WebSocket.OPEN) {
         this.sendToClient(client.id, message);
       }
     });
@@ -257,6 +332,19 @@ export class WebSocketService {
         this.sendToClient(client.id, message);
       }
     });
+  }
+
+  /** Stop the heartbeat and close every connection. */
+  close(): Promise<void> {
+    clearInterval(this.heartbeat);
+    this.clients.forEach((client) => {
+      clearTimeout(client.authTimer);
+      client.socket.terminate();
+    });
+    this.clients.clear();
+    const wss = this.wss;
+    this.wss = null;
+    return new Promise((resolve) => (wss ? wss.close(() => resolve()) : resolve()));
   }
 
   registerMessageHandler(messageType: string, handler: (client: WebSocketClient, message: WebSocketMessage) => void): void {

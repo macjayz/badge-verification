@@ -533,13 +533,19 @@
             const statusEl = document.getElementById('connectionStatus');
             
             try {
-                ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws?wallet=admin_dashboard');
+                ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
                 statusEl.className = 'connection-status connecting';
                 statusEl.textContent = '🟡 Connecting...';
     
                 ws.onopen = () => {
                     statusEl.className = 'connection-status connected';
                     statusEl.textContent = '🟢 Connected';
+                    
+                    // Prove who we are first; the server ignores everything else until then.
+                    ws.send(JSON.stringify({
+                        type: 'auth',
+                        payload: { token: localStorage.getItem('adminToken') }
+                    }));
                     
                     // Subscribe to admin channels
                     ws.send(JSON.stringify({
@@ -570,6 +576,12 @@
                 ws.onclose = (event) => {
                     statusEl.className = 'connection-status disconnected';
                     statusEl.textContent = '🔴 Disconnected';
+                    
+                    // Rejected login: reconnecting would just be rejected again.
+                    if (event.code === 4401 || event.code === 4408) {
+                        statusEl.textContent = '🔴 Live updates need a valid admin login';
+                        return;
+                    }
                     
                     // Attempt reconnect after 5 seconds
                     setTimeout(connectWebSocket, 5000);
