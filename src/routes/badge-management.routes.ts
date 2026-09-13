@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { badgeManagementController } from '../controllers/badge-management.controller';
-import { authenticateToken } from '../middleware/auth.middleware';
+import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
 
 // All badge management routes require admin authentication
-router.use(authenticateToken);
+router.use(authenticateToken, requireAdmin);
 
 // 📋 Badge management routes
 router.get('/types', badgeManagementController.getAllBadgeTypes);

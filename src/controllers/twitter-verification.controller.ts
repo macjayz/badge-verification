@@ -3,24 +3,36 @@ import { Request, Response } from 'express';
 import { twitterService } from '../services/twitter.service';
 import { logger } from '../utils/logger';
 import { verificationService } from '../services/verification.service'; // ADDED
+import { AuthenticatedRequest } from '../middleware/auth.middleware';
+import { oauthStateStore } from '../services/oauth-state.service';
+import { renderOAuthCallbackPage, renderOAuthErrorPage } from '../utils/oauth-pages';
 
 export class TwitterVerificationController {
   /**
    * Initiate Twitter OAuth flow
    */
-  async initiateOAuth(req: Request, res: Response) {
+  async initiateOAuth(req: AuthenticatedRequest, res: Response) {
     try {
-      const { wallet, issuerId, targetAccount } = req.body; // ADDED issuerId, targetAccount
-      
-      if (!wallet) {
-        return res.status(400).json({
+      const { wallet, issuerId, targetAccount } = req.body;
+      const signedInWallet = req.user?.wallet?.toLowerCase();
+
+      if (!signedInWallet) {
+        return res.status(401).json({
           success: false,
-          error: 'Wallet address is required'
+          error: 'Sign in with your wallet first'
         });
       }
 
-      // ADDED: Store issuer context if provided
-      let metadata: any = {};
+      // The login is tied to the signed-in wallet. Accepting a different wallet
+      // from the body would let one user attach an account to someone else's.
+      if (wallet && String(wallet).toLowerCase() !== signedInWallet) {
+        return res.status(403).json({
+          success: false,
+          error: 'Wallet does not match the signed-in user'
+        });
+      }
+
+      const metadata: any = {};
       if (issuerId) {
         metadata.issuerId = issuerId;
       }
@@ -28,8 +40,15 @@ export class TwitterVerificationController {
         metadata.targetAccount = targetAccount;
       }
 
-      const oauthResponse = await twitterService.initiateOAuth(wallet, metadata); // UPDATED: Pass metadata
-      
+      const oauthResponse = await twitterService.initiateOAuth(signedInWallet, metadata);
+
+      // Remember who started this login so the callback can be checked.
+      await oauthStateStore.save('twitter', oauthResponse.state, {
+        wallet: signedInWallet,
+        issuerId,
+        codeVerifier: oauthResponse.codeVerifier,
+      });
+
       res.json({
         success: true,
         data: oauthResponse
@@ -45,117 +64,75 @@ export class TwitterVerificationController {
   }
 
   /**
-   * Handle Twitter OAuth callback
+   * Handle Twitter OAuth callback.
+   *
+   * GET is the provider redirecting the popup back to us; it only hands
+   * code/state to the page that opened the popup. POST is that page sending
+   * them on, and is where the state is checked against the stored record.
    */
-  // In src/controllers/twitter-verification.controller.ts - Update the GET callback part
-  async handleCallback(req: Request, res: Response) {
+  async handleCallback(req: AuthenticatedRequest, res: Response) {
+    const isRedirect = req.method === 'GET';
+
     try {
-      console.log('Twitter callback received - Method:', req.method);
-      console.log('Query params:', req.query);
-      console.log('Body:', req.body);
-  
-      // Handle both GET (query params) and POST (body) requests
-      const code = req.query.code || req.body.code;
-      const state = req.query.state || req.body.state;
-      const wallet = req.body.wallet;
-      const codeVerifier = req.body.code_verifier;
-      const issuerId = req.body.issuerId; // ADDED
-  
+      const code = req.query.code || req.body?.code;
+      const state = req.query.state || req.body?.state;
+
       if (!code || !state) {
         return res.status(400).json({
           success: false,
           error: 'Missing required parameters: code and state'
         });
       }
-  
-      // For GET requests (Twitter redirect)
-      if (req.method === 'GET') {
-        // Return an HTML page that automatically sends the OAuth data back
-        const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Twitter Verification - Complete Setup</title>
-    <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            text-align: center; 
-            padding: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .container {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 40px;
-            backdrop-filter: blur(10px);
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        .success { 
-            color: #1DA1F2; 
-            font-size: 28px;
-            margin-bottom: 20px;
-        }
-        .message { 
-            margin: 20px 0; 
-            font-size: 16px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="success">✓ Twitter Authorization Received</div>
-        <div class="message">Completing verification automatically...</div>
-    </div>
-    
-    <script>
-        // AUTO-SEND THE MESSAGE TO PARENT WINDOW
-        if (window.opener) {
-            window.opener.postMessage({
-                type: 'TWITTER_OAUTH_SUCCESS',
-                code: '${code}',
-                state: '${state}'
-            }, '*');
-            
-            // Close the popup after 1 second
-            setTimeout(() => {
-                window.close();
-            }, 1000);
-        } else {
-            // Fallback for if opener is not available
-            document.body.innerHTML = '<div class="container"><div class="success">✓ Twitter Authorization Received</div><div class="message">Please copy this authorization code and return to the main window:</div><div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 8px; margin: 20px 0; text-align: left; font-family: monospace; font-size: 12px; word-break: break-all;">Code: ${code}<br>State: ${state}</div><button style="background: #1DA1F2; color: white; border: none; padding: 12px 30px; border-radius: 25px; font-size: 16px; cursor: pointer;" onclick="copyData()">Copy Authorization Data</button></div>';
-            
-            function copyData() {
-                const data = { code: '${code}', state: '${state}' };
-                navigator.clipboard.writeText(JSON.stringify(data));
-                alert('Authorization data copied to clipboard!');
-            }
-        }
-    </script>
-</body>
-</html>
-`;
+
+      if (isRedirect) {
         res.setHeader('Content-Type', 'text/html');
-        return res.send(html);
+        return res.send(renderOAuthCallbackPage({
+          provider: 'twitter',
+          code: String(code),
+          state: String(state)
+        }));
       }
-  
-      // Handle POST request (from frontend with wallet and codeVerifier)
-      if (!wallet || !codeVerifier) {
-        return res.status(400).json({
+
+      const signedInWallet = req.user?.wallet?.toLowerCase();
+      if (!signedInWallet) {
+        return res.status(401).json({
           success: false,
-          error: 'Missing required parameters: wallet and code_verifier'
+          error: 'Sign in with your wallet first'
         });
       }
-  
+
+      // Single use: consume() deletes the record, so a replayed state fails.
+      const pending = await oauthStateStore.consume('twitter', state);
+      if (!pending) {
+        return res.status(400).json({
+          success: false,
+          error: 'This Twitter login has expired or was already used. Please start again.'
+        });
+      }
+
+      if (pending.wallet !== signedInWallet) {
+        return res.status(403).json({
+          success: false,
+          error: 'This Twitter login was started by a different wallet'
+        });
+      }
+
+      if (!pending.codeVerifier) {
+        return res.status(400).json({
+          success: false,
+          error: 'This Twitter login is missing its verifier. Please start again.'
+        });
+      }
+
+      // Wallet, issuer and verifier come from our own record, not the request.
       const twitterUser = await twitterService.handleCallback(
-        wallet as string, 
-        code as string, 
-        state as string, 
-        codeVerifier as string,
-        issuerId // ADDED: Pass issuerId to service
+        pending.wallet,
+        String(code),
+        state as string,
+        pending.codeVerifier,
+        pending.issuerId
       );
-      
+
       res.json({
         success: true,
         data: {
@@ -163,42 +140,16 @@ export class TwitterVerificationController {
           message: 'Twitter account connected successfully'
         }
       });
-  
+
     } catch (error) {
       logger.error('Twitter OAuth callback error:', error);
-      
-      // Return error page for GET requests
-      if (req.method === 'GET') {
-        const html = `
-          <!DOCTYPE html>
-          <html>
-          <head>
-              <title>Twitter Verification Failed</title>
-              <style>
-                  body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-                  .error { color: #FF0000; font-size: 24px; }
-                  .message { margin: 20px 0; }
-              </style>
-          </head>
-          <body>
-              <div class="error">✗ Twitter Verification Failed</div>
-              <div class="message">${error instanceof Error ? error.message : 'Unknown error'}</div>
-              <div class="message">Please try again.</div>
-              <script>
-                  if (window.opener) {
-                      window.opener.postMessage({
-                          type: 'TWITTER_OAUTH_ERROR',
-                          error: '${error instanceof Error ? error.message : 'Unknown error'}'
-                      }, '*');
-                  }
-              </script>
-          </body>
-          </html>
-        `;
+      const message = error instanceof Error ? error.message : 'Unknown error';
+
+      if (isRedirect) {
         res.setHeader('Content-Type', 'text/html');
-        return res.send(html);
+        return res.send(renderOAuthErrorPage({ provider: 'twitter', message }));
       }
-      
+
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Twitter authentication failed'

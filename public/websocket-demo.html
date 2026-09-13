@@ -144,7 +144,7 @@
             
             try {
                 // Use the same port as your backend (3001)
-                ws = new WebSocket(`ws://localhost:3001/ws?wallet=${encodeURIComponent(wallet)}`);
+                ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws?wallet=${encodeURIComponent(wallet)}`);
                 
                 ws.onopen = () => {
                     statusEl.className = 'status connected';
@@ -446,7 +446,7 @@
         const statusEl = document.getElementById('connectionStatus');
         
         try {
-            ws = new WebSocket('ws://localhost:3001/ws?wallet=admin_dashboard');
+            ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws?wallet=admin_dashboard');
             statusEl.className = 'connection-status connecting';
             statusEl.textContent = '🟡 Connecting...';
 

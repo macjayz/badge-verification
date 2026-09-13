@@ -337,9 +337,9 @@
     
     <script>
         // Authentication setup
-        const ADMIN_AUTH_API = 'http://localhost:3001/api/admin/auth';
-        const API_BASE_URL = 'http://localhost:3001/api/dashboard/admin';
-        const BADGE_API_URL = 'http://localhost:3001/api/admin/badges';
+        const ADMIN_AUTH_API = '/api/admin/auth';
+        const API_BASE_URL = '/api/dashboard/admin';
+        const BADGE_API_URL = '/api/admin/badges';
     
         // Enhanced fetch function with auth headers
         async function authFetch(url, options = {}) {
@@ -533,7 +533,7 @@
             const statusEl = document.getElementById('connectionStatus');
             
             try {
-                ws = new WebSocket('ws://localhost:3001/ws?wallet=admin_dashboard');
+                ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws?wallet=admin_dashboard');
                 statusEl.className = 'connection-status connecting';
                 statusEl.textContent = '🟡 Connecting...';
     

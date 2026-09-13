@@ -441,22 +441,6 @@
             }
         }
 
-        // Create SIWE message that works with both strict and fallback parsing
-        function createSiweMessage(address, nonce) {
-            const domain = window.location.host;
-            const origin = window.location.origin;
-            const issuedAt = new Date().toISOString();
-            
-            return `${domain} wants you to sign in with your Ethereum account:
-${address}
-
-URI: ${origin}
-Version: 1
-Chain ID: 1
-Nonce: ${nonce}
-Issued At: ${issuedAt}`;
-        }
-
         // Handle wallet connection and SIWE
         async function handleWalletConnection(address) {
             try {
@@ -481,8 +465,9 @@ Issued At: ${issuedAt}`;
 
                 showLoading('Please sign the message in your wallet...');
 
-                // Step 2: Create SIWE message
-                const messageToSign = createSiweMessage(address, nonceData.nonce);
+                // Step 2: Sign the exact message the server issued. The server
+                // builds it so the format, domain and expiry are always right.
+                const messageToSign = nonceData.message;
                 
                 console.log('Signing message:', messageToSign);
 

@@ -1776,6 +1776,10 @@ function showQRCodeModal(qrCodeData, title) {
         }
     
         window.addEventListener('message', function(event) {
+            // Only trust messages from our own OAuth callback pages.
+            if (event.origin !== window.location.origin || !event.data) {
+                return;
+            }
             if (event.data.type === 'TWITTER_OAUTH_SUCCESS') {
                 console.log('Received Twitter OAuth success message:', event.data);
                 completeTwitterOAuth(event.data.code, event.data.state);
