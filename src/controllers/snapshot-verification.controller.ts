@@ -1,5 +1,4 @@
-// src/controllers/snapshot-verification.controller.ts
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { snapshotService } from '../services/snapshot.service';
 import { logger } from '../utils/logger';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
@@ -11,7 +10,7 @@ export class SnapshotVerificationController {
   async initiateVerification(req: AuthenticatedRequest, res: Response) {
     try {
       const wallet = req.user?.wallet || req.body.wallet;
-      
+
       if (!wallet) {
         return res.status(400).json({
           success: false,
@@ -20,7 +19,7 @@ export class SnapshotVerificationController {
       }
 
       const result = await snapshotService.initiateVerification(wallet);
-      
+
       res.json({
         success: true,
         data: result
@@ -41,7 +40,7 @@ export class SnapshotVerificationController {
   async verifyWallet(req: AuthenticatedRequest, res: Response) {
     try {
       const wallet = req.user?.wallet || req.body.wallet;
-      
+
       if (!wallet) {
         return res.status(400).json({
           success: false,
@@ -61,7 +60,7 @@ export class SnapshotVerificationController {
       };
 
       const result = await snapshotService.verifyWallet(wallet, params);
-      
+
       res.json({
         success: true,
         data: result
@@ -82,7 +81,7 @@ export class SnapshotVerificationController {
   async getSpaces(req: AuthenticatedRequest, res: Response) {
     try {
       const wallet = req.user?.wallet || req.params.wallet;
-      
+
       if (!wallet) {
         return res.status(400).json({
           success: false,
@@ -90,9 +89,8 @@ export class SnapshotVerificationController {
         });
       }
 
-      // ✅ FIX: Use verifyWallet instead of getSpacesForWallet
       const result = await snapshotService.verifyWallet(wallet);
-      
+
       res.json({
         success: true,
         data: {
@@ -116,7 +114,7 @@ export class SnapshotVerificationController {
   async checkRequirements(req: AuthenticatedRequest, res: Response) {
     try {
       const wallet = req.user?.wallet || req.body.wallet;
-      
+
       if (!wallet) {
         return res.status(400).json({
           success: false,
@@ -133,7 +131,7 @@ export class SnapshotVerificationController {
       if (timeframe) requirements.timeframe = { days: parseInt(timeframe) };
 
       const result = await snapshotService.checkVoteRequirements(wallet, requirements);
-      
+
       res.json({
         success: true,
         data: result
@@ -154,8 +152,8 @@ export class SnapshotVerificationController {
   async getVoteHistory(req: AuthenticatedRequest, res: Response) {
     try {
       const wallet = req.user?.wallet || req.params.wallet;
-      const { limit = 50, offset = 0, spaceId } = req.query;
-      
+      const { spaceId } = req.query;
+
       if (!wallet) {
         return res.status(400).json({
           success: false,
@@ -163,10 +161,10 @@ export class SnapshotVerificationController {
         });
       }
 
-      const result = await snapshotService.verifyWallet(wallet, { 
+      const result = await snapshotService.verifyWallet(wallet, {
         spaceId: spaceId as string
       });
-      
+
       res.json({
         success: true,
         data: result

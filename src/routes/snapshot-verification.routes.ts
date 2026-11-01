@@ -1,4 +1,3 @@
-// src/routes/snapshot-verification.routes.ts
 import { Router } from 'express';
 import { snapshotVerificationController } from '../controllers/snapshot-verification.controller';
 import { authenticateToken } from '../middleware/auth.middleware';

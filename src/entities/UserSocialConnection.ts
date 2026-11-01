@@ -1,4 +1,3 @@
-// src/entities/UserSocialConnection.ts
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 
 @Entity('user_social_connections')

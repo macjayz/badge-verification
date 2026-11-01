@@ -1,5 +1,4 @@
-// src/controllers/issuer-dashboard.controller.ts
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { issuerDashboardService } from '../services/issuer-dashboard.service';
 import { logger } from '../utils/logger';
 import { AuthenticatedIssuerRequest } from '../middleware/apiKey.middleware';
@@ -71,7 +70,7 @@ export class IssuerDashboardController {
 
     } catch (error) {
       logger.error('Create issuer profile error:', error);
-      
+
       if (error instanceof Error) {
         return res.status(400).json({
           success: false,
@@ -167,7 +166,7 @@ export class IssuerDashboardController {
 
     } catch (error) {
       logger.error('Update issuer profile error:', error);
-      
+
       if (error instanceof Error) {
         return res.status(400).json({
           success: false,
@@ -237,7 +236,7 @@ export class IssuerDashboardController {
 
     } catch (error) {
       logger.error('Create social rule error:', error);
-      
+
       if (error instanceof Error) {
         return res.status(400).json({
           success: false,
@@ -322,7 +321,7 @@ export class IssuerDashboardController {
 
     } catch (error) {
       logger.error('Update social rule error:', error);
-      
+
       if (error instanceof Error) {
         return res.status(400).json({
           success: false,
@@ -359,7 +358,7 @@ export class IssuerDashboardController {
 
     } catch (error) {
       logger.error('Delete social rule error:', error);
-      
+
       if (error instanceof Error) {
         return res.status(400).json({
           success: false,
@@ -383,7 +382,8 @@ export class IssuerDashboardController {
         });
       }
 
-      const stats = await issuerDashboardService.getIssuerDashboardStats(req.issuer.id);
+      const days = Math.min(Math.max(parseInt(req.query.days as string) || 30, 1), 365);
+      const stats = await issuerDashboardService.getIssuerDashboardStats(req.issuer.id, days);
 
       res.json({
         success: true,
@@ -397,6 +397,19 @@ export class IssuerDashboardController {
         success: false,
         error: 'Failed to get dashboard statistics'
       });
+    }
+  }
+
+  async getMints(req: AuthenticatedIssuerRequest, res: Response) {
+    try {
+      if (!req.issuer) {
+        return res.status(401).json({ success: false, error: 'Not authenticated' });
+      }
+      const mints = await issuerDashboardService.getIssuerMints(req.issuer.id, parseInt(req.query.limit as string) || 1000);
+      res.json({ success: true, mints });
+    } catch (error) {
+      logger.error('Get issuer mints error:', error);
+      res.status(500).json({ success: false, error: 'Failed to get mints' });
     }
   }
 

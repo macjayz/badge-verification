@@ -1,7 +1,5 @@
-// src/middleware/auth.middleware.ts
 import { Request, Response, NextFunction } from 'express';
 import { jwtService } from '../services/jwt.service';
-import { logger } from '../utils/logger';
 
 export interface AuthenticatedRequest extends Request {
   user?: {

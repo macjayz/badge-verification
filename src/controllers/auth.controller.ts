@@ -148,6 +148,9 @@ export class AuthController {
       }
 
       const user = await findOrCreateUser(siwe.address);
+      if (user.isActive === false) {
+        return res.status(403).json({ error: 'This account is suspended' });
+      }
       const tokenPayload: JWTPayload = { userId: user.id, wallet: user.wallet };
       const token = jwtService.generateToken(tokenPayload);
 
@@ -261,6 +264,9 @@ export class AuthController {
       }
 
       const user = await findOrCreateUser(wallet);
+      if (user.isActive === false) {
+        return res.status(403).json({ error: 'This account is suspended' });
+      }
       const tokenPayload: JWTPayload = { userId: user.id, wallet: user.wallet };
       const token = jwtService.generateToken(tokenPayload);
 

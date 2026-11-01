@@ -1,4 +1,3 @@
-// src/entities/IssuerProfile.ts
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
 import { Issuer } from './Issuer';
 

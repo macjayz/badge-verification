@@ -17,7 +17,7 @@ export const authenticateApiKey = async (
 ) => {
   try {
     const apiKey = req.headers['x-api-key'] as string;
-    
+
     if (!apiKey) {
       return res.status(401).json({
         success: false,
@@ -26,7 +26,7 @@ export const authenticateApiKey = async (
     }
 
     const issuer = await issuerService.getIssuerByApiKey(apiKey);
-    
+
     if (!issuer) {
       return res.status(401).json({
         success: false,

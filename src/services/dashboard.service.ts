@@ -1,4 +1,3 @@
-// File: src/services/dashboard.service.ts
 import { AppDataSource } from '../db/datasource';
 import { BadgeType } from '../entities/BadgeType';
 import { BadgeMint } from '../entities/BadgeMint';
@@ -6,6 +5,7 @@ import { Verification } from '../entities/Verification';
 import { Issuer } from '../entities/Issuer';
 import { User } from '../entities/User';
 import { logger } from '../utils/logger';
+import { webSocketService } from './websocket.service';
 
 export interface DashboardStats {
   totalBadges: number;
@@ -33,6 +33,7 @@ export interface AdminStats {
   successRate: number;
   todayMints: number;
   totalBadgeTypes: number;
+  activeBadgeTypes: number;
   totalIssuers: number;
 }
 
@@ -43,336 +44,39 @@ export class DashboardService {
   private issuerRepository = AppDataSource.getRepository(Issuer);
   private userRepository = AppDataSource.getRepository(User);
 
-  async getIssuerDashboard(issuerId: string): Promise<DashboardStats> {
-    try {
-      // Get issuer's badge types
-      const badgeTypes = await this.badgeTypeRepository.find({
-        where: { issuerId },
-        relations: ['mints']
-      });
-
-      // Calculate totals - safely handle possibly undefined mints
-      const totalBadges = badgeTypes.length;
-      const totalMints = badgeTypes.reduce((sum, badge) => sum + (badge.mints?.length || 0), 0);
-      
-      // Get unique users with mints
-      const uniqueUsers = await this.badgeMintRepository
-        .createQueryBuilder('mint')
-        .select('DISTINCT mint.wallet')
-        .where('mint.badgeTypeId IN (:...badgeTypeIds)', {
-          badgeTypeIds: badgeTypes.map(b => b.id)
-        })
-        .getCount();
-
-      // Get recent activity (last 7 days)
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-      const recentActivity = await this.badgeMintRepository
-        .createQueryBuilder('mint')
-        .leftJoinAndSelect('mint.badgeType', 'badgeType')
-        .where('mint.badgeTypeId IN (:...badgeTypeIds)', {
-          badgeTypeIds: badgeTypes.map(b => b.id)
-        })
-        .andWhere('mint.createdAt >= :date', { date: sevenDaysAgo })
-        .orderBy('mint.createdAt', 'DESC')
-        .limit(10)
-        .getMany();
-
-      const conversionRate = totalBadges > 0 ? (totalMints / (uniqueUsers || 1)) * 100 : 0;
-
-      return {
-        totalBadges,
-        totalMints,
-        activeUsers: uniqueUsers,
-        conversionRate: Math.round(conversionRate * 100) / 100,
-        recentActivity: recentActivity.map(mint => ({
-          id: mint.id,
-          wallet: mint.wallet,
-          badgeName: mint.badgeType.name,
-          status: mint.metadata?.status,
-          createdAt: mint.createdAt
-        }))
-      };
-
-    } catch (error) {
-      logger.error('Get issuer dashboard error:', error);
-      throw new Error('Failed to get dashboard data');
-    }
-  }
-
-  async getBadgePerformance(issuerId: string, badgeTypeId?: string): Promise<BadgePerformance[]> {
-    try {
-      const whereClause: any = { issuerId };
-      if (badgeTypeId) {
-        whereClause.id = badgeTypeId;
-      }
-
-      const badgeTypes = await this.badgeTypeRepository.find({
-        where: whereClause,
-        relations: ['mints']
-      });
-
-      const performanceData: BadgePerformance[] = [];
-
-      for (const badgeType of badgeTypes) {
-        // Safely handle possibly undefined mints
-        const mints = badgeType.mints || [];
-        const successfulMints = mints.filter(mint => 
-          mint.metadata?.status === 'success'
-        );
-
-        // Get recent mints (last 30 days)
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-        const recentMints = successfulMints
-          .filter(mint => new Date(mint.createdAt) >= thirtyDaysAgo)
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-          .slice(0, 5);
-
-        // Estimate eligible users (this would need real eligibility checks)
-        const estimatedEligibleUsers = Math.floor(successfulMints.length * 1.5); // Mock estimation
-
-        const conversionRate = estimatedEligibleUsers > 0 
-          ? (successfulMints.length / estimatedEligibleUsers) * 100 
-          : 0;
-
-        performanceData.push({
-          badgeType,
-          totalMints: successfulMints.length,
-          eligibleUsers: estimatedEligibleUsers,
-          conversionRate: Math.round(conversionRate * 100) / 100,
-          recentMints
-        });
-      }
-
-      return performanceData;
-
-    } catch (error) {
-      logger.error('Get badge performance error:', error);
-      throw new Error('Failed to get badge performance data');
-    }
-  }
-
-  async getBadgeHolders(issuerId: string, badgeTypeId?: string): Promise<any[]> {
-    try {
-      const whereClause: any = { issuerId };
-      if (badgeTypeId) {
-        whereClause.id = badgeTypeId;
-      }
-
-      const badgeTypes = await this.badgeTypeRepository.find({
-        where: whereClause
-      });
-
-      const badgeTypeIds = badgeTypes.map(b => b.id);
-
-      // Get all successful mints for these badge types
-      const holders = await this.badgeMintRepository
-        .createQueryBuilder('mint')
-        .leftJoinAndSelect('mint.badgeType', 'badgeType')
-        .where('mint.badgeTypeId IN (:...badgeTypeIds)', { badgeTypeIds })
-        .andWhere('mint.metadata ->> \'status\' = :status', { status: 'success' })
-        .andWhere('mint.isRevoked = :revoked', { revoked: false })
-        .orderBy('mint.createdAt', 'DESC')
-        .getMany();
-
-      // Group by wallet and count badges
-      const walletMap = new Map();
-      
-      holders.forEach(mint => {
-        if (!walletMap.has(mint.wallet)) {
-          walletMap.set(mint.wallet, {
-            wallet: mint.wallet,
-            badges: [],
-            totalBadges: 0,
-            firstMint: mint.createdAt,
-            lastMint: mint.createdAt
-          });
-        }
-
-        const holder = walletMap.get(mint.wallet);
-        holder.badges.push({
-          badgeName: mint.badgeType.name,
-          badgeKey: mint.badgeType.key,
-          tokenId: mint.tokenId,
-          mintedAt: mint.createdAt
-        });
-        holder.totalBadges++;
-        
-        if (new Date(mint.createdAt) < new Date(holder.firstMint)) {
-          holder.firstMint = mint.createdAt;
-        }
-        if (new Date(mint.createdAt) > new Date(holder.lastMint)) {
-          holder.lastMint = mint.createdAt;
-        }
-      });
-
-      return Array.from(walletMap.values());
-
-    } catch (error) {
-      logger.error('Get badge holders error:', error);
-      throw new Error('Failed to get badge holders data');
-    }
-  }
-
-  async getVerificationAnalytics(issuerId: string): Promise<any> {
-    try {
-      const badgeTypes = await this.badgeTypeRepository.find({
-        where: { issuerId }
-      });
-
-      const badgeTypeIds = badgeTypes.map(b => b.id);
-
-      // Get verifications for users who have minted badges
-      const analytics = await this.verificationRepository
-        .createQueryBuilder('verification')
-        .leftJoin('badge_mints', 'mint', 'mint.wallet = verification.wallet')
-        .where('mint.badgeTypeId IN (:...badgeTypeIds)', { badgeTypeIds })
-        .andWhere('mint.metadata ->> \'status\' = :status', { status: 'success' })
-        .select('verification.provider', 'provider')
-        .addSelect('COUNT(DISTINCT verification.wallet)', 'userCount')
-        .addSelect('COUNT(verification.id)', 'verificationCount')
-        .groupBy('verification.provider')
-        .getRawMany();
-
-      return analytics;
-
-    } catch (error) {
-      logger.error('Get verification analytics error:', error);
-      throw new Error('Failed to get verification analytics');
-    }
-  }
-
-  // NEW: Admin Dashboard Statistics
+  // Admin Dashboard Statistics
   // In src/services/dashboard.service.ts - update the getAdminStats method
   async getAdminStats(): Promise<AdminStats> {
-    try {
-      logger.info('🟡 Starting getAdminStats...');
-      
-      // Test basic repository access first
-      let totalMints = 0;
-      try {
-        totalMints = await this.badgeMintRepository.count();
-        logger.info('✅ Total mints count:', totalMints);
-      } catch (error) {
-        logger.error('❌ Failed to count total mints:', error);
-        throw error;
-      }
-      
-      // Test successful mints query
-      let successfulMints = 0;
-      try {
-        successfulMints = await this.badgeMintRepository
-          .createQueryBuilder('mint')
-          .where("mint.metadata ->> 'status' = :status", { status: 'success' })
-          .getCount();
-        logger.info('✅ Successful mints count:', successfulMints);
-      } catch (error) {
-        logger.error('❌ Failed to count successful mints:', error);
-        throw error;
-      }
-  
-      // Test failed mints query
-      let failedMints = 0;
-      try {
-        failedMints = await this.badgeMintRepository
-          .createQueryBuilder('mint')
-          .where("mint.metadata ->> 'status' = :status", { status: 'failed' })
-          .getCount();
-        logger.info('✅ Failed mints count:', failedMints);
-      } catch (error) {
-        logger.error('❌ Failed to count failed mints:', error);
-        throw error;
-      }
-  
-      // Test pending mints query
-      let pendingMints = 0;
-      try {
-        pendingMints = await this.badgeMintRepository
-          .createQueryBuilder('mint')
-          .where("mint.metadata ->> 'status' = :status", { status: 'pending' })
-          .orWhere("mint.metadata ->> 'status' IS NULL")
-          .getCount();
-        logger.info('✅ Pending mints count:', pendingMints);
-      } catch (error) {
-        logger.error('❌ Failed to count pending mints:', error);
-        throw error;
-      }
-  
-      // Test active users query
-      let activeUsers = 0;
-      try {
-        activeUsers = await this.badgeMintRepository
-          .createQueryBuilder('mint')
-          .select('DISTINCT mint.wallet')
-          .where("mint.metadata ->> 'status' = :status", { status: 'success' })
-          .getCount();
-        logger.info('✅ Active users count:', activeUsers);
-      } catch (error) {
-        logger.error('❌ Failed to count active users:', error);
-        throw error;
-      }
-  
-      // Test other repositories
-      let totalBadgeTypes = 0;
-      let totalIssuers = 0;
-      try {
-        totalBadgeTypes = await this.badgeTypeRepository.count();
-        totalIssuers = await this.issuerRepository.count();
-        logger.info('✅ Badge types count:', totalBadgeTypes);
-        logger.info('✅ Issuers count:', totalIssuers);
-      } catch (error) {
-        logger.error('❌ Failed to count badge types or issuers:', error);
-        throw error;
-      }
-  
-      // Calculate success rate
-      const successRate = totalMints > 0 ? (successfulMints / totalMints) * 100 : 0;
-      logger.info('✅ Success rate calculated:', successRate);
-  
-      // Test today's mints query
-      let todayMints = 0;
-try {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  // FIXED: Use proper TypeORM date comparison syntax
-  todayMints = await this.badgeMintRepository
-    .createQueryBuilder('mint')
-    .where('mint.createdAt >= :today', { today })
-    .getCount();
-    
-  logger.info('✅ Today mints count:', todayMints);
-} catch (error) {
-  logger.error('❌ Failed to count today mints:', error);
-  throw error;
-}
-  
-      const result = {
-        totalMints,
-        successfulMints,
-        pendingMints,
-        failedMints,
-        activeUsers,
-        wsConnections: 1,
-        successRate: Math.round(successRate * 100) / 100,
-        todayMints,
-        totalBadgeTypes,
-        totalIssuers
-      };
-  
-      logger.info('✅ getAdminStats completed successfully:', result);
-      return result;
-  
-    } catch (error) {
-      logger.error('🔴 Get admin stats COMPLETE FAILURE:', error);
-      throw new Error('Failed to get admin statistics');
-    }
+    // Older rows recorded a minted badge as 'success'; newer ones use 'completed'.
+    const status = "mint.metadata ->> 'status'";
+    const counts = await this.badgeMintRepository
+      .createQueryBuilder('mint')
+      .select('COUNT(*)', 'total')
+      .addSelect(`COUNT(CASE WHEN ${status} IN ('completed', 'success') THEN 1 END)`, 'successful')
+      .addSelect(`COUNT(CASE WHEN ${status} = 'failed' THEN 1 END)`, 'failed')
+      .addSelect(`COUNT(CASE WHEN ${status} IS NULL OR ${status} = 'pending' THEN 1 END)`, 'pending')
+      .addSelect(`COUNT(DISTINCT CASE WHEN ${status} IN ('completed', 'success') THEN mint.wallet END)`, 'holders')
+      .addSelect('COUNT(CASE WHEN mint.createdAt >= CURRENT_DATE THEN 1 END)', 'today')
+      .getRawOne();
+
+    const totalMints = Number(counts.total);
+    const successfulMints = Number(counts.successful);
+
+    return {
+      totalMints,
+      successfulMints,
+      pendingMints: Number(counts.pending),
+      failedMints: Number(counts.failed),
+      activeUsers: Number(counts.holders),
+      wsConnections: webSocketService.getClientCount(),
+      successRate: totalMints > 0 ? Math.round((successfulMints / totalMints) * 10000) / 100 : 0,
+      todayMints: Number(counts.today),
+      totalBadgeTypes: await this.badgeTypeRepository.count(),
+      activeBadgeTypes: await this.badgeTypeRepository.count({ where: { isActive: true } }),
+      totalIssuers: await this.issuerRepository.count()
+    };
   }
 
-  // NEW: Recent Mints for Admin Dashboard
   async getRecentMints(page: number = 1, limit: number = 20) {
     try {
       const [mints, total] = await this.badgeMintRepository.findAndCount({
@@ -412,11 +116,11 @@ try {
     }
   }
 
-  // NEW: User Management Data - FIXED VERSION
-// FIXED VERSION - Update the getUserManagementData method
+  // User Management Data
+// Update the getUserManagementData method
 async getUserManagementData(page: number = 1, limit: number = 20) {
   try {
-    logger.info('🟡 Starting getUserManagementData...');
+    logger.info('Starting getUserManagementData...');
 
     // First, check if we have any users at all
     const totalUsers = await this.userRepository.count();
@@ -470,19 +174,19 @@ async getUserManagementData(page: number = 1, limit: number = 20) {
       });
     });
 
-    // FIXED: Process users sequentially with proper async/await
+    // Process users sequentially with proper async/await
     const formattedUsers = [];
     for (const user of users) {
       const wallet = user.wallet;
       const mintData = mintCountMap.get(wallet) || { totalMints: 0, successMints: 0 };
 
-      // Find latest verification - FIXED: Use proper async/await
+      // Find latest verification
       const verifications = await this.verificationRepository.find({
         where: { wallet: user.wallet }
       });
-      
-      const latestVerification = verifications.length > 0 
-        ? verifications.reduce((latest: any, current: any) => 
+
+      const latestVerification = verifications.length > 0
+        ? verifications.reduce((latest: any, current: any) =>
             new Date(current.createdAt) > new Date(latest.createdAt) ? current : latest
           )
         : null;
@@ -510,31 +214,31 @@ async getUserManagementData(page: number = 1, limit: number = 20) {
       }
     };
 
-    logger.info('✅ getUserManagementData completed successfully');
+    logger.info('getUserManagementData completed successfully');
     return result;
 
   } catch (error) {
-    logger.error('🔴 Get user management data error:', error);
+    logger.error('Get user management data error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     throw new Error('Failed to get user management data: ' + errorMessage);
   }
 }
-  // NEW: Badge Analytics
+  // Badge Analytics
   async getBadgeAnalytics() {
     try {
       const badgeTypes = await this.badgeTypeRepository.find({
         relations: ['mints', 'issuer']
       });
 
-      // FIXED VERSION - in getBadgeAnalytics() method
+      // In getBadgeAnalytics() method
 const analytics = badgeTypes.map(badgeType => {
     const mints = badgeType.mints || [];
-    
-    // FIX: Count both 'success' and 'completed' as successful
-    const completedMints = mints.filter(mint => 
+
+    // Older rows say 'success', newer ones 'completed'; both mean minted.
+    const completedMints = mints.filter(mint =>
         mint.metadata?.status === 'success' || mint.metadata?.status === 'completed'
     ).length;
-    
+
     const pendingMints = mints.filter(mint => mint.metadata?.status === 'pending').length;
     const failedMints = mints.filter(mint => mint.metadata?.status === 'failed').length;
     const totalMints = mints.length;
@@ -577,10 +281,9 @@ const analytics = badgeTypes.map(badgeType => {
     }
   }
 
-  // NEW: System Health
+  // System Health
   async getSystemHealth() {
     try {
-      // Test database connection
       let dbStatus = 'healthy';
       try {
         await this.badgeMintRepository.count();
@@ -607,11 +310,11 @@ const analytics = badgeTypes.map(badgeType => {
     }
   }
 
-  // NEW: Minting Activity Over Time
+  // Minting Activity Over Time
   async getMintingActivity(timeRange: string = '24h') {
     try {
       const now = new Date();
-      let startTime = new Date();
+      const startTime = new Date();
 
       switch (timeRange) {
         case '1h':
@@ -633,14 +336,14 @@ const analytics = badgeTypes.map(badgeType => {
       // Use raw query to avoid TypeORM issues with complex grouping
       const mints = await this.badgeMintRepository
         .createQueryBuilder('mint')
-        .where('mint.createdAt >= :startTime AND mint.createdAt <= :endTime', { 
-          startTime, 
-          endTime: now 
+        .where('mint.createdAt >= :startTime AND mint.createdAt <= :endTime', {
+          startTime,
+          endTime: now
         })
         .select([
           "DATE_TRUNC('hour', mint.createdAt) as hour",
           "COUNT(*) as total_count",
-          "COUNT(CASE WHEN mint.metadata ->> 'status' = 'success' THEN 1 END) as success_count",
+          "COUNT(CASE WHEN mint.metadata ->> 'status' IN ('success', 'completed') THEN 1 END) as success_count",
           "COUNT(CASE WHEN mint.metadata ->> 'status' = 'failed' THEN 1 END) as failed_count",
           "COUNT(CASE WHEN mint.metadata ->> 'status' IS NULL OR mint.metadata ->> 'status' = 'pending' THEN 1 END) as pending_count"
         ])
@@ -650,7 +353,7 @@ const analytics = badgeTypes.map(badgeType => {
 
       // Format data for charts
       const hourlyData = this.formatHourlyData(mints, startTime, now);
-      
+
       return {
         timeRange,
         data: hourlyData,
@@ -665,7 +368,7 @@ const analytics = badgeTypes.map(badgeType => {
   private formatHourlyData(mints: any[], startTime: Date, endTime: Date) {
     const hours = [];
     const current = new Date(startTime);
-    
+
     while (current <= endTime) {
       hours.push(new Date(current));
       current.setHours(current.getHours() + 1);

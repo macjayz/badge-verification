@@ -243,12 +243,12 @@
         <p class="subtitle">Connect your wallet to access and manage your digital badges</p>
 
         <div id="error-message" class="error">
-            <div><strong>⚠️ Authentication Error</strong></div>
+            <div><strong>Authentication Error</strong></div>
             <div id="error-details"></div>
         </div>
 
         <div id="success-message" class="success">
-            <div><strong>🎉 Success!</strong></div>
+            <div><strong>Success!</strong></div>
             <div id="success-details"></div>
         </div>
 
@@ -269,21 +269,15 @@
             </div>
         </div>
 
-        <div class="wallet-option" onclick="connectWalletConnect()">
-            <span class="wallet-icon">🔷</span>
-            <div>
-                <div class="wallet-text">Connect with WalletConnect</div>
-                <div class="wallet-description">Mobile & multi-wallet support</div>
-            </div>
-        </div>
+        <div id="demoLoginOption" hidden>
+            <div class="divider"><span>or</span></div>
 
-        <div class="divider"><span>or</span></div>
-
-        <div class="wallet-option demo-option" onclick="demoLogin()">
-            <span class="wallet-icon">🚀</span>
-            <div>
-                <div class="wallet-text">Try Demo Mode</div>
-                <div class="wallet-description">Test the system without a wallet</div>
+            <div class="wallet-option demo-option" onclick="demoLogin()">
+                <span class="wallet-icon">🚀</span>
+                <div>
+                    <div class="wallet-text">Try Demo Mode</div>
+                    <div class="wallet-description">Test the system without a wallet</div>
+                </div>
             </div>
         </div>
 
@@ -396,10 +390,11 @@
             }
         }
 
-        // WalletConnect connection (stub for now)
-        async function connectWalletConnect() {
-            showError('WalletConnect integration coming soon! Please use MetaMask for now.');
-        }
+        // The demo login exists only on development servers.
+        fetch('/api/auth/options')
+            .then(response => response.json())
+            .then(options => { document.getElementById('demoLoginOption').hidden = !options.demoLogin; })
+            .catch(() => {});
 
         // Demo login for testing
         async function demoLogin() {
@@ -407,7 +402,9 @@
             hideMessages();
             
             try {
-                const demoWallet = '0x' + Math.random().toString(16).substr(2, 40);
+                // A wallet address is 20 random bytes (40 hex characters).
+                const bytes = crypto.getRandomValues(new Uint8Array(20));
+                const demoWallet = '0x' + Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
                 
                 const response = await fetch('/api/auth/dev-verify', {
                     method: 'POST',
@@ -469,7 +466,6 @@
                 // builds it so the format, domain and expiry are always right.
                 const messageToSign = nonceData.message;
                 
-                console.log('Signing message:', messageToSign);
 
                 // Step 3: Sign message with wallet
                 const signature = await window.ethereum.request({

@@ -388,18 +388,19 @@
         .status-active { background: #d4edda; color: #155724; }
         .status-inactive { background: #f8d7da; color: #721c24; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <div class="dashboard">
         <!-- Sidebar -->
         <div class="sidebar">
-            <h1>🏢 Issuer Portal</h1>
+            <h1>Issuer Portal</h1>
             <nav>
-                <a href="/issuer-dashboard.html">📊 Dashboard</a>
-                <a href="/issuer-badge-creator.html">🪙 Create Badge</a>
-                <a href="/issuer-analytics.html" class="active">📈 Analytics</a>
-                <a href="/issuer-social-rules.html">🔗 Social Rules</a>
-                <a href="/issuer-settings.html">⚙️ Settings</a>
+                <a href="/issuer-dashboard.html">Dashboard</a>
+                <a href="/issuer-badge-creator.html">Create Badge</a>
+                <a href="/issuer-analytics.html" class="active">Analytics</a>
+                <a href="/issuer-social-rules.html">Social Rules</a>
+                <a href="/issuer-settings.html">Settings</a>
             </nav>
             
             <div class="issuer-info">
@@ -413,9 +414,8 @@
             <div class="header">
                 <h2>Analytics & Insights</h2>
                 <div class="header-actions">
-                    <button class="btn btn-warning" onclick="debugAuthState()">🔧 Debug</button>
-                    <button class="btn btn-primary" onclick="refreshAnalytics()">🔄 Refresh</button>
-                    <button class="btn btn-success" onclick="exportData()">📊 Export Data</button>
+                    <button class="btn btn-primary" onclick="refreshAnalytics()">Refresh</button>
+                    <button class="btn btn-success" onclick="exportJSON()">Export JSON</button>
                 </div>
             </div>
 
@@ -428,27 +428,10 @@
                 <div class="filter-group">
                     <div class="filter-label">Time Range</div>
                     <select id="timeRange" class="filter-select" onchange="loadAnalytics()">
-                        <option value="7d">Last 7 Days</option>
-                        <option value="30d" selected>Last 30 Days</option>
-                        <option value="90d">Last 90 Days</option>
-                        <option value="1y">Last Year</option>
-                        <option value="all">All Time</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <div class="filter-label">Badge Type</div>
-                    <select id="badgeFilter" class="filter-select" onchange="loadAnalytics()">
-                        <option value="">All Badges</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <div class="filter-label">Status</div>
-                    <select id="statusFilter" class="filter-select" onchange="loadAnalytics()">
-                        <option value="">All Status</option>
-                        <option value="completed">Completed Only</option>
-                        <option value="failed">Failed Only</option>
+                        <option value="7">Last 7 Days</option>
+                        <option value="30" selected>Last 30 Days</option>
+                        <option value="90">Last 90 Days</option>
+                        <option value="365">Last Year</option>
                     </select>
                 </div>
             </div>
@@ -467,13 +450,13 @@
                 </div>
                 <div class="stat-card purple">
                     <div class="stat-value" id="activeUsers">0</div>
-                    <div class="stat-label">Active Users</div>
+                    <div class="stat-label">Badges Minted</div>
                     <div class="stat-trend trend-up" id="usersTrend">+0%</div>
                 </div>
                 <div class="stat-card teal">
                     <div class="stat-value" id="avgCompletion">0s</div>
-                    <div class="stat-label">Avg. Completion Time</div>
-                    <div class="stat-trend trend-down" id="completionTrend">-0%</div>
+                    <div class="stat-label">Avg. Mint Time</div>
+                    <div class="stat-trend" id="completionTrend"></div>
                 </div>
             </div>
 
@@ -487,18 +470,14 @@
                             <option value="bar">Bar Chart</option>
                         </select>
                     </div>
-                    <div class="chart-placeholder" id="mintingChart">
-                        📈 Minting activity chart will be displayed here
-                    </div>
+                    <div style="position: relative; height: 260px;"><canvas id="mintingChart"></canvas></div>
                 </div>
                 
                 <div class="chart-card">
                     <div class="chart-header">
                         <div class="chart-title">Badge Distribution</div>
                     </div>
-                    <div class="chart-placeholder" id="distributionChart">
-                        🎯 Badge distribution pie chart
-                    </div>
+                    <div style="position: relative; height: 260px;"><canvas id="distributionChart"></canvas></div>
                 </div>
             </div>
 
@@ -508,18 +487,14 @@
                     <div class="chart-header">
                         <div class="chart-title">Success Rate Trend</div>
                     </div>
-                    <div class="chart-placeholder" id="successChart">
-                        📊 Success rate over time
-                    </div>
+                    <div style="position: relative; height: 260px;"><canvas id="successChart"></canvas></div>
                 </div>
                 
                 <div class="chart-card">
                     <div class="chart-header">
-                        <div class="chart-title">User Acquisition</div>
+                        <div class="chart-title">New Wallets</div>
                     </div>
-                    <div class="chart-placeholder" id="acquisitionChart">
-                        👥 New users over time
-                    </div>
+                    <div style="position: relative; height: 260px;"><canvas id="acquisitionChart"></canvas></div>
                 </div>
             </div>
 
@@ -567,13 +542,11 @@
                             <th>Status</th>
                             <th>Total Mints</th>
                             <th>Success Rate</th>
-                            <th>Completion Rate</th>
-                            <th>Trend</th>
                         </tr>
                     </thead>
                     <tbody id="badgesPerformanceBody">
                         <tr>
-                            <td colspan="6" class="loading">Loading badges performance...</td>
+                            <td colspan="4" class="loading">Loading badges performance...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -587,13 +560,13 @@
                 </p>
                 <div class="export-options">
                     <button class="btn btn-primary" onclick="exportCSV('mints')">
-                        📥 Export Mints Data (CSV)
+                        Export Mints Data (CSV)
                     </button>
                     <button class="btn btn-success" onclick="exportCSV('users')">
-                        📥 Export Users Data (CSV)
+                        Export Wallets (CSV)
                     </button>
-                    <button class="btn btn-warning" onclick="exportJSON('analytics')">
-                        📥 Export Full Analytics (JSON)
+                    <button class="btn btn-warning" onclick="exportJSON()">
+                        Export Full Analytics (JSON)
                     </button>
                 </div>
             </div>
@@ -612,7 +585,6 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Analytics Dashboard Loading...');
             
             // Check if issuer is authenticated
             const apiKey = localStorage.getItem('issuerApiKey');
@@ -626,7 +598,6 @@
             
             loadIssuerData();
             loadAnalytics();
-            loadBadgeFilter();
         });
 
         // Load Issuer Data
@@ -639,7 +610,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error loading issuer data:', error);
+                console.error('Error loading issuer data:', error);
             }
         }
 
@@ -654,19 +625,17 @@
         // Load Analytics Data
         async function loadAnalytics() {
             try {
-                const timeRange = document.getElementById('timeRange').value;
-                const badgeFilter = document.getElementById('badgeFilter').value;
-                const statusFilter = document.getElementById('statusFilter').value;
+                const days = document.getElementById('timeRange').value;
                 
                 // Show loading state
                 document.getElementById('badgesPerformanceBody').innerHTML = `
                     <tr>
-                        <td colspan="6" class="loading">Loading analytics data...</td>
+                        <td colspan="4" class="loading">Loading analytics data...</td>
                     </tr>
                 `;
                 
                 // Load dashboard stats
-                const statsResponse = await issuerAuthFetch(`${ISSUER_DASHBOARD_API}/stats`);
+                const statsResponse = await issuerAuthFetch(`${ISSUER_DASHBOARD_API}/stats?days=${days}`);
                 
                 if (!statsResponse) return;
                 
@@ -681,35 +650,102 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error loading analytics:', error);
+                console.error('Error loading analytics:', error);
                 showError('Error loading analytics: ' + error.message);
             }
         }
 
-        // Update Analytics UI
+        const PROVIDERS = {
+            didSuccessRate: ['privado', 'polygonid', 'idos'],
+            twitterSuccessRate: ['twitter_follow'],
+            discordSuccessRate: ['discord_member'],
+            snapshotSuccessRate: ['snapshot_votes']
+        };
+
+        function formatSeconds(seconds) {
+            if (seconds === null || seconds === undefined) return 'n/a';
+            return seconds < 120 ? `${seconds}s` : `${Math.round(seconds / 60)}m`;
+        }
+
         function updateAnalyticsUI() {
             if (!analyticsData) return;
-            
-            // Update main stats
+            const activity = analyticsData.recentActivity || [];
+            const inWindow = key => activity.reduce((sum, day) => sum + day[key], 0);
+            const days = activity.length;
+
             document.getElementById('totalMints').textContent = analyticsData.totalMints.toLocaleString();
             document.getElementById('successRate').textContent = analyticsData.successRate.toFixed(1) + '%';
             document.getElementById('activeUsers').textContent = analyticsData.successfulMints.toLocaleString();
-            document.getElementById('avgCompletion').textContent = '45s'; // Mock data
-            
-            // Update trends (mock data for now)
-            document.getElementById('mintsTrend').textContent = `+${Math.floor(analyticsData.totalMints * 0.15)}% vs previous period`;
-            document.getElementById('successTrend').textContent = '+2.5%';
-            document.getElementById('usersTrend').textContent = `+${Math.floor(analyticsData.successfulMints * 0.12)}%`;
-            document.getElementById('completionTrend').textContent = '-8%';
-            
-            // Update verification stats (mock data)
-            document.getElementById('didSuccessRate').textContent = '92%';
-            document.getElementById('twitterSuccessRate').textContent = '78%';
-            document.getElementById('discordSuccessRate').textContent = '85%';
-            document.getElementById('snapshotSuccessRate').textContent = '65%';
-            
-            // Update badges performance
+            document.getElementById('avgCompletion').textContent = formatSeconds(analyticsData.avgMintSeconds);
+
+            document.getElementById('mintsTrend').textContent = `${inWindow('mints')} in the last ${days} days`;
+            document.getElementById('successTrend').textContent = `${analyticsData.failedMints} failed overall`;
+            document.getElementById('usersTrend').textContent = `${inWindow('newWallets')} new wallets in ${days} days`;
+            document.getElementById('completionTrend').textContent = 'request to confirmation';
+
+            const rates = analyticsData.verificationRates || {};
+            for (const [elementId, providers] of Object.entries(PROVIDERS)) {
+                const totals = providers.reduce((acc, p) => ({
+                    completed: acc.completed + (rates[p]?.completed || 0),
+                    total: acc.total + (rates[p]?.total || 0)
+                }), { completed: 0, total: 0 });
+                document.getElementById(elementId).textContent = totals.total
+                    ? `${Math.round((totals.completed / totals.total) * 100)}%`
+                    : 'n/a';
+            }
+
             updateBadgesPerformance();
+            renderCharts();
+        }
+
+        const charts = {};
+
+        function drawChart(id, config) {
+            charts[id]?.destroy();
+            charts[id] = new Chart(document.getElementById(id), {
+                ...config,
+                options: { responsive: true, maintainAspectRatio: false, ...config.options }
+            });
+        }
+
+        function renderCharts() {
+            const activity = analyticsData.recentActivity || [];
+            const labels = activity.map(d =>
+                new Date(d.date + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }));
+            const type = document.getElementById('chartType').value;
+
+            drawChart('mintingChart', {
+                type,
+                data: { labels, datasets: [
+                    { label: 'Mints', data: activity.map(d => d.mints), borderColor: '#3498db', backgroundColor: 'rgba(52, 152, 219, 0.3)' },
+                    { label: 'Verifications', data: activity.map(d => d.verifications), borderColor: '#9b59b6', backgroundColor: 'rgba(155, 89, 182, 0.3)' }
+                ] },
+                options: { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+            });
+
+            const badges = (analyticsData.topBadges || []).filter(b => b.mints > 0);
+            drawChart('distributionChart', {
+                type: 'doughnut',
+                data: { labels: badges.map(b => b.name), datasets: [{ data: badges.map(b => b.mints) }] }
+            });
+
+            // Days without mints have no rate; leave them as gaps.
+            drawChart('successChart', {
+                type: 'line',
+                data: { labels, datasets: [{
+                    label: 'Success rate (%)',
+                    data: activity.map(d => (d.mints ? Math.round((d.completed / d.mints) * 100) : null)),
+                    borderColor: '#2ecc71',
+                    spanGaps: true
+                }] },
+                options: { scales: { y: { min: 0, max: 100 } } }
+            });
+
+            drawChart('acquisitionChart', {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'New wallets', data: activity.map(d => d.newWallets), backgroundColor: '#1abc9c' }] },
+                options: { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+            });
         }
 
         // Update Badges Performance Table
@@ -729,7 +765,7 @@
             if (badges.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" style="text-align: center; color: #6c757d; padding: 40px;">
+                        <td colspan="4" style="text-align: center; color: #6c757d; padding: 40px;">
                             No badge data available
                         </td>
                     </tr>
@@ -738,10 +774,6 @@
             }
             
             tbody.innerHTML = badges.map(badge => {
-                const completionRate = Math.min(95, 70 + (badge.successRate / 100) * 25); // Mock completion rate
-                const trend = badge.successRate > 75 ? 'up' : badge.successRate > 50 ? 'stable' : 'down';
-                const trendIcon = trend === 'up' ? '📈' : trend === 'down' ? '📉' : '➡️';
-                const trendColor = trend === 'up' ? 'trend-up' : trend === 'down' ? 'trend-down' : '';
                 
                 return `
                     <tr>
@@ -763,17 +795,6 @@
                                 </div>
                             </div>
                         </td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <span>${completionRate.toFixed(1)}%</span>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: ${completionRate}%; background: var(--primary);"></div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="stat-trend ${trendColor}">${trendIcon} ${trend}</span>
-                        </td>
                     </tr>
                 `;
             }).join('');
@@ -785,95 +806,54 @@
             updateBadgesPerformance();
         }
 
-        // Load Badge Filter Options
-        async function loadBadgeFilter() {
-            try {
-                const response = await issuerAuthFetch(`${ISSUER_API_URL}/badges`);
-                
-                if (!response) return;
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.success) {
-                        const select = document.getElementById('badgeFilter');
-                        select.innerHTML = '<option value="">All Badges</option>' +
-                            result.badgeTypes.map(badge => 
-                                `<option value="${badge.id}">${badge.name}</option>`
-                            ).join('');
-                    }
-                }
-                
-            } catch (error) {
-                console.error('❌ Error loading badge filter:', error);
-            }
-        }
-
         // Update Chart
         function updateChart() {
-            // This would update the chart type in a real implementation
-            showSuccess('Chart type updated!');
+            if (analyticsData) renderCharts();
         }
 
-        // Export Data
-        function exportData() {
-            showSuccess('Preparing data export...');
-            // In a real implementation, this would trigger file download
-            setTimeout(() => {
-                showSuccess('Export completed! Check your downloads.');
-            }, 2000);
+        async function fetchMints() {
+            const response = await issuerAuthFetch(`${ISSUER_DASHBOARD_API}/mints?limit=10000`);
+            if (!response || !response.ok) throw new Error('Could not load mints');
+            return (await response.json()).mints;
         }
 
-        // Export CSV
-        function exportCSV(type) {
-            let filename = '';
-            let data = '';
-            
-            switch (type) {
-                case 'mints':
-                    filename = `mints-data-${new Date().toISOString().split('T')[0]}.csv`;
-                    data = generateMintsCSV();
-                    break;
-                case 'users':
-                    filename = `users-data-${new Date().toISOString().split('T')[0]}.csv`;
-                    data = generateUsersCSV();
-                    break;
+        function toCSV(headers, rows) {
+            const escape = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
+            return [headers.join(','), ...rows.map(row => row.map(escape).join(','))].join('\n');
+        }
+
+        async function exportCSV(type) {
+            try {
+                const mints = await fetchMints();
+                const today = new Date().toISOString().split('T')[0];
+                if (type === 'mints') {
+                    const csv = toCSV(['Date', 'Badge', 'Wallet', 'Status', 'Token ID', 'Transaction Hash', 'Revoked'],
+                        mints.map(m => [m.createdAt, m.badgeName, m.wallet, m.status, m.tokenId, m.transactionHash, m.revoked]));
+                    downloadFile(csv, `mints-${today}.csv`, 'text/csv');
+                } else {
+                    const byWallet = new Map();
+                    for (const m of mints) {
+                        const row = byWallet.get(m.wallet) || { first: m.createdAt, last: m.createdAt, total: 0, completed: 0 };
+                        row.total += 1;
+                        row.completed += m.status === 'completed' ? 1 : 0;
+                        if (m.createdAt < row.first) row.first = m.createdAt;
+                        if (m.createdAt > row.last) row.last = m.createdAt;
+                        byWallet.set(m.wallet, row);
+                    }
+                    const csv = toCSV(['Wallet', 'First Mint', 'Last Mint', 'Total Mints', 'Completed Mints'],
+                        [...byWallet].map(([wallet, r]) => [wallet, r.first, r.last, r.total, r.completed]));
+                    downloadFile(csv, `wallets-${today}.csv`, 'text/csv');
+                }
+                showSuccess(`Exported ${type} as CSV`);
+            } catch (error) {
+                showError(error.message);
             }
-            
-            downloadFile(data, filename, 'text/csv');
-            showSuccess(`Exported ${type} data as CSV`);
         }
 
-        // Export JSON
-        function exportJSON(type) {
-            const filename = `analytics-${new Date().toISOString().split('T')[0]}.json`;
-            const data = JSON.stringify(analyticsData, null, 2);
-            downloadFile(data, filename, 'application/json');
-            showSuccess('Exported full analytics as JSON');
-        }
-
-        // Generate Mock CSV Data
-        function generateMintsCSV() {
-            const headers = ['Date', 'Badge Name', 'Wallet', 'Status', 'Transaction Hash'];
-            const rows = [
-                ['2024-01-15', 'DeFi Camp Graduate', '0x7423...a1b2', 'completed', '0xabc123...'],
-                ['2024-01-14', 'DAO Voter', '0x8934...c5d6', 'completed', '0xdef456...'],
-                ['2024-01-14', 'DeFi Camp Graduate', '0x5678...e9f0', 'failed', ''],
-                ['2024-01-13', 'Verified Creator', '0x1234...b5c6', 'completed', '0xghi789...']
-            ];
-            
-            return [headers, ...rows].map(row => row.join(',')).join('\n');
-        }
-
-        function generateUsersCSV() {
-            const headers = ['Wallet', 'First Mint', 'Total Mints', 'Success Rate', 'Last Activity'];
-            const rows = [
-                ['0x7423...a1b2', '2024-01-15', '3', '100%', '2024-01-15'],
-                ['0x8934...c5d6', '2024-01-14', '2', '100%', '2024-01-14'],
-                ['0x5678...e9f0', '2024-01-14', '1', '0%', '2024-01-14'],
-                ['0x1234...b5c6', '2024-01-13', '5', '80%', '2024-01-15']
-            ];
-            
-            return [headers, ...rows].map(row => row.join(',')).join('\n');
+        function exportJSON() {
+            if (!analyticsData) return;
+            downloadFile(JSON.stringify(analyticsData, null, 2), `analytics-${new Date().toISOString().split('T')[0]}.json`, 'application/json');
+            showSuccess('Exported analytics as JSON');
         }
 
         // Download File Utility
@@ -893,18 +873,6 @@
         function refreshAnalytics() {
             loadAnalytics();
             showSuccess('Analytics refreshed!');
-        }
-
-        // Debug Auth State
-        function debugAuthState() {
-            const apiKey = localStorage.getItem('issuerApiKey');
-            const issuer = localStorage.getItem('issuerData');
-            
-            console.log('=== 🔍 ISSUER AUTH DEBUG ===');
-            console.log('API Key exists:', !!apiKey);
-            console.log('Issuer data exists:', !!issuer);
-            console.log('Analytics data:', analyticsData);
-            console.log('========================');
         }
 
         // Auth Fetch for Issuer API
@@ -936,7 +904,7 @@
                 
                 return response;
             } catch (error) {
-                console.error('❌ Fetch error:', error);
+                console.error('Fetch error:', error);
                 throw error;
             }
         }
@@ -947,7 +915,7 @@
             el.textContent = message;
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 5000);
-            console.error('💥 Error:', message);
+            console.error('Error:', message);
         }
 
         function showSuccess(message) {
@@ -955,7 +923,6 @@
             el.textContent = message;
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 5000);
-            console.log('✅ Success:', message);
         }
 
         // Auto-refresh every 60 seconds

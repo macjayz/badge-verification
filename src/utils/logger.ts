@@ -27,6 +27,6 @@ export const logger = winston.createLogger({
     winston.format.errors({ stack: true }),
     winston.format.json()
   ),
-  defaultMeta: { service: 'badge-backend' },
+  defaultMeta: { service: 'badge-verification' },
   transports
 });

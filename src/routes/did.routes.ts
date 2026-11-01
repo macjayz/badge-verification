@@ -1,7 +1,6 @@
-// src/routes/did.routes.ts
 import { Router } from 'express';
 import { didController } from '../controllers/did.controller';
-import { authenticateToken, optionalAuth } from '../middleware/auth.middleware';
+import { authenticateToken } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -17,6 +16,5 @@ router.post('/:provider/init', authenticateToken, didController.initiateVerifica
 router.post('/:provider/callback', didController.handleCallback);
 router.get('/status', authenticateToken, didController.getVerificationStatus);
 router.get('/session/:sessionId', didController.getVerificationSession);
-
 
 export { router as didRoutes };

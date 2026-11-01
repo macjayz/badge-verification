@@ -383,13 +383,13 @@
         </a>
         
         <div class="header">
-            <h1>📊 Badge Analytics</h1>
+            <h1>Badge Analytics</h1>
             <div class="header-actions">
                 <button class="btn btn-primary" onclick="refreshAnalytics()">
-                    🔄 Refresh Data
+                    Refresh Data
                 </button>
                 <button class="btn btn-success" onclick="exportAnalytics()">
-                    📥 Export Report
+                    Export Report
                 </button>
             </div>
         </div>
@@ -465,39 +465,13 @@
                     <canvas id="successRateChart"></canvas>
                 </div>
             </div>
-            
-            <div class="metric-card">
-                <div class="chart-header">
-                    <div class="chart-title">User Verification Levels</div>
-                </div>
-                <div class="chart-wrapper">
-                    <canvas id="verificationChart"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <!-- User Demographics -->
-        <div class="demographics-grid">
-            <div class="demo-card">
-                <h3>👥 User Activity Types</h3>
-                <ul class="demo-list" id="activityTypes">
-                    <li>Loading...</li>
-                </ul>
-            </div>
-            
-            <div class="demo-card">
-                <h3>📱 Platform Distribution</h3>
-                <ul class="demo-list" id="platformDistribution">
-                    <li>Loading...</li>
-                </ul>
-            </div>
         </div>
         
         <!-- Recent Activity -->
         <div class="activity-feed">
             <div class="chart-header">
                 <h3>Recent Minting Activity</h3>
-                <button class="btn btn-sm" onclick="loadRecentActivity(currentBadgeId)">
+                <button class="btn btn-sm" onclick="loadAnalyticsData()">
                     Refresh
                 </button>
             </div>
@@ -537,10 +511,9 @@
                 await loadBadgeDetails(badgeId);
                 
                 // Load analytics data
-                await loadBadgeStatistics(badgeId);
-                await loadChartsData(badgeId);
-                await loadUserDemographics(badgeId);
-                await loadRecentActivity(badgeId);
+                loadBadgeStatistics();
+                loadChartsData();
+                loadRecentActivity();
                 
             } catch (error) {
                 console.error('Error loading analytics:', error);
@@ -551,7 +524,8 @@
         // Load badge details
         async function loadBadgeDetails(badgeId) {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`${BADGE_API_URL}/types/${badgeId}`, {
+            const days = document.getElementById('timeRange').value;
+            const response = await fetch(`${BADGE_API_URL}/types/${badgeId}?days=${days}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -565,7 +539,8 @@
             const result = await response.json();
             
             if (result.success) {
-                currentBadge = result.data;
+                const { badgeType, statistics, dailyStats, recentMints } = result.data;
+                currentBadge = { ...badgeType, ...statistics, dailyStats, recentMints };
                 updateBadgeHeader();
             } else {
                 throw new Error(result.error || 'Failed to load badge details');
@@ -596,109 +571,56 @@
                 <div style="flex: 1;"></div>
                 <div style="text-align: right;">
                     <div style="font-size: 0.9rem; color: #6c757d;">Issuer</div>
-                    <div style="font-weight: 500;">${currentBadge.issuer?.name || 'Unknown'}</div>
+                    <div style="font-weight: 500;">${currentBadge.issuer || 'Unknown'}</div>
                     <div style="font-size: 0.9rem; color: #6c757d; margin-top: 5px;">Created</div>
                     <div style="font-size: 0.8rem;">${new Date(currentBadge.createdAt).toLocaleDateString()}</div>
                 </div>
             `;
         }
         
-        // Load badge statistics
-        async function loadBadgeStatistics(badgeId) {
-            // For now, we'll use the data from badge details
-            // In a real implementation, you'd have a dedicated analytics endpoint
-            
+        function loadBadgeStatistics() {
             const totalMints = currentBadge.totalMints || 0;
             const successfulMints = currentBadge.completedMints || 0;
             const failedMints = currentBadge.failedMints || 0;
             const successRate = totalMints > 0 ? (successfulMints / totalMints) * 100 : 0;
-            
-            // Update stats
+
             document.getElementById('totalMints').textContent = totalMints.toLocaleString();
             document.getElementById('successfulMints').textContent = successfulMints.toLocaleString();
             document.getElementById('failedMints').textContent = failedMints.toLocaleString();
             document.getElementById('successRate').textContent = successRate.toFixed(1) + '%';
-            
-            // Simulate weekly changes (in real app, this would come from the API)
-            document.getElementById('mintsChange').textContent = '+12% this week';
-            document.getElementById('successChange').textContent = '+8% this week';
-            document.getElementById('failChange').textContent = '+3% this week';
-            document.getElementById('rateChange').textContent = '+2% this week';
+
+            const daily = currentBadge.dailyStats || [];
+            const sum = key => daily.reduce((total, day) => total + day[key], 0);
+            const days = daily.length;
+            document.getElementById('mintsChange').textContent = `${sum('total')} in the last ${days} days`;
+            document.getElementById('successChange').textContent = `${sum('completed')} in the last ${days} days`;
+            document.getElementById('failChange').textContent = `${sum('failed')} in the last ${days} days`;
+            document.getElementById('rateChange').textContent = `${currentBadge.uniqueWallets || 0} unique wallets`;
         }
-        
-        // Load charts data and initialize charts
-        async function loadChartsData(badgeId) {
-            const timeRange = document.getElementById('timeRange').value;
-            
-            // Generate sample data based on time range
-            const days = parseInt(timeRange);
-            const mintingData = generateMintingData(days);
-            const statusData = generateStatusData();
-            const successRateData = generateSuccessRateData(days);
-            const verificationData = generateVerificationData();
-            
-            // Initialize or update charts
-            initializeMintingChart(mintingData);
-            initializeStatusChart(statusData);
-            initializeSuccessRateChart(successRateData);
-            initializeVerificationChart(verificationData);
+
+        function dayLabel(date) {
+            return new Date(date + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
         }
-        
-        // Generate sample minting data
-        function generateMintingData(days) {
-            const labels = [];
-            const successfulData = [];
-            const failedData = [];
-            
-            for (let i = days - 1; i >= 0; i--) {
-                const date = new Date();
-                date.setDate(date.getDate() - i);
-                labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-                
-                // Random data for demonstration
-                successfulData.push(Math.floor(Math.random() * 20) + 5);
-                failedData.push(Math.floor(Math.random() * 5) + 1);
-            }
-            
-            return { labels, successfulData, failedData };
+
+        function loadChartsData() {
+            const daily = currentBadge.dailyStats || [];
+            initializeMintingChart({
+                labels: daily.map(d => dayLabel(d.date)),
+                successfulData: daily.map(d => d.completed),
+                failedData: daily.map(d => d.failed)
+            });
+            initializeStatusChart({
+                completed: currentBadge.completedMints || 0,
+                failed: currentBadge.failedMints || 0,
+                pending: currentBadge.pendingMints || 0
+            });
+            // Days without mints have no rate, so they are left as gaps rather than drawn as 0%.
+            initializeSuccessRateChart({
+                labels: daily.map(d => dayLabel(d.date)),
+                rates: daily.map(d => (d.total ? Math.round((d.completed / d.total) * 100) : null))
+            });
         }
-        
-        // Generate sample status data
-        function generateStatusData() {
-            return {
-                completed: currentBadge.completedMints || 45,
-                failed: currentBadge.failedMints || 15,
-                pending: Math.floor((currentBadge.completedMints || 45) * 0.2),
-                expired: Math.floor((currentBadge.completedMints || 45) * 0.1)
-            };
-        }
-        
-        // Generate sample success rate data
-        function generateSuccessRateData(days) {
-            const labels = [];
-            const rates = [];
-            
-            for (let i = days - 1; i >= 0; i--) {
-                const date = new Date();
-                date.setDate(date.getDate() - i);
-                labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-                
-                // Random success rate between 70% and 95%
-                rates.push(Math.floor(Math.random() * 25) + 70);
-            }
-            
-            return { labels, rates };
-        }
-        
-        // Generate sample verification data
-        function generateVerificationData() {
-            return {
-                'Basic Verification': 45,
-                'Advanced Verification': 30,
-                'Full Verification': 25
-            };
-        }
-        
+
         // Initialize minting activity chart
         function initializeMintingChart(data) {
             const ctx = document.getElementById('mintingChart').getContext('2d');
@@ -766,9 +688,9 @@
             charts.statusChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Completed', 'Failed', 'Pending', 'Expired'],
+                    labels: ['Completed', 'Failed', 'Pending'],
                     datasets: [{
-                        data: [data.completed, data.failed, data.pending, data.expired],
+                        data: [data.completed, data.failed, data.pending],
                         backgroundColor: [
                             '#2ecc71',
                             '#e74c3c',
@@ -833,121 +755,56 @@
             });
         }
         
-        // Initialize verification chart
-        function initializeVerificationChart(data) {
-            const ctx = document.getElementById('verificationChart').getContext('2d');
-            
-            if (charts.verificationChart) {
-                charts.verificationChart.destroy();
+        
+        function shortWallet(wallet) {
+            return wallet ? `${wallet.slice(0, 6)}...${wallet.slice(-4)}` : 'unknown';
+        }
+
+        function loadRecentActivity() {
+            const mints = currentBadge?.recentMints || [];
+            const container = document.getElementById('recentActivity');
+            if (mints.length === 0) {
+                container.innerHTML = '<div class="loading">No mints yet</div>';
+                return;
             }
-            
-            charts.verificationChart = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: Object.keys(data),
-                    datasets: [{
-                        data: Object.values(data),
-                        backgroundColor: [
-                            '#3498db',
-                            '#9b59b6',
-                            '#1abc9c'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Load user demographics
-        async function loadUserDemographics(badgeId) {
-            // Sample demographics data
-            const activityTypes = [
-                { type: 'First-time Users', count: 60, percentage: 60 },
-                { type: 'Returning Users', count: 25, percentage: 25 },
-                { type: 'Power Users', count: 15, percentage: 15 }
-            ];
-            
-            const platformDistribution = [
-                { platform: 'Web', count: 55, percentage: 55 },
-                { platform: 'Mobile', count: 35, percentage: 35 },
-                { platform: 'API', count: 10, percentage: 10 }
-            ];
-            
-            // Update activity types
-            const activityList = document.getElementById('activityTypes');
-            activityList.innerHTML = activityTypes.map(item => `
-                <li>
-                    <span>${item.type}</span>
-                    <span>${item.count} (${item.percentage}%)</span>
-                </li>
-            `).join('');
-            
-            // Update platform distribution
-            const platformList = document.getElementById('platformDistribution');
-            platformList.innerHTML = platformDistribution.map(item => `
-                <li>
-                    <span>${item.platform}</span>
-                    <span>${item.count} (${item.percentage}%)</span>
-                </li>
-            `).join('');
-        }
-        
-        // Load recent activity
-        async function loadRecentActivity(badgeId) {
-            // Sample recent activity data
-            const activities = [
-                { type: 'success', title: 'Badge minted successfully', user: '0x742d...c291', time: '2 minutes ago' },
-                { type: 'success', title: 'Badge minted successfully', user: '0x8a3f...d472', time: '5 minutes ago' },
-                { type: 'danger', title: 'Minting failed - eligibility check', user: '0x1b9c...e583', time: '12 minutes ago' },
-                { type: 'success', title: 'Badge minted successfully', user: '0x5d2a...f694', time: '18 minutes ago' },
-                { type: 'info', title: 'User started verification', user: '0x3e8b...a175', time: '25 minutes ago' },
-                { type: 'success', title: 'Badge minted successfully', user: '0x9f1c...b286', time: '32 minutes ago' },
-                { type: 'danger', title: 'Minting failed - network error', user: '0x2a7d...c397', time: '45 minutes ago' }
-            ];
-            
-            const activityContainer = document.getElementById('recentActivity');
-            activityContainer.innerHTML = activities.map(activity => `
+            const kind = { completed: 'success', failed: 'danger', revoked: 'danger' };
+            const title = { completed: 'Badge minted', failed: 'Minting failed', revoked: 'Badge revoked' };
+            container.innerHTML = mints.map(mint => `
                 <div class="activity-item">
-                    <div class="activity-icon ${activity.type}">
-                        ${activity.type === 'success' ? '✓' : activity.type === 'danger' ? '✗' : '⏳'}
+                    <div class="activity-icon ${kind[mint.status] || 'info'}">
+                        ${mint.status === 'completed' ? '✓' : mint.status === 'pending' ? '…' : '✗'}
                     </div>
                     <div class="activity-content">
-                        <div class="activity-title">${activity.title}</div>
-                        <div class="activity-time">User: ${activity.user} • ${activity.time}</div>
+                        <div class="activity-title">${title[mint.status] || 'Mint ' + mint.status}</div>
+                        <div class="activity-time">${shortWallet(mint.wallet)} • ${new Date(mint.createdAt).toLocaleString()}</div>
                     </div>
                 </div>
             `).join('');
         }
-        
+
         // Refresh analytics data
         function refreshAnalytics() {
             showSuccess('Refreshing analytics data...');
             loadAnalyticsData();
         }
         
-        // Export analytics data
         function exportAnalytics() {
-            showSuccess('Preparing export... This would generate a PDF/CSV report in a real implementation.');
-            // In a real implementation, this would call an API to generate and download a report
+            const rows = (currentBadge?.dailyStats || []).map(d => [d.date, d.total, d.completed, d.failed].join(','));
+            const csv = ['date,total,completed,failed', ...rows].join('\n');
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+            link.download = `${currentBadge?.key || 'badge'}-daily-mints.csv`;
+            link.click();
+            URL.revokeObjectURL(link.href);
         }
-        
+
         // Message functions
         function showError(message) {
             const el = document.getElementById('errorMessage');
             el.textContent = message;
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 5000);
-            console.error('💥 Error:', message);
+            console.error('Error:', message);
         }
         
         function showSuccess(message) {
@@ -955,12 +812,10 @@
             el.textContent = message;
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 3000);
-            console.log('✅ Success:', message);
         }
         
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📊 Analytics Page Loading...');
             
             const badgeId = getBadgeIdFromURL();
             if (!badgeId) {

@@ -7,7 +7,7 @@ const router = Router();
 // All badge management routes require admin authentication
 router.use(authenticateToken, requireAdmin);
 
-// 📋 Badge management routes
+// Badge management routes
 router.get('/types', badgeManagementController.getAllBadgeTypes);
 router.post('/types', badgeManagementController.createBadgeType);
 router.get('/types/:badgeTypeId', badgeManagementController.getBadgeAnalytics);

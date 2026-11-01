@@ -1,4 +1,3 @@
-// src/routes/twitter-verification.routes.ts
 import { Router } from 'express';
 import { twitterVerificationController } from '../controllers/twitter-verification.controller';
 import { authenticateToken, requireOwnWallet } from '../middleware/auth.middleware';

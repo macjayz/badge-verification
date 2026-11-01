@@ -174,4 +174,23 @@ describe('POST /api/auth/dev-verify (demo login)', () => {
     expect(res.status).toBe(404);
     expect(res.body.token).toBeUndefined();
   });
+  it('refuses a suspended account', async () => {
+    const suspended = '0x' + '4'.repeat(40);
+    await request(app).post('/api/auth/dev-verify').send({ wallet: suspended });
+    const { AppDataSource } = jest.requireMock('../db/datasource');
+    const user = await AppDataSource.getRepository().findOne({ where: { wallet: suspended } });
+    user.isActive = false;
+
+    const res = await request(app).post('/api/auth/dev-verify').send({ wallet: suspended });
+    expect(res.status).toBe(403);
+    expect(res.body.token).toBeUndefined();
+  });
+});
+
+describe('GET /api/auth/options', () => {
+  it('offers the demo login only outside production', async () => {
+    expect((await request(app).get('/api/auth/options')).body).toEqual({ demoLogin: true });
+    mockProduction = true;
+    expect((await request(app).get('/api/auth/options')).body).toEqual({ demoLogin: false });
+  });
 });

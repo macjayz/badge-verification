@@ -1,10 +1,10 @@
-// src/entities/ProjectSocialRules.ts
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Issuer } from './Issuer';
 
 export interface SocialRuleParameters {
   account?: string;
   serverId?: string;
+  serverName?: string;
   space?: string;
   organization?: string;
   minFollowers?: number;

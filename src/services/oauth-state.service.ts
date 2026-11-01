@@ -1,4 +1,3 @@
-// src/services/oauth-state.service.ts
 //
 // Server-side record of in-flight Twitter/Discord logins.
 //

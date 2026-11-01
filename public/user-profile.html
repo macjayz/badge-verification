@@ -39,7 +39,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="logo">🎖️ Badge System</div>
+        <div class="logo">Badge System</div>
         <div class="user-info">
             <div class="wallet-address" id="walletAddress">Loading...</div>
             <button class="back-btn" onclick="goToDashboard()">Dashboard</button>
@@ -73,84 +73,27 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-number" id="completionRate">0%</div>
-                    <div class="stat-label">Profile Complete</div>
+                    <div class="stat-label">Verifications Passed</div>
                 </div>
             </div>
         </div>
 
         <!-- Navigation Tabs -->
         <div class="nav-tabs">
-            <div class="nav-tab active" onclick="switchTab('profile')">Profile Settings</div>
-            <div class="nav-tab" onclick="switchTab('preferences')">Preferences</div>
-            <div class="nav-tab" onclick="switchTab('security')">Security</div>
+            <div class="nav-tab active" onclick="switchTab('security')">Wallet</div>
             <div class="nav-tab" onclick="switchTab('export')">Export Data</div>
         </div>
 
         <!-- Tab Contents -->
-        <div id="profile" class="tab-content active">
+        <div id="security" class="tab-content active">
             <div class="section">
-                <h3 class="section-title">Profile Information</h3>
-                <form id="profileForm">
-                    <div class="form-group">
-                        <label class="form-label">Display Name</label>
-                        <input type="text" class="form-input" id="displayName" placeholder="Enter your display name">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Bio</label>
-                        <textarea class="form-input" id="bio" placeholder="Tell us about yourself..." rows="4"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Website</label>
-                        <input type="url" class="form-input" id="website" placeholder="https://yourwebsite.com">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Twitter</label>
-                        <input type="text" class="form-input" id="twitter" placeholder="@username">
-                    </div>
-                    <button type="submit" class="btn">Save Profile</button>
-                </form>
-            </div>
-        </div>
-
-        <div id="preferences" class="tab-content">
-            <div class="section">
-                <h3 class="section-title">Notification Preferences</h3>
-                <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 0.5rem;">
-                        <input type="checkbox" id="emailNotifications" checked>
-                        Email notifications for new badges
-                    </label>
-                </div>
-                <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 0.5rem;">
-                        <input type="checkbox" id="badgeAlerts" checked>
-                        Badge minting alerts
-                    </label>
-                </div>
-                <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 0.5rem;">
-                        <input type="checkbox" id="newsletter" checked>
-                        Monthly newsletter
-                    </label>
-                </div>
-                <button class="btn" onclick="savePreferences()">Save Preferences</button>
-            </div>
-        </div>
-
-        <div id="security" class="tab-content">
-            <div class="section">
-                <h3 class="section-title">Security Settings</h3>
+                <h3 class="section-title">Wallet</h3>
                 <div class="form-group">
                     <label class="form-label">Connected Wallet</label>
                     <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px; font-family: monospace;">
                         <span id="connectedWallet">Loading...</span>
-                        <span style="color: #28a745; margin-left: 1rem;">✓ Connected</span>
+                        <span style="color: #28a745; margin-left: 1rem;">Connected</span>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Session Management</label>
-                    <button class="btn btn-secondary" onclick="logoutOtherSessions()">Logout Other Sessions</button>
-                    <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">Log out of all other devices except this one.</p>
                 </div>
             </div>
         </div>
@@ -158,16 +101,12 @@
         <div id="export" class="tab-content">
             <div class="section">
                 <h3 class="section-title">Data Export</h3>
-                <p>Download your badge data and verification history.</p>
+                <p>Download your badges and verification history as JSON.</p>
                 <div class="form-group">
                     <button class="btn" onclick="exportBadgeData()">Export Badge Data (JSON)</button>
                 </div>
                 <div class="form-group">
-                    <button class="btn btn-secondary" onclick="exportVerificationHistory()">Export Verification History</button>
-                </div>
-                <div class="form-group">
-                    <button class="btn btn-danger" onclick="requestDataDeletion()">Request Data Deletion</button>
-                    <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">This will permanently delete all your data from our systems.</p>
+                    <button class="btn btn-secondary" onclick="exportVerificationHistory()">Export Verification History (JSON)</button>
                 </div>
             </div>
         </div>
@@ -229,8 +168,9 @@
                 document.getElementById('memberSince').textContent = `${daysSince}d`;
             }
 
-            // Calculate completion rate (mock for now)
-            const completionRate = Math.min(100, (profile.verifications?.length || 0) * 15 + 40);
+            const verifications = profile.verifications || [];
+            const completed = verifications.filter(v => v.status === 'completed').length;
+            const completionRate = verifications.length ? Math.round((completed / verifications.length) * 100) : 0;
             document.getElementById('completionRate').textContent = `${completionRate}%`;
 
             // Update verification badges
@@ -247,47 +187,6 @@
             } else {
                 badgesContainer.innerHTML = '<div style="color: #666;">No verifications completed yet</div>';
             }
-
-            // Load saved profile settings from localStorage
-            const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-            document.getElementById('displayName').value = savedProfile.displayName || '';
-            document.getElementById('bio').value = savedProfile.bio || '';
-            document.getElementById('website').value = savedProfile.website || '';
-            document.getElementById('twitter').value = savedProfile.twitter || '';
-
-            // Load preferences
-            const preferences = JSON.parse(localStorage.getItem('userPreferences') || '{"emailNotifications":true,"badgeAlerts":true,"newsletter":true}');
-            document.getElementById('emailNotifications').checked = preferences.emailNotifications;
-            document.getElementById('badgeAlerts').checked = preferences.badgeAlerts;
-            document.getElementById('newsletter').checked = preferences.newsletter;
-        }
-
-        // Profile form handling
-        document.getElementById('profileForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const profileData = {
-                displayName: document.getElementById('displayName').value,
-                bio: document.getElementById('bio').value,
-                website: document.getElementById('website').value,
-                twitter: document.getElementById('twitter').value
-            };
-
-            // Save to localStorage (in real app, this would go to backend)
-            localStorage.setItem('userProfile', JSON.stringify(profileData));
-            
-            alert('Profile updated successfully!');
-        });
-
-        function savePreferences() {
-            const preferences = {
-                emailNotifications: document.getElementById('emailNotifications').checked,
-                badgeAlerts: document.getElementById('badgeAlerts').checked,
-                newsletter: document.getElementById('newsletter').checked
-            };
-
-            localStorage.setItem('userPreferences', JSON.stringify(preferences));
-            alert('Preferences saved!');
         }
 
         function switchTab(tabName) {
@@ -304,25 +203,29 @@
             document.getElementById(tabName).classList.add('active');
         }
 
-        function logoutOtherSessions() {
-            if (confirm('This will log you out of all other devices. Continue?')) {
-                alert('Other sessions logged out successfully!');
+        async function downloadJson(path, filename) {
+            try {
+                const response = await fetch(`${API_BASE}/${path}`, {
+                    headers: { 'Authorization': `Bearer ${userToken}` }
+                });
+                if (!response.ok) throw new Error(`Export failed (${response.status})`);
+                const blob = new Blob([JSON.stringify(await response.json(), null, 2)], { type: 'application/json' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                link.click();
+                URL.revokeObjectURL(link.href);
+            } catch (error) {
+                alert(error.message);
             }
         }
 
         function exportBadgeData() {
-            // Mock export functionality
-            alert('Badge data export started! This would download a JSON file with all your badge data.');
+            downloadJson('badges', `badges-${userWallet}.json`);
         }
 
         function exportVerificationHistory() {
-            alert('Verification history export started!');
-        }
-
-        function requestDataDeletion() {
-            if (confirm('⚠️ This will permanently delete ALL your data. This action cannot be undone. Continue?')) {
-                alert('Data deletion request submitted. You will receive a confirmation email.');
-            }
+            downloadJson('verifications', `verifications-${userWallet}.json`);
         }
 
         function goToDashboard() {

@@ -399,7 +399,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="logo">🎖️ Badge System</div>
+        <div class="logo">Badge System</div>
         <div class="user-info">
             <button onclick="goToAchievements()" style="background: #ff6b6b; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">
                 Achievements
@@ -748,7 +748,7 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    showToast('✅ Badge minting started! Check your activity for updates.');
+                    showToast('Badge minting started! Check your activity for updates.');
                     
                     // Refresh dashboard data
                     refreshDashboard();
@@ -789,13 +789,13 @@
                 
                 if (response.ok) {
                     if (data.isEligible) {
-                        showToast('🎉 You are eligible for this badge! You can now mint it.');
+                        showToast('You are eligible for this badge! You can now mint it.');
                         // Reload available badges to update the button
                         refreshDashboard();
                     } else {
                         const reasons = Array.isArray(data.reasons) ? data.reasons : [data.reasons || 'Not eligible'];
                         const reasonText = reasons.join('\n• ');
-                        showToast(`❌ Not eligible yet. Check requirements.`, 'info');
+                        showToast(`Not eligible yet. Check requirements.`, 'info');
                     }
                 } else {
                     const errorMessage = data.error || data.message || 'Eligibility check failed';

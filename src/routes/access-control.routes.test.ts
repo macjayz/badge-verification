@@ -34,6 +34,12 @@ jest.mock('../services/twitter.service', () => ({
 jest.mock('../services/discord.service', () => ({
   discordService: { verifyServerMembership: jest.fn(), initiateOAuth: jest.fn(), handleCallback: jest.fn() },
 }));
+jest.mock('../services/issuer-social.service', () => ({
+  issuerSocialService: { getDiscordServer: jest.fn(), getTwitterAccount: jest.fn() },
+}));
+jest.mock('../controllers/minting.controller', () => ({
+  mintingController: new Proxy({}, { get: (_t, name: string) => ok(name) }),
+}));
 jest.mock('../services/verification.service', () => ({ verificationService: {} }));
 jest.mock('../services/redis.service', () => ({ redisService: {} }));
 jest.mock('../services/issuer.service', () => ({ issuerService: { getIssuerByApiKey: jest.fn() } }));
@@ -44,12 +50,14 @@ jest.mock('../services/webhook.service', () => ({
 import { userManagementRoutes } from './user-management.routes';
 import { badgeManagementRoutes } from './badge-management.routes';
 import { dashboardRoutes } from './dashboard.routes';
+import { mintingRoutes } from './minting.routes';
 import { twitterVerificationRoutes } from './twitter-verification.routes';
 import { discordVerificationRoutes } from './discord-verification.routes';
 import { webhookRoutes } from './webhook.routes';
 import { jwtService } from '../services/jwt.service';
 import { twitterService } from '../services/twitter.service';
 import { discordService } from '../services/discord.service';
+import { issuerSocialService } from '../services/issuer-social.service';
 import { issuerService } from '../services/issuer.service';
 import { webhookService } from '../services/webhook.service';
 
@@ -58,6 +66,7 @@ app.use(express.json());
 app.use('/api/admin/users', userManagementRoutes);
 app.use('/api/admin/badges', badgeManagementRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/mint', mintingRoutes);
 app.use('/api/verify/twitter', twitterVerificationRoutes);
 app.use('/api/verify/discord', discordVerificationRoutes);
 app.use('/api/webhooks', webhookRoutes);
@@ -76,7 +85,7 @@ describe('admin-only pages', () => {
     ['post', '/api/admin/badges/types'],
     ['patch', '/api/admin/badges/types/b1/eligibility'],
     ['get', '/api/dashboard/admin/stats'],
-    ['get', '/api/dashboard/admin/debug-db'],
+    ['post', '/api/mint/revoke'],
   ];
 
   it.each(adminRoutes)('%s %s needs a login', async (method, path) => {
@@ -94,8 +103,13 @@ describe('admin-only pages', () => {
     expect(res.status).toBe(200);
   });
 
-  it('leaves the non-admin dashboard reachable for normal logins', async () => {
-    const res = await request(app).get('/api/dashboard/stats').set(bearer(userToken()));
+  it('no longer serves the debug database dump', async () => {
+    const res = await request(app).get('/api/dashboard/admin/debug-db').set(bearer(adminToken()));
+    expect(res.status).toBe(404);
+  });
+
+  it('still lets a normal login use its own minting routes', async () => {
+    const res = await request(app).get('/api/mint/user/mints').set(bearer(userToken()));
     expect(res.status).toBe(200);
   });
 });
@@ -142,7 +156,8 @@ describe('actions on your own wallet', () => {
     expect(twitter.verifyFollow).toHaveBeenCalledWith(ALICE, 'someone', undefined);
   });
 
-  it('can look up the issuer’s Discord server (handler keeps access to its helpers)', async () => {
+  it('looks up the Discord server the issuer configured', async () => {
+    (issuerSocialService.getDiscordServer as jest.Mock).mockResolvedValue({ serverId: '123456789012345678' });
     const res = await request(app)
       .post('/api/verify/discord/verify-membership')
       .set(bearer(userToken(ALICE)))

@@ -499,13 +499,13 @@
     <div class="dashboard">
         <!-- Sidebar -->
         <div class="sidebar">
-            <h1>🏢 Issuer Portal</h1>
+            <h1>Issuer Portal</h1>
             <nav>
-                <a href="/issuer-dashboard.html">📊 Dashboard</a>
-                <a href="/issuer-badge-creator.html">🪙 Create Badge</a>
-                <a href="/issuer-analytics.html">📈 Analytics</a>
-                <a href="/issuer-social-rules.html">🔗 Social Rules</a>
-                <a href="/issuer-settings.html" class="active">⚙️ Settings</a>
+                <a href="/issuer-dashboard.html">Dashboard</a>
+                <a href="/issuer-badge-creator.html">Create Badge</a>
+                <a href="/issuer-analytics.html">Analytics</a>
+                <a href="/issuer-social-rules.html">Social Rules</a>
+                <a href="/issuer-settings.html" class="active">Settings</a>
             </nav>
             
             <div class="issuer-info">
@@ -519,8 +519,6 @@
             <div class="header">
                 <h2>Settings & Configuration</h2>
                 <div class="header-actions">
-                    <button class="btn btn-warning" onclick="debugAuthState()">🔧 Debug</button>
-                    <button class="btn btn-primary" onclick="saveAllSettings()">💾 Save All</button>
                 </div>
             </div>
 
@@ -532,22 +530,13 @@
                 <!-- Settings Navigation -->
                 <div class="settings-nav">
                     <div class="nav-item active" data-section="profile">
-                        👤 Profile
+                        Profile
                     </div>
                     <div class="nav-item" data-section="api">
-                        🔑 API Keys
+                        API Keys
                     </div>
                     <div class="nav-item" data-section="integrations">
-                        🔗 Integrations
-                    </div>
-                    <div class="nav-item" data-section="notifications">
-                        🔔 Notifications
-                    </div>
-                    <div class="nav-item" data-section="security">
-                        🛡️ Security
-                    </div>
-                    <div class="nav-item" data-section="billing">
-                        💳 Billing
+                        Integrations
                     </div>
                 </div>
 
@@ -555,7 +544,7 @@
                 <div class="settings-content">
                     <!-- Profile Section -->
                     <div class="settings-section active" id="profile-section">
-                        <div class="section-title">👤 Project Profile</div>
+                        <div class="section-title">Project Profile</div>
                         <div class="section-description">
                             Manage your project information and contact details.
                         </div>
@@ -592,13 +581,13 @@
 
                     <!-- API Keys Section -->
                     <div class="settings-section" id="api-section">
-                        <div class="section-title">🔑 API Keys</div>
+                        <div class="section-title">API Keys</div>
                         <div class="section-description">
                             Manage your API keys for programmatic access to the issuer platform.
                         </div>
                         
                         <div class="warning-message">
-                            <strong>⚠️ Keep your API keys secure!</strong>
+                            <strong>Keep your API keys secure!</strong>
                             <p>Do not share your API keys in client-side code or public repositories. They provide full access to your issuer account.</p>
                         </div>
                         
@@ -607,14 +596,14 @@
                                 <label class="form-label">Current API Key</label>
                                 <div class="api-key-display">
                                     <input type="text" id="apiKeyValue" class="api-key-value" readonly>
-                                    <button type="button" class="copy-btn" onclick="copyApiKey()">📋 Copy</button>
+                                    <button type="button" class="copy-btn" onclick="copyApiKey()">Copy</button>
                                 </div>
                                 <div class="form-help">This key is used to authenticate API requests from your application</div>
                             </div>
                             
                             <div class="form-group">
                                 <button type="button" class="btn btn-warning" onclick="rotateApiKey()">
-                                    🔄 Rotate API Key
+                                    Rotate API Key
                                 </button>
                                 <div class="form-help">
                                     Generate a new API key. The old key will be immediately invalidated.
@@ -643,230 +632,31 @@
 
                     <!-- Integrations Section -->
                     <div class="settings-section" id="integrations-section">
-                        <div class="section-title">🔗 Integrations</div>
+                        <div class="section-title">Integrations</div>
                         <div class="section-description">
-                            Connect your project with external platforms and services.
+                            The accounts your badge rules check against. A social rule without its own
+                            account or server falls back to these.
                         </div>
-                        
-                        <div class="integration-grid">
-                            <!-- Twitter Integration -->
-                            <div class="integration-card">
-                                <div class="integration-header">
-                                    <div class="integration-icon">🐦</div>
-                                    <div class="integration-title">Twitter</div>
-                                </div>
-                                <div class="integration-description">
-                                    Enable Twitter follow verification and social features for your badges.
-                                </div>
-                                <div class="integration-status">
-                                    <span class="status-badge" id="twitterStatus">Not Connected</span>
-                                    <button class="btn btn-sm btn-primary" onclick="connectTwitter()">
-                                        Connect
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <!-- Discord Integration -->
-                            <div class="integration-card">
-                                <div class="integration-header">
-                                    <div class="integration-icon">💬</div>
-                                    <div class="integration-title">Discord</div>
-                                </div>
-                                <div class="integration-description">
-                                    Verify Discord server membership and roles for badge eligibility.
-                                </div>
-                                <div class="integration-status">
-                                    <span class="status-badge" id="discordStatus">Not Connected</span>
-                                    <button class="btn btn-sm btn-primary" onclick="connectDiscord()">
-                                        Connect
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <!-- Snapshot Integration -->
-                            <div class="integration-card">
-                                <div class="integration-header">
-                                    <div class="integration-icon">🗳️</div>
-                                    <div class="integration-title">Snapshot</div>
-                                </div>
-                                <div class="integration-description">
-                                    Integrate with Snapshot for governance voting verification.
-                                </div>
-                                <div class="integration-status">
-                                    <span class="status-badge" id="snapshotStatus">Not Connected</span>
-                                    <button class="btn btn-sm btn-primary" onclick="connectSnapshot()">
-                                        Connect
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <!-- GitHub Integration -->
-                            <div class="integration-card">
-                                <div class="integration-header">
-                                    <div class="integration-icon">💻</div>
-                                    <div class="integration-title">GitHub</div>
-                                </div>
-                                <div class="integration-description">
-                                    Verify GitHub contributions and repository access.
-                                </div>
-                                <div class="integration-status">
-                                    <span class="status-badge" id="githubStatus">Not Connected</span>
-                                    <button class="btn btn-sm btn-primary" onclick="connectGitHub()">
-                                        Connect
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Notifications Section -->
-                    <div class="settings-section" id="notifications-section">
-                        <div class="section-title">🔔 Notifications</div>
-                        <div class="section-description">
-                            Configure how you receive notifications about your issuer activity.
-                        </div>
-                        
-                        <form id="notificationsForm">
+                        <form id="integrationsForm">
                             <div class="form-group">
-                                <div class="checkbox-group">
-                                    <input type="checkbox" id="emailMintNotifications" checked>
-                                    <label class="form-label">Email me when badges are minted</label>
-                                </div>
+                                <label class="form-label" for="twitterHandle">X (Twitter) account</label>
+                                <input type="text" class="form-input" id="twitterHandle" placeholder="yourproject">
                             </div>
-                            
                             <div class="form-group">
-                                <div class="checkbox-group">
-                                    <input type="checkbox" id="emailFailedMints" checked>
-                                    <label class="form-label">Email me about failed minting attempts</label>
-                                </div>
+                                <label class="form-label" for="discordServerId">Discord server ID</label>
+                                <input type="text" class="form-input" id="discordServerId" placeholder="123456789012345678">
                             </div>
-                            
                             <div class="form-group">
-                                <div class="checkbox-group">
-                                    <input type="checkbox" id="emailWeeklyReports" checked>
-                                    <label class="form-label">Send weekly activity reports</label>
-                                </div>
+                                <label class="form-label" for="discordServerName">Discord server name</label>
+                                <input type="text" class="form-input" id="discordServerName">
                             </div>
-                            
                             <div class="form-group">
-                                <div class="checkbox-group">
-                                    <input type="checkbox" id="emailSystemUpdates">
-                                    <label class="form-label">Notify me about system updates</label>
-                                </div>
+                                <label class="form-label" for="snapshotSpace">Snapshot space</label>
+                                <input type="text" class="form-input" id="snapshotSpace" placeholder="yourproject.eth">
                             </div>
-                            
-                            <div class="form-group">
-                                <button type="submit" class="btn btn-primary">Save Notification Settings</button>
-                            </div>
+                            <button type="submit" class="btn btn-primary">Save integrations</button>
                         </form>
-                    </div>
-
-                    <!-- Security Section -->
-                    <div class="settings-section" id="security-section">
-                        <div class="section-title">🛡️ Security</div>
-                        <div class="section-description">
-                            Manage security settings and access controls for your issuer account.
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Session Timeout</label>
-                            <select id="sessionTimeout" class="form-select">
-                                <option value="1">1 hour</option>
-                                <option value="4">4 hours</option>
-                                <option value="8" selected>8 hours</option>
-                                <option value="24">24 hours</option>
-                                <option value="168">1 week</option>
-                            </select>
-                            <div class="form-help">Automatically log out after inactivity</div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="require2FA">
-                                <label class="form-label">Require two-factor authentication</label>
-                            </div>
-                            <div class="form-help">Add an extra layer of security to your account</div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="ipWhitelist">
-                                <label class="form-label">Enable IP whitelisting</label>
-                            </div>
-                            <div class="form-help">Restrict API access to specific IP addresses</div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <button type="button" class="btn btn-primary" onclick="saveSecuritySettings()">
-                                Save Security Settings
-                            </button>
-                        </div>
-                        
-                        <!-- Danger Zone -->
-                        <div class="danger-zone">
-                            <div class="danger-title">⚠️ Danger Zone</div>
-                            <div class="danger-description">
-                                These actions are irreversible. Please proceed with caution.
-                            </div>
-                            <div style="display: flex; gap: 10px;">
-                                <button class="btn btn-danger" onclick="deactivateAccount()">
-                                    🚨 Deactivate Account
-                                </button>
-                                <button class="btn btn-danger" onclick="deleteAccount()">
-                                    💀 Delete Account
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Billing Section -->
-                    <div class="settings-section" id="billing-section">
-                        <div class="section-title">💳 Billing & Plans</div>
-                        <div class="section-description">
-                            Manage your subscription plan and billing information.
-                        </div>
-                        
-                        <div class="stats-grid">
-                            <div class="stat-card">
-                                <div class="stat-value">Starter</div>
-                                <div class="stat-label">Current Plan</div>
-                            </div>
-                            <div class="stat-card success">
-                                <div class="stat-value">$0</div>
-                                <div class="stat-label">Monthly Cost</div>
-                            </div>
-                            <div class="stat-card warning">
-                                <div class="stat-value" id="badgeLimit">100</div>
-                                <div class="stat-label">Badge Limit</div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Usage Summary</label>
-                            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                    <span>Badges Created</span>
-                                    <span id="badgesCreated">0 / 100</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                    <span>Total Mints</span>
-                                    <span id="totalMints">0</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>API Requests (this month)</span>
-                                    <span id="monthlyRequests">0</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <button class="btn btn-primary" onclick="upgradePlan()">
-                                💎 Upgrade Plan
-                            </button>
-                            <div class="form-help">
-                                Upgrade to access advanced features and higher limits
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -885,7 +675,6 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Settings Loading...');
             
             // Check if issuer is authenticated
             const apiKey = localStorage.getItem('issuerApiKey');
@@ -914,7 +703,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error loading issuer data:', error);
+                console.error('Error loading issuer data:', error);
             }
         }
 
@@ -952,7 +741,7 @@
                 // If 404, no profile exists yet - that's fine
                 
             } catch (error) {
-                console.error('❌ Error loading profile:', error);
+                console.error('Error loading profile:', error);
             }
         }
 
@@ -967,28 +756,12 @@
         }
 
         // Update Integration Status
+        const INTEGRATION_FIELDS = ['twitterHandle', 'discordServerId', 'discordServerName', 'snapshotSpace'];
+
         function updateIntegrationStatus() {
-            if (profileData) {
-                // Update integration status based on profile data
-                if (profileData.twitterHandle) {
-                    document.getElementById('twitterStatus').textContent = 'Connected';
-                    document.getElementById('twitterStatus').className = 'status-badge status-connected';
-                }
-                
-                if (profileData.discordServerId) {
-                    document.getElementById('discordStatus').textContent = 'Connected';
-                    document.getElementById('discordStatus').className = 'status-badge status-connected';
-                }
-                
-                if (profileData.snapshotSpace) {
-                    document.getElementById('snapshotStatus').textContent = 'Connected';
-                    document.getElementById('snapshotStatus').className = 'status-badge status-connected';
-                }
-                
-                if (profileData.githubOrganization) {
-                    document.getElementById('githubStatus').textContent = 'Connected';
-                    document.getElementById('githubStatus').className = 'status-badge status-connected';
-                }
+            if (!profileData) return;
+            for (const field of INTEGRATION_FIELDS) {
+                document.getElementById(field).value = profileData[field] || '';
             }
         }
 
@@ -1019,7 +792,7 @@
         // Setup Forms
         function setupForms() {
             document.getElementById('profileForm').addEventListener('submit', updateProfile);
-            document.getElementById('notificationsForm').addEventListener('submit', updateNotifications);
+            document.getElementById('integrationsForm').addEventListener('submit', updateIntegrations);
         }
 
         // Update Profile
@@ -1051,17 +824,29 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error updating profile:', error);
+                console.error('Error updating profile:', error);
                 showError('Error updating profile: ' + error.message);
             }
         }
 
-        // Update Notifications
-        async function updateNotifications(e) {
+
+        async function updateIntegrations(e) {
             e.preventDefault();
-            
-            // In a real implementation, this would save to the backend
-            showSuccess('Notification settings saved!');
+            const updates = Object.fromEntries(
+                INTEGRATION_FIELDS.map(field => [field, document.getElementById(field).value.trim().replace(/^@/, '')]));
+            try {
+                const response = await issuerAuthFetch(`${ISSUER_DASHBOARD_API}/profile`, {
+                    method: 'PATCH',
+                    body: JSON.stringify(updates)
+                });
+                if (!response) return;
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error || 'Failed to save integrations');
+                profileData = { ...profileData, ...updates };
+                showSuccess('Integrations saved');
+            } catch (error) {
+                showError('Error saving integrations: ' + error.message);
+            }
         }
 
         // Copy API Key
@@ -1086,7 +871,7 @@
             }
             
             try {
-                const response = await issuerAuthFetch(`${ISSUER_API_URL}/rotate-key`, {
+                const response = await issuerAuthFetch(`${ISSUER_API_URL}/rotate-api-key`, {
                     method: 'POST'
                 });
                 
@@ -1104,87 +889,19 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error rotating API key:', error);
+                console.error('Error rotating API key:', error);
                 showError('Error rotating API key: ' + error.message);
             }
         }
 
-        // Connect Integrations
-        function connectTwitter() {
-            showSuccess('Redirecting to Twitter authentication...');
-            // In real implementation, this would redirect to OAuth flow
-        }
 
-        function connectDiscord() {
-            showSuccess('Redirecting to Discord authentication...');
-            // In real implementation, this would redirect to OAuth flow
-        }
 
-        function connectSnapshot() {
-            showSuccess('Configuring Snapshot integration...');
-            // In real implementation, this would open configuration modal
-        }
 
-        function connectGitHub() {
-            showSuccess('Redirecting to GitHub authentication...');
-            // In real implementation, this would redirect to OAuth flow
-        }
 
-        // Save Security Settings
-        function saveSecuritySettings() {
-            // In a real implementation, this would save to the backend
-            showSuccess('Security settings saved!');
-        }
 
-        // Save All Settings
-        function saveAllSettings() {
-            // This would save all modified settings across sections
-            showSuccess('All settings saved successfully!');
-        }
 
-        // Upgrade Plan
-        function upgradePlan() {
-            showSuccess('Redirecting to plan upgrade...');
-            // In real implementation, this would redirect to billing portal
-        }
 
-        // Deactivate Account
-        function deactivateAccount() {
-            if (!confirm('Are you sure you want to deactivate your account? You can reactivate it later by logging in.')) {
-                return;
-            }
-            
-            showSuccess('Account deactivation initiated...');
-            // In real implementation, this would call the API
-        }
 
-        // Delete Account
-        function deleteAccount() {
-            if (!confirm('🚨 DANGER: This will permanently delete your account and all associated data. This action cannot be undone. Are you absolutely sure?')) {
-                return;
-            }
-            
-            const confirmation = prompt('Please type "DELETE" to confirm account deletion:');
-            if (confirmation === 'DELETE') {
-                showSuccess('Account deletion initiated...');
-                // In real implementation, this would call the API
-            } else {
-                showError('Account deletion cancelled.');
-            }
-        }
-
-        // Debug Auth State
-        function debugAuthState() {
-            const apiKey = localStorage.getItem('issuerApiKey');
-            const issuer = localStorage.getItem('issuerData');
-            
-            console.log('=== 🔍 ISSUER AUTH DEBUG ===');
-            console.log('API Key exists:', !!apiKey);
-            console.log('Issuer data exists:', !!issuer);
-            console.log('Profile data:', profileData);
-            console.log('Current section:', currentSection);
-            console.log('========================');
-        }
 
         // Auth Fetch for Issuer API
         async function issuerAuthFetch(url, options = {}) {
@@ -1216,7 +933,7 @@
                 
                 return response;
             } catch (error) {
-                console.error('❌ Fetch error:', error);
+                console.error('Fetch error:', error);
                 throw error;
             }
         }
@@ -1227,7 +944,7 @@
             el.textContent = message;
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 5000);
-            console.error('💥 Error:', message);
+            console.error('Error:', message);
         }
 
         function showSuccess(message) {
@@ -1235,7 +952,6 @@
             el.textContent = message;
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 5000);
-            console.log('✅ Success:', message);
         }
     </script>
 </body>

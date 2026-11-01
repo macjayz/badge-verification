@@ -70,11 +70,20 @@ export function assertProductionConfig(): void {
     problems.push('ADMIN_PASSWORD is still the development default');
   }
 
+  // Stub adapters fake DID checks and mints; they exist for local development only.
+  if (process.env.USE_REAL_ADAPTERS !== 'true') {
+    problems.push('USE_REAL_ADAPTERS is not "true" (DID checks and mints would be simulated)');
+  } else {
+    for (const name of ['DEPLOYER_PRIVATE_KEY', 'CONTRACT_ADDRESS']) {
+      if (!process.env[name]) problems.push(`${name} is not set (badges cannot be minted on-chain)`);
+    }
+  }
+
   if (problems.length > 0) {
     throw new Error(
       'Refusing to start in production with insecure configuration:\n' +
         problems.map((p) => `  - ${p}`).join('\n') +
-        '\n\nSet these in your environment and restart. See README "Deployment".'
+        '\n\nSet these in your environment and restart. See README, "Deploying".'
     );
   }
 }

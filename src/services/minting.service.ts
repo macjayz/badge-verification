@@ -1,19 +1,16 @@
-// src/services/minting.service.ts
 import { AppDataSource } from '../db/datasource';
 import { BadgeMint } from '../entities/BadgeMint';
 import { BadgeType } from '../entities/BadgeType';
-import { Web3Service } from './web3.service';
+import { User } from '../entities/User';
+import { web3Service } from './web3.service';
 import { eligibilityService } from './eligibility.service';
 import { webSocketEventsService } from './websocket-events.service';
 import { logger } from '../utils/logger';
-import { 
-  ValidationError, 
+import {
+  ValidationError,
   NotFoundError,
-  MintingError 
+  MintingError
 } from '../utils/errors';
-
-// Create Web3Service instance
-const web3Service = new Web3Service();
 
 // Update the interface to include suggestion
 interface CanMintResult {
@@ -26,6 +23,7 @@ interface CanMintResult {
 export class MintingService {
   private badgeMintRepository = AppDataSource.getRepository(BadgeMint);
   private badgeTypeRepository = AppDataSource.getRepository(BadgeType);
+  private userRepository = AppDataSource.getRepository(User);
 
   async canMintBadge(wallet: string, badgeTypeKey: string): Promise<CanMintResult> {
     try {
@@ -35,6 +33,15 @@ export class MintingService {
           canMint: false,
           reason: 'Wallet and badge type key are required',
           suggestion: 'Provide both wallet address and badge type key'
+        };
+      }
+
+      const user = await this.userRepository.findOne({ where: { wallet: wallet.toLowerCase() } });
+      if (user?.isActive === false) {
+        return {
+          canMint: false,
+          reason: 'This account is suspended',
+          suggestion: 'Contact the platform administrator'
         };
       }
 
@@ -53,7 +60,7 @@ export class MintingService {
 
       // Check if user already has this badge
       const existingMint = await this.badgeMintRepository.findOne({
-        where: { 
+        where: {
           wallet: wallet.toLowerCase(),
           badgeType: { key: badgeTypeKey },
           isRevoked: false
@@ -72,7 +79,7 @@ export class MintingService {
 
       // Check eligibility
       const eligibility = await eligibilityService.checkEligibility(wallet, badgeTypeKey);
-      
+
       if (!eligibility.eligible) {
         const missingRequirements = eligibility.missingRequirements.join(', ');
         return {
@@ -105,14 +112,14 @@ export class MintingService {
   }> {
     let mint;
     try {
-      // ✅ EMIT MINTING STARTED EVENT (early, before eligibility check)
+      // EMIT MINTING STARTED EVENT (early, before eligibility check)
       webSocketEventsService.sendMintingStarted(wallet, badgeTypeKey, 'pending');
 
       // Check eligibility first
       const canMint = await this.canMintBadge(wallet, badgeTypeKey);
-      
+
       if (!canMint.canMint) {
-        // ✅ EMIT ELIGIBILITY FAILED EVENT
+        // EMIT ELIGIBILITY FAILED EVENT
         webSocketEventsService.sendMintingFailed(wallet, badgeTypeKey, 'eligibility_check', canMint.reason || 'Not eligible');
         return {
           success: false,
@@ -142,20 +149,20 @@ export class MintingService {
 
       await this.badgeMintRepository.save(mint);
 
-      // ✅ EMIT MINTING STARTED EVENT with actual mintId
+      // EMIT MINTING STARTED EVENT with actual mintId
       webSocketEventsService.sendMintingStarted(wallet, badgeTypeKey, mint.id);
 
       // Call Web3 service to mint the badge
       let mintResult;
       try {
-        // ✅ EMIT TRANSACTION STARTING EVENT
+        // EMIT TRANSACTION STARTING EVENT
         webSocketEventsService.sendTransactionStarting(wallet, badgeTypeKey, mint.id);
 
         // Ensure badgeType.id is a number for the Web3 service
         const badgeTypeId = typeof badgeType.id === 'string' ? parseInt(badgeType.id) : badgeType.id;
         mintResult = await web3Service.mintBadge(wallet, badgeTypeId);
-        
-        // ✅ EMIT TRANSACTION SUBMITTED EVENT
+
+        // EMIT TRANSACTION SUBMITTED EVENT
         webSocketEventsService.sendTransactionSubmitted(wallet, badgeTypeKey, mint.id, mintResult.transactionHash);
 
       } catch (error: any) {
@@ -168,7 +175,7 @@ export class MintingService {
         };
         await this.badgeMintRepository.save(mint);
 
-        // ✅ EMIT MINTING FAILED EVENT
+        // EMIT MINTING FAILED EVENT
         webSocketEventsService.sendMintingFailed(wallet, badgeTypeKey, mint.id, error.message);
 
         throw new MintingError(
@@ -192,12 +199,12 @@ export class MintingService {
 
       await this.badgeMintRepository.save(mint);
 
-      // ✅ EMIT MINTING COMPLETED EVENT
+      // EMIT MINTING COMPLETED EVENT
       webSocketEventsService.sendMintingCompleted(
-        wallet, 
-        badgeTypeKey, 
-        mint.id, 
-        mintResult.tokenId, 
+        wallet,
+        badgeTypeKey,
+        mint.id,
+        mintResult.tokenId,
         mintResult.transactionHash
       );
 
@@ -209,13 +216,13 @@ export class MintingService {
 
     } catch (error) {
       logger.error(`Error initiating mint for ${wallet}, badge ${badgeTypeKey}:`, error);
-      
-      // ✅ EMIT GENERIC ERROR EVENT if mint record was created
+
+      // EMIT GENERIC ERROR EVENT if mint record was created
       if (mint) {
         webSocketEventsService.sendMintingFailed(
-          wallet, 
-          badgeTypeKey, 
-          mint.id, 
+          wallet,
+          badgeTypeKey,
+          mint.id,
           error instanceof Error ? error.message : 'Unknown error'
         );
       } else {
@@ -231,7 +238,7 @@ export class MintingService {
       if (error instanceof MintingError || error instanceof NotFoundError) {
         throw error;
       }
-      
+
       return {
         success: false,
         error: `Failed to initiate mint: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -279,7 +286,7 @@ export class MintingService {
     }
 
     return await this.badgeMintRepository.find({
-      where: { 
+      where: {
         wallet: wallet.toLowerCase(),
         isRevoked: false
       },
@@ -310,29 +317,30 @@ export class MintingService {
       });
     }
 
-    // ✅ EMIT REVOCATION STARTED EVENT
     webSocketEventsService.sendMintStatusUpdate(mint.wallet, mintId, mint.badgeType?.key || 'unknown', 'revocation_started');
 
+    // Burn first: if the chain refuses, the database must not claim the badge is gone.
+    const revocationTxHash = mint.tokenId ? await web3Service.revokeBadge(mint.tokenId) : null;
+
     mint.isRevoked = true;
+    mint.revokeReason = reason;
     mint.metadata = {
       ...mint.metadata,
       revoked: true,
       revocationReason: reason,
+      revocationTxHash,
       revokedAt: new Date().toISOString()
     };
 
     await this.badgeMintRepository.save(mint);
 
-    // ✅ EMIT REVOCATION COMPLETED EVENT
     webSocketEventsService.sendBadgeRevoked(mint.wallet, mintId, reason);
 
-    // TODO: Implement blockchain revocation when needed
     logger.info(`Badge revoked: ${mintId} for reason: ${reason}`);
 
     return true;
   }
 
-  // Add method to emit status updates
   async emitMintStatusUpdate(mintId: string, status: string, details?: any): Promise<void> {
     const mint = await this.badgeMintRepository.findOne({
       where: { id: mintId },
@@ -344,7 +352,7 @@ export class MintingService {
     }
   }
 
-  // ✅ PRESERVED: Check eligibility endpoint wrapper
+  // PRESERVED: Check eligibility endpoint wrapper
   async checkEligibility(wallet: string, badgeTypeKey: string): Promise<{
     eligible: boolean;
     missingRequirements: string[];
@@ -355,7 +363,7 @@ export class MintingService {
       webSocketEventsService.sendEligibilityCheckStarted(wallet, badgeTypeKey);
 
       const canMintResult = await this.canMintBadge(wallet, badgeTypeKey);
-      
+
       const result = {
         eligible: canMintResult.canMint,
         missingRequirements: canMintResult.canMint ? [] : [canMintResult.reason || 'Unknown eligibility issue'],
@@ -364,21 +372,21 @@ export class MintingService {
 
       // Emit eligibility check completed
       webSocketEventsService.sendEligibilityCheckCompleted(
-        wallet, 
-        badgeTypeKey, 
-        result.eligible, 
+        wallet,
+        badgeTypeKey,
+        result.eligible,
         result.missingRequirements
       );
 
       return result;
     } catch (error) {
       logger.error(`Error checking eligibility for ${wallet}, badge ${badgeTypeKey}:`, error);
-      
+
       // Emit eligibility check failed
       webSocketEventsService.sendEligibilityCheckCompleted(
-        wallet, 
-        badgeTypeKey, 
-        false, 
+        wallet,
+        badgeTypeKey,
+        false,
         ['Error checking eligibility']
       );
 
@@ -389,7 +397,7 @@ export class MintingService {
     }
   }
 
-  // ✅ PRESERVED: Get badge types available for minting
+  // PRESERVED: Get badge types available for minting
   async getAvailableBadgeTypes(wallet: string): Promise<{
     available: BadgeType[];
     unavailable: { badgeType: BadgeType; reason: string }[];
@@ -403,7 +411,7 @@ export class MintingService {
 
     for (const badgeType of allBadgeTypes) {
       const canMint = await this.canMintBadge(wallet, badgeType.key);
-      
+
       if (canMint.canMint) {
         available.push(badgeType);
       } else {
@@ -417,7 +425,7 @@ export class MintingService {
     return { available, unavailable };
   }
 
-  // ✅ PRESERVED: Get minting statistics
+  // PRESERVED: Get minting statistics
   async getMintingStats(): Promise<{
     totalMints: number;
     successfulMints: number;
@@ -446,7 +454,7 @@ export class MintingService {
     return stats;
   }
 
-  // ✅ PRESERVED: Batch eligibility check
+  // PRESERVED: Batch eligibility check
   async batchCheckEligibility(wallet: string, badgeTypeKeys: string[]): Promise<{
     wallet: string;
     results: {
@@ -474,7 +482,7 @@ export class MintingService {
     };
   }
 
-  // ✅ PRESERVED: Get mint history with pagination
+  // PRESERVED: Get mint history with pagination
   async getMintHistory(page: number = 1, limit: number = 10): Promise<{
     mints: BadgeMint[];
     total: number;
@@ -482,7 +490,7 @@ export class MintingService {
     totalPages: number;
   }> {
     const skip = (page - 1) * limit;
-    
+
     const [mints, total] = await this.badgeMintRepository.findAndCount({
       relations: ['badgeType'],
       order: { createdAt: 'DESC' },
@@ -498,7 +506,7 @@ export class MintingService {
     };
   }
 
-  // ✅ PRESERVED: Search mints by various criteria
+  // PRESERVED: Search mints by various criteria
   async searchMints(criteria: {
     wallet?: string;
     badgeTypeKey?: string;

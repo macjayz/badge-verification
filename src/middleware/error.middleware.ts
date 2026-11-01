@@ -1,4 +1,3 @@
-// src/middleware/error.middleware.ts
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
@@ -7,7 +6,8 @@ export function errorHandler(
   error: Error | AppError,
   req: Request,
   res: Response,
-  next: NextFunction
+  // Express recognises error handlers by their four parameters.
+  _next: NextFunction
 ) {
   // Log error with context
   logger.error('Error occurred:', {
@@ -36,7 +36,7 @@ export function errorHandler(
 
   // Handle generic errors (security: don't expose stack in production)
   const isProduction = process.env.NODE_ENV === 'production';
-  
+
   res.status(500).json({
     success: false,
     error: {
@@ -49,6 +49,6 @@ export function errorHandler(
 }
 
 // Async error handler wrapper
-export const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
+export const asyncHandler = (fn: (req: any, res: Response, next: NextFunction) => unknown) => (req: Request, res: Response, next: NextFunction) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };

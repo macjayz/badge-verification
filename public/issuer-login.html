@@ -186,7 +186,7 @@
 <body>
     <div class="login-container">
         <div class="login-header">
-            <h1>🏢 Issuer Login</h1>
+            <h1>Issuer Login</h1>
             <p>Access your issuer dashboard</p>
         </div>
         
@@ -197,7 +197,7 @@
 
             <!-- Demo Notes -->
             <div class="demo-notes">
-                <div class="demo-title">🚀 Demo Access</div>
+                <div class="demo-title">Demo Access</div>
                 <p>Use your existing API key to log in. If you don't have one, you can register as an issuer first.</p>
             </div>
 
@@ -214,7 +214,7 @@
                 
                 <div class="form-group">
                     <button type="submit" class="btn btn-primary" id="loginBtn">
-                        🔑 Login as Issuer
+                        Login as Issuer
                     </button>
                 </div>
             </form>
@@ -233,7 +233,6 @@
         
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Issuer Login Loading...');
             
             // Check if already logged in
             const apiKey = localStorage.getItem('issuerApiKey');
@@ -334,7 +333,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Login error:', error);
+                console.error('Login error:', error);
                 showError('Login failed: ' + error.message);
             } finally {
                 loginBtn.disabled = false;
@@ -348,7 +347,7 @@
             el.textContent = message;
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 5000);
-            console.error('💥 Error:', message);
+            console.error('Error:', message);
         }
 
         function showSuccess(message) {
@@ -356,7 +355,6 @@
             el.textContent = message;
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 5000);
-            console.log('✅ Success:', message);
         }
     </script>
 </body>

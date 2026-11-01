@@ -3,7 +3,7 @@ export interface DIDVerificationRequest {
     callbackUrl: string;
     provider: string;
   }
-  
+
   export interface DIDVerificationResponse {
     success: boolean;
     challengeUrl?: string;  // For redirect flows
@@ -11,7 +11,7 @@ export interface DIDVerificationRequest {
     sessionId?: string;    // To track this verification session
     error?: string;
   }
-  
+
   export interface DIDVerificationResult {
     success: boolean;
     did?: string;
@@ -19,17 +19,17 @@ export interface DIDVerificationRequest {
     metadata?: any;
     error?: string;
   }
-  
+
   export interface DIDAdapter {
     // Initialize verification process
     initVerification(request: DIDVerificationRequest): Promise<DIDVerificationResponse>;
-    
+
     // Handle callback from provider
     verifyCallback(payload: any, sessionId?: string): Promise<DIDVerificationResult>;
-    
+
     // Get adapter name
     getName(): string;
-    
+
     // Check if this adapter is configured/available
     isAvailable(): boolean;
   }

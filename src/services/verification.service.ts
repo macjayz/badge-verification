@@ -1,16 +1,17 @@
+import { randomUUID } from 'crypto';
 import { AppDataSource } from '../db/datasource';
 import { Verification, VerificationStatus, VerificationType } from '../entities/Verification';
 import { User } from '../entities/User';
 import { logger } from '../utils/logger';
 import { didService } from './did.service';
 import { webhookService, WebhookPayload } from './webhook.service';
-import { Like } from 'typeorm'; // ADDED
+import { Like } from 'typeorm';
 
 const verificationRepository = AppDataSource.getRepository(Verification);
 const userRepository = AppDataSource.getRepository(User);
 
 export class VerificationService {
-  // ADDED: Create verification with issuer context
+  // Create verification with issuer context
   async createVerificationWithIssuerContext(
     wallet: string,
     provider: string,
@@ -21,29 +22,29 @@ export class VerificationService {
     expiresInMinutes: number = 30
   ): Promise<Verification> {
     const metadata: any = {};
-    
-    // ADDED: Store issuer context in metadata
+
+    // Store issuer context in metadata
     if (issuerId) {
       metadata.issuerId = issuerId;
       metadata.verificationContext = 'issuer_specific';
     }
-    
+
     if (targetAccount) {
       metadata.targetAccount = targetAccount;
     }
-    
+
     const verification = verificationRepository.create({
       wallet: wallet.toLowerCase(),
       provider,
       type,
       status: VerificationStatus.PENDING,
-      sessionId: sessionId || `session_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`,
+      sessionId: sessionId || `session_${randomUUID()}`,
       expiresAt: new Date(Date.now() + expiresInMinutes * 60 * 1000),
       metadata: Object.keys(metadata).length > 0 ? metadata : undefined
     });
 
     await verificationRepository.save(verification);
-    
+
     const contextInfo = issuerId ? ` for issuer ${issuerId}` : '';
     logger.info(`Created verification session${contextInfo}: ${verification.sessionId} for wallet: ${wallet}, provider: ${provider}`);
 
@@ -93,8 +94,8 @@ export class VerificationService {
     if (provider) {
       query.andWhere('verification.provider = :provider', { provider });
     }
-    
-    // ADDED: Filter by issuerId if provided
+
+    // Filter by issuerId if provided
     if (issuerId) {
       query.andWhere('verification.metadata->>\'issuerId\' = :issuerId', { issuerId });
     }
@@ -105,12 +106,12 @@ export class VerificationService {
   async getAllVerifications(wallet: string, options?: {
     provider?: string;
     type?: VerificationType;
-    issuerId?: string; // ADDED
+    issuerId?: string;
     limit?: number;
     offset?: number;
   }): Promise<{ verifications: Verification[]; total: number }> {
     const { provider, type, issuerId, limit = 50, offset = 0 } = options || {};
-    
+
     const query = verificationRepository
       .createQueryBuilder('verification')
       .where('verification.wallet = :wallet', { wallet: wallet.toLowerCase() })
@@ -125,14 +126,14 @@ export class VerificationService {
     if (type) {
       query.andWhere('verification.type = :type', { type });
     }
-    
-    // ADDED: Filter by issuerId if provided
+
+    // Filter by issuerId if provided
     if (issuerId) {
       query.andWhere('verification.metadata->>\'issuerId\' = :issuerId', { issuerId });
     }
 
     const [verifications, total] = await query.getManyAndCount();
-    
+
     return { verifications, total };
   }
 
@@ -141,7 +142,7 @@ export class VerificationService {
     did: string,
     metadata: any,
     providerVerificationId?: string,
-    issuerId?: string // ADDED
+    issuerId?: string
   ): Promise<Verification> {
     const verification = await verificationRepository.findOne({
       where: { id: verificationId },
@@ -152,7 +153,7 @@ export class VerificationService {
       throw new Error(`Verification not found: ${verificationId}`);
     }
 
-    // ADDED: Ensure issuerId is preserved in metadata
+    // Ensure issuerId is preserved in metadata
     const updatedMetadata = {
       ...metadata,
       issuerId: issuerId || metadata?.issuerId
@@ -235,7 +236,7 @@ export class VerificationService {
   }
 
   private async sendVerificationWebhook(
-    verification: Verification, 
+    verification: Verification,
     event: string
   ): Promise<void> {
     const payload: WebhookPayload = {
@@ -250,15 +251,13 @@ export class VerificationService {
         verificationType: verification.type,
         sessionId: verification.sessionId,
         completedAt: verification.completedAt,
-        issuerId: verification.metadata?.issuerId // ADDED: Include issuerId in webhook
+        issuerId: verification.metadata?.issuerId
       }
     };
 
-    // For now, send to all registered issuers
-    // In production, you'd have issuer-specific webhooks
-    const issuers = webhookService.getRegisteredIssuers();
-    
-    for (const issuerId of issuers) {
+    // Only the issuer the user verified for may learn about it.
+    const issuerId = verification.metadata?.issuerId;
+    if (issuerId && webhookService.getRegisteredIssuers().includes(issuerId)) {
       await webhookService.sendWebhook(issuerId, payload);
     }
   }
@@ -267,7 +266,7 @@ export class VerificationService {
     wallet: string,
     provider: string,
     callbackUrl: string,
-    issuerId?: string // ADDED
+    issuerId?: string
   ): Promise<{ verification: Verification; challenge: any }> {
     // Check if user already has a valid DID verification
     const existingVerifications = await this.getActiveVerifications(wallet, provider, issuerId);
@@ -285,7 +284,7 @@ export class VerificationService {
       wallet,
       callbackUrl,
       provider,
-      issuerId // ADDED: Pass issuerId to DID service
+      issuerId
     });
 
     if (!didResponse.success) {
@@ -339,13 +338,13 @@ export class VerificationService {
     if (verificationResult.success && verificationResult.did) {
       // Extract issuerId from verification metadata
       const issuerId = verification.metadata?.issuerId;
-      
+
       return await this.updateVerificationSuccess(
         verification.id,
         verificationResult.did,
         verificationResult.metadata,
         verificationResult.verificationId,
-        issuerId // ADDED
+        issuerId
       );
     } else {
       return await this.updateVerificationFailure(
@@ -368,12 +367,12 @@ export class VerificationService {
     };
   }> {
     const activeVerifications = await this.getActiveVerifications(wallet, undefined, issuerId);
-    const { total: totalVerifications } = await this.getAllVerifications(wallet, { 
+    const { total: totalVerifications } = await this.getAllVerifications(wallet, {
       limit: 1,
-      issuerId 
+      issuerId
     });
-    
-    const primaryDIDVerification = activeVerifications.find(v => 
+
+    const primaryDIDVerification = activeVerifications.find(v =>
       v.type === VerificationType.PRIMARY_DID && v.canBeUsed()
     );
 
@@ -385,12 +384,12 @@ export class VerificationService {
       totalVerifications
     };
 
-    // ADDED: Include issuer-specific stats if issuerId provided
+    // Include issuer-specific stats if issuerId provided
     if (issuerId) {
-      const issuerVerifications = activeVerifications.filter(v => 
+      const issuerVerifications = activeVerifications.filter(v =>
         v.metadata?.issuerId === issuerId
       );
-      
+
       return {
         ...result,
         issuerSpecific: {
@@ -412,18 +411,18 @@ export class VerificationService {
     expired: number;
     byProvider: Record<string, number>;
     byType: Record<string, number>;
-    byIssuer: Record<string, number>; // ADDED
+    byIssuer: Record<string, number>;
   }> {
     const query = verificationRepository
       .createQueryBuilder('verification')
       .select('verification.status', 'status')
       .addSelect('verification.provider', 'provider')
       .addSelect('verification.type', 'type')
-      .addSelect('verification.metadata->>\'issuerId\'', 'issuerId') // ADDED
+      .addSelect('verification.metadata->>\'issuerId\'', 'issuerId')
       .addSelect('COUNT(*)', 'count')
       .where('verification.wallet = :wallet', { wallet: wallet.toLowerCase() });
 
-    // ADDED: Filter by issuerId if provided
+    // Filter by issuerId if provided
     if (issuerId) {
       query.andWhere('verification.metadata->>\'issuerId\' = :issuerId', { issuerId });
     }
@@ -432,7 +431,7 @@ export class VerificationService {
       .groupBy('verification.status')
       .addGroupBy('verification.provider')
       .addGroupBy('verification.type')
-      .addGroupBy('verification.metadata->>\'issuerId\''); // ADDED
+      .addGroupBy('verification.metadata->>\'issuerId\'');
 
     const stats = await query.getRawMany();
 
@@ -444,7 +443,7 @@ export class VerificationService {
       expired: 0,
       byProvider: {} as Record<string, number>,
       byType: {} as Record<string, number>,
-      byIssuer: {} as Record<string, number> // ADDED
+      byIssuer: {} as Record<string, number>
     };
 
     stats.forEach(stat => {
@@ -477,7 +476,7 @@ export class VerificationService {
         result.byType[stat.type] = (result.byType[stat.type] || 0) + count;
       }
 
-      // ADDED: Issuer counts
+      // Issuer counts
       if (stat.issuerId) {
         result.byIssuer[stat.issuerId] = (result.byIssuer[stat.issuerId] || 0) + count;
       }
@@ -514,11 +513,11 @@ export class VerificationService {
 
     // Store the original status before revocation
     const originalStatus = verification.status;
-    
+
     verification.status = VerificationStatus.FAILED;
     verification.errorMessage = reason || 'Manually revoked';
     verification.completedAt = new Date();
-    
+
     await verificationRepository.save(verification);
 
     // Send webhook for revocation
@@ -528,7 +527,7 @@ export class VerificationService {
     return verification;
   }
 
-  // ADDED: New method to get user verifications for a specific issuer
+  // New method to get user verifications for a specific issuer
   async getUserVerificationsForIssuer(wallet: string, issuerId: string): Promise<Verification[]> {
     // Use query builder for JSONB query
     return await verificationRepository
@@ -541,7 +540,7 @@ export class VerificationService {
       .getMany();
   }
 
-  // ADDED: New method to get issuer-specific verification status
+  // New method to get issuer-specific verification status
   async getIssuerVerificationStatus(wallet: string, issuerId: string, provider?: string): Promise<{
     issuerId: string;
     provider?: string;
@@ -555,7 +554,7 @@ export class VerificationService {
       wallet: wallet.toLowerCase(),
       metadata: Like(`%"issuerId":"${issuerId}"%`)
     };
-    
+
     if (provider) {
       query.provider = provider;
     }
@@ -576,7 +575,7 @@ export class VerificationService {
     }
 
     const verification = verifications[0];
-    
+
     return {
       issuerId,
       provider: verification.provider,

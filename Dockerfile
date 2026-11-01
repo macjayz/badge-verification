@@ -1,35 +1,28 @@
-# ---- build stage ----
-FROM node:20-alpine AS build
-
+FROM node:22-alpine AS build
 WORKDIR /app
 
-# Install all dependencies (including dev) so TypeScript can compile
 COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY tsconfig.json ./
 COPY src ./src
-RUN npm run build
+RUN npm run build && npm prune --omit=dev
 
-# Drop dev dependencies for the runtime image
-RUN npm prune --omit=dev
-
-# ---- runtime stage ----
-FROM node:20-alpine AS runtime
-
+FROM node:22-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Run as the unprivileged user that ships with the base image
 COPY --from=build --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/dist ./dist
 COPY --chown=node:node package.json ./
 COPY --chown=node:node public ./public
 
 USER node
-
 EXPOSE 3000
 
-# Schema is applied by `npm run migration:run:prod` (see README "Deployment"),
-# not on boot, so a crash-looping container can't repeatedly mutate the DB.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/health >/dev/null || exit 1
+
+# Migrations run as a separate step (npm run migration:run:prod), not on boot, so a
+# crash-looping container cannot keep touching the schema.
 CMD ["node", "dist/index.js"]

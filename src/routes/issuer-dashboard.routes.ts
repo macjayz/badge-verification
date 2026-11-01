@@ -1,12 +1,11 @@
-// src/routes/issuer-dashboard.routes.ts
 import { Router } from 'express';
 import { issuerDashboardController } from '../controllers/issuer-dashboard.controller';
-import { authenticateApiKey } from '../middleware/apiKey.middleware'; // FIXED IMPORT
+import { authenticateApiKey } from '../middleware/apiKey.middleware';
 
 const router = Router();
 
 // All routes require API key authentication
-router.use(authenticateApiKey); // FIXED: Use authenticateApiKey
+router.use(authenticateApiKey);
 
 // Profile management
 router.post('/profile', issuerDashboardController.createProfile);
@@ -21,6 +20,7 @@ router.delete('/social-rules/:ruleId', issuerDashboardController.deleteSocialRul
 
 // Dashboard data
 router.get('/stats', issuerDashboardController.getDashboardStats);
+router.get('/mints', issuerDashboardController.getMints);
 router.get('/rule-templates', issuerDashboardController.getRuleTemplates);
 router.get('/generate-badge-rules', issuerDashboardController.generateBadgeRules);
 

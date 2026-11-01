@@ -1,4 +1,3 @@
-// src/services/discord.service.ts - UPDATED METHOD SIGNATURES
 import { AppDataSource } from '../db/datasource';
 import { UserSocialConnection } from '../entities/UserSocialConnection';
 import { Verification, VerificationStatus, VerificationType } from '../entities/Verification';
@@ -14,7 +13,7 @@ interface DiscordTokenResponse {
     scope: string;
     refresh_token?: string;
   }
-  
+
   interface DiscordUserResponse {
     id: string;
     username: string;
@@ -22,7 +21,6 @@ interface DiscordTokenResponse {
     avatar?: string;
     global_name?: string;
   }
-  
 
 export interface DiscordOAuthResponse {
   authUrl: string;
@@ -45,17 +43,17 @@ export class DiscordService {
   constructor() {
     this.clientId = process.env.DISCORD_CLIENT_ID || 'dev_client_id';
     this.clientSecret = process.env.DISCORD_CLIENT_SECRET || 'dev_client_secret';
-    this.redirectUri = process.env.DISCORD_REDIRECT_URI || 
+    this.redirectUri = process.env.DISCORD_REDIRECT_URI ||
                       'http://localhost:3001/api/verify/discord/callback';
     this.botToken = process.env.DISCORD_BOT_TOKEN;
   }
 
   /**
-   * Initiate Discord OAuth flow - UPDATED: Accept metadata parameter
+   * Initiate Discord OAuth flow
    */
   async initiateOAuth(wallet: string, metadata?: any): Promise<DiscordOAuthResponse> {
     const state = crypto.randomBytes(16).toString('hex');
-    
+
     const params = new URLSearchParams({
       client_id: this.clientId,
       redirect_uri: this.redirectUri,
@@ -75,7 +73,7 @@ export class DiscordService {
   }
 
   /**
-   * Handle Discord OAuth callback - UPDATED: Accept issuerId parameter
+   * Handle Discord OAuth callback
    */
   async handleCallback(wallet: string, code: string, state: string, issuerId?: string): Promise<DiscordUser> {
     try {
@@ -124,7 +122,7 @@ export class DiscordService {
         // Save social connection with issuer context
         await this.saveSocialConnection(wallet, discordUser, accessToken, issuerId);
 
-        // ✅ Create verification record with issuer context
+        // Create verification record with issuer context
         await this.createDiscordVerification(wallet, discordUser, issuerId);
 
         logger.info(`Discord OAuth completed for wallet: ${wallet}, Discord user: ${discordUser.username}#${discordUser.discriminator}${issuerId ? `, issuer: ${issuerId}` : ''}`);
@@ -137,15 +135,15 @@ export class DiscordService {
 }
 
   /**
-   * Create Discord verification record - UPDATED: Accept issuerId parameter
+   * Create Discord verification record
    */
   private async createDiscordVerification(wallet: string, discordUser: DiscordUser, issuerId?: string): Promise<void> {
     try {
         const verificationRepository = AppDataSource.getRepository(Verification);
-        
+
         // Check if verification already exists
         let verification = await verificationRepository.findOne({
-            where: { 
+            where: {
                 wallet: wallet,
                 provider: 'discord_member'
             }
@@ -190,27 +188,26 @@ export class DiscordService {
 
         await verificationRepository.save(verification);
         logger.info(`Created Discord verification for wallet: ${wallet}${issuerId ? ` (issuer: ${issuerId})` : ''}`);
-        
+
     } catch (error) {
         logger.error('Failed to create Discord verification record:', error);
         // Don't throw error here - we don't want to fail the whole OAuth flow
     }
 }
-  
 
   /**
-   * Save social connection - UPDATED: Add issuerId support
+   * Save social connection
    */
   private async saveSocialConnection(
-    wallet: string, 
-    discordUser: DiscordUser, 
+    wallet: string,
+    discordUser: DiscordUser,
     accessToken: string,
     issuerId?: string
   ): Promise<void> {
     let connection = await socialConnectionRepository.findOne({
-      where: { 
-        wallet: wallet.toLowerCase(), 
-        platform: 'discord' 
+      where: {
+        wallet: wallet.toLowerCase(),
+        platform: 'discord'
       }
     });
 
@@ -255,14 +252,14 @@ export class DiscordService {
   }
 
   /**
-   * Get Discord connection status - UPDATED: Accept issuerId parameter
+   * Get Discord connection status
    */
   async getConnectionStatus(wallet: string, issuerId?: string): Promise<{ connected: boolean; username?: string }> {
     const connections = await socialConnectionRepository.find({
-      where: { 
-        wallet: wallet.toLowerCase(), 
+      where: {
+        wallet: wallet.toLowerCase(),
         platform: 'discord',
-        isActive: true 
+        isActive: true
       }
     });
 
@@ -295,32 +292,47 @@ export class DiscordService {
   }
 
   /**
-   * Verify Discord server membership - UPDATED: Accept issuerId parameter
+   * Checks membership against the guilds the user granted through OAuth (`guilds` scope).
    */
   async verifyServerMembership(wallet: string, serverId: string, issuerId?: string): Promise<{ verified: boolean; details: any }> {
-    // First check if the user has a connection for this issuer
-    const connection = await this.getConnectionStatus(wallet, issuerId);
-    
-    if (!connection.connected) {
+    const connections = await socialConnectionRepository.find({
+      where: { wallet: wallet.toLowerCase(), platform: 'discord', isActive: true }
+    });
+    const connection = issuerId
+      ? connections.find(conn => conn.profileData?.issuerId === issuerId)
+      : connections[0];
+
+    if (!connection?.accessToken) {
       return {
         verified: false,
-        details: { 
-          error: 'Discord account not connected',
-          connected: false,
-          issuerId
-        }
+        details: { error: 'Discord account not connected', connected: false, serverId, issuerId }
       };
     }
 
-    // For now, return mock implementation
-    // In production, this would check actual Discord server membership
-    const isMember = Math.random() > 0.3; // Mock for now
-    
+    const response = await fetch('https://discord.com/api/users/@me/guilds', {
+      headers: { Authorization: `Bearer ${connection.accessToken}` }
+    });
+    if (response.status === 401) {
+      return {
+        verified: false,
+        details: { error: 'Discord authorization expired, reconnect Discord', connected: false, serverId, issuerId }
+      };
+    }
+    if (!response.ok) {
+      logger.warn('Discord guild lookup failed', { status: response.status, serverId });
+      return {
+        verified: false,
+        details: { error: 'Discord is unavailable, try again later', apiError: true, serverId, issuerId }
+      };
+    }
+
+    const guilds = (await response.json()) as Array<{ id: string; name: string }>;
+    const guild = guilds.find(g => g.id === serverId);
     return {
-      verified: isMember,
-      details: { 
-        mock: true, 
+      verified: !!guild,
+      details: {
         serverId,
+        serverName: guild?.name,
         issuerId,
         checkedAt: new Date().toISOString()
       }

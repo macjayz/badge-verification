@@ -429,13 +429,13 @@
     <div class="dashboard">
         <!-- Sidebar -->
         <div class="sidebar">
-            <h1>🏢 Issuer Portal</h1>
+            <h1>Issuer Portal</h1>
             <nav>
-                <a href="/issuer-dashboard.html" class="active">📊 Dashboard</a>
-                <a href="/issuer-badge-creator.html">🪙 Create Badge</a>
-                <a href="/issuer-analytics.html">📈 Analytics</a>
-                <a href="/issuer-social-rules.html">🔗 Social Rules</a>
-                <a href="/issuer-settings.html">⚙️ Settings</a>
+                <a href="/issuer-dashboard.html" class="active">Dashboard</a>
+                <a href="/issuer-badge-creator.html">Create Badge</a>
+                <a href="/issuer-analytics.html">Analytics</a>
+                <a href="/issuer-social-rules.html">Social Rules</a>
+                <a href="/issuer-settings.html">Settings</a>
             </nav>
             
             <div class="issuer-info">
@@ -449,8 +449,7 @@
             <div class="header">
                 <h2>Issuer Dashboard</h2>
                 <div class="header-actions">
-                    <button class="btn btn-warning" onclick="debugAuthState()">🔧 Debug</button>
-                    <button class="btn btn-primary" onclick="refreshDashboard()">🔄 Refresh</button>
+                    <button class="btn btn-primary" onclick="refreshDashboard()">Refresh</button>
                 </div>
             </div>
 
@@ -474,7 +473,7 @@
 
             <!-- No Profile Warning -->
             <div id="noProfileWarning" class="warning-message">
-                <strong>🚀 Welcome to Issuer Portal!</strong>
+                <strong>Welcome to Issuer Portal!</strong>
                 <p>Complete your project profile to start creating badges and social verification rules.</p>
                 <a href="/issuer-onboarding.html" class="btn btn-success btn-sm" style="margin-top: 10px;">
                     Complete Onboarding
@@ -500,7 +499,7 @@
                 </div>
                 <div class="stat-card teal">
                     <div class="stat-value" id="activeUsers">0</div>
-                    <div class="stat-label">Active Users</div>
+                    <div class="stat-label">Badges Minted</div>
                     <div class="stat-trend trend-up" id="usersTrend">+0 today</div>
                 </div>
             </div>
@@ -541,7 +540,7 @@
                         </select>
                     </div>
                     <div class="chart-placeholder">
-                        📊 Minting activity chart will be displayed here
+                        Minting activity chart will be displayed here
                     </div>
                 </div>
                 
@@ -550,7 +549,7 @@
                         <div class="chart-title">Top Badges</div>
                     </div>
                     <div class="chart-placeholder">
-                        🏆 Top performing badges will be shown here
+                        Top performing badges will be shown here
                     </div>
                 </div>
             </div>
@@ -572,30 +571,6 @@
         // Global State
         let issuerData = null;
         let dashboardData = null;
-
-        // Debug Auth State
-        function debugAuthState() {
-            const apiKey = localStorage.getItem('issuerApiKey');
-            const issuer = localStorage.getItem('issuerData');
-            
-            console.log('=== 🔍 ISSUER AUTH DEBUG ===');
-            console.log('API Key exists:', !!apiKey);
-            console.log('Issuer data exists:', !!issuer);
-            
-            if (apiKey) {
-                console.log('API Key first 20 chars:', apiKey.substring(0, 20) + '...');
-            }
-            
-            if (issuer) {
-                try {
-                    const issuerObj = JSON.parse(issuer);
-                    console.log('Issuer data:', issuerObj);
-                } catch (e) {
-                    console.log('Cannot parse issuer data:', e.message);
-                }
-            }
-            console.log('========================');
-        }
 
         // Auth Fetch for Issuer API
         async function issuerAuthFetch(url, options = {}) {
@@ -627,7 +602,7 @@
                 
                 return response;
             } catch (error) {
-                console.error('❌ Fetch error:', error);
+                console.error('Fetch error:', error);
                 throw error;
             }
         }
@@ -662,7 +637,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error loading issuer data:', error);
+                console.error('Error loading issuer data:', error);
                 showError('Error loading issuer data: ' + error.message);
             }
         }
@@ -726,7 +701,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error loading dashboard data:', error);
+                console.error('Error loading dashboard data:', error);
                 showError('Error loading dashboard: ' + error.message);
             }
         }
@@ -738,61 +713,53 @@
             document.getElementById('totalBadges').textContent = dashboardData.totalBadges;
             document.getElementById('totalMints').textContent = dashboardData.totalMints;
             document.getElementById('successRate').textContent = dashboardData.successRate.toFixed(1) + '%';
-            document.getElementById('activeUsers').textContent = dashboardData.successfulMints; // Using successful mints as active users proxy
-            
-            // Update trends (mock data for now)
-            document.getElementById('badgesTrend').textContent = '+2 this week';
-            document.getElementById('mintsTrend').textContent = `+${Math.floor(dashboardData.totalMints * 0.1)} today`;
-            document.getElementById('successTrend').textContent = '+5.2%';
-            document.getElementById('usersTrend').textContent = `+${Math.floor(dashboardData.successfulMints * 0.15)} today`;
+            document.getElementById('activeUsers').textContent = dashboardData.successfulMints;
+
+            const activity = dashboardData.recentActivity || [];
+            const lastWeek = activity.slice(-7);
+            const today = activity[activity.length - 1] || { mints: 0, completed: 0, newWallets: 0 };
+            const sum = (days, key) => days.reduce((total, day) => total + day[key], 0);
+            document.getElementById('badgesTrend').textContent = `${dashboardData.activeBadges} active`;
+            document.getElementById('mintsTrend').textContent = `${today.mints} today, ${sum(lastWeek, 'mints')} this week`;
+            document.getElementById('successTrend').textContent = `${dashboardData.failedMints} failed overall`;
+            document.getElementById('usersTrend').textContent = `${sum(lastWeek, 'newWallets')} new wallets this week`;
         }
 
-        // Update Recent Activity
-        function updateRecentActivity() {
-            if (!dashboardData) return;
-            
+        function timeAgo(date) {
+            const minutes = Math.floor((Date.now() - new Date(date).getTime()) / 60000);
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes} min ago`;
+            if (minutes < 1440) return `${Math.floor(minutes / 60)} h ago`;
+            return `${Math.floor(minutes / 1440)} d ago`;
+        }
+
+        async function updateRecentActivity() {
             const activityList = document.getElementById('recentActivity');
-            
-            // Mock recent activity based on stats
-            const activities = [
-                {
-                    icon: '🪙',
-                    description: `${dashboardData.successfulMints} badges minted successfully`,
-                    time: 'Just now',
-                    badge: 'success'
-                },
-                {
-                    icon: '👥',
-                    description: `${Math.floor(dashboardData.successfulMints * 0.8)} new users joined`,
-                    time: '2 hours ago',
-                    badge: 'success'
-                },
-                {
-                    icon: '🔗',
-                    description: 'Social verification rules updated',
-                    time: '5 hours ago',
-                    badge: 'warning'
-                },
-                {
-                    icon: '⚠️',
-                    description: `${dashboardData.failedMints} minting attempts failed`,
-                    time: '1 day ago',
-                    badge: 'danger'
+            try {
+                const response = await issuerAuthFetch(`${ISSUER_DASHBOARD_API}/mints?limit=8`);
+                if (!response || !response.ok) throw new Error('Could not load recent mints');
+                const { mints } = await response.json();
+
+                if (mints.length === 0) {
+                    activityList.innerHTML = '<li class="activity-item"><div class="activity-content">No mints yet</div></li>';
+                    return;
                 }
-            ];
-            
-            activityList.innerHTML = activities.map(activity => `
-                <li class="activity-item">
-                    <div class="activity-icon">${activity.icon}</div>
-                    <div class="activity-content">
-                        <div class="activity-description">${activity.description}</div>
-                        <div class="activity-time">${activity.time}</div>
-                    </div>
-                    <span class="activity-badge badge-${activity.badge}">
-                        ${activity.badge.toUpperCase()}
-                    </span>
-                </li>
-            `).join('');
+                const badgeFor = { completed: 'success', failed: 'danger' };
+                activityList.innerHTML = mints.map(mint => `
+                    <li class="activity-item">
+                        <div class="activity-icon">${mint.status === 'completed' ? '✓' : mint.status === 'failed' ? '✗' : '…'}</div>
+                        <div class="activity-content">
+                            <div class="activity-description">${mint.badgeName} for ${mint.wallet.slice(0, 6)}...${mint.wallet.slice(-4)}</div>
+                            <div class="activity-time">${timeAgo(mint.createdAt)}</div>
+                        </div>
+                        <span class="activity-badge badge-${badgeFor[mint.status] || 'warning'}">
+                            ${mint.revoked ? 'REVOKED' : mint.status.toUpperCase()}
+                        </span>
+                    </li>
+                `).join('');
+            } catch (error) {
+                activityList.innerHTML = `<li class="activity-item"><div class="activity-content">${error.message}</div></li>`;
+            }
         }
 
         // Generate Badge Rules from Social Rules
@@ -814,7 +781,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error generating badge rules:', error);
+                console.error('Error generating badge rules:', error);
                 showError('Error generating badge rules: ' + error.message);
             }
         }
@@ -832,7 +799,7 @@
             el.textContent = message;
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 5000);
-            console.error('💥 Error:', message);
+            console.error('Error:', message);
         }
 
         function showSuccess(message) {
@@ -840,12 +807,10 @@
             el.textContent = message;
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 5000);
-            console.log('✅ Success:', message);
         }
 
         // Initialize Dashboard
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Issuer Dashboard Loading...');
             
             // Check if issuer is authenticated
             const apiKey = localStorage.getItem('issuerApiKey');

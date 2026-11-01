@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 // src/services/websocket.service.ts
 import WebSocket, { WebSocketServer } from 'ws';
 import { Server } from 'http';
@@ -45,14 +46,14 @@ export class WebSocketService {
   }
 
   initialize(server: Server): void {
-    this.wss = new WebSocketServer({ 
+    this.wss = new WebSocketServer({
       server,
       path: '/ws'
     });
 
     this.setupEventHandlers();
     this.startHeartbeat();
-    
+
     logger.info('WebSocket server initialized');
   }
 
@@ -149,13 +150,13 @@ export class WebSocketService {
   }
 
   private generateClientId(): string {
-    return `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `client_${randomUUID()}`;
   }
 
   private handleMessage(client: WebSocketClient, data: string): void {
     try {
       const message: WebSocketMessage = JSON.parse(data);
-      
+
       // Validate message structure
       if (!message.type) {
         this.sendError(client.id, 'Invalid message: missing type');
@@ -210,8 +211,8 @@ export class WebSocketService {
 
   private handleSubscription(client: WebSocketClient, message: WebSocketMessage): void {
     let channels: string[] = [];
-  
-    // ✅ SUPPORT MULTIPLE FORMATS for backward compatibility
+
+    // SUPPORT MULTIPLE FORMATS for backward compatibility
     if (message.payload?.channels && Array.isArray(message.payload.channels)) {
       // New format: { type: 'subscribe', payload: { channels: ['minting', 'transactions'] } }
       channels = message.payload.channels;
@@ -225,7 +226,7 @@ export class WebSocketService {
       this.sendError(client.id, 'Subscription requires channels array or channel field');
       return;
     }
-  
+
     // Every channel is a feed of all users' activity (and 'system' exposes
     // server internals), so only admins may subscribe. A normal user still
     // gets their own events, which are sent to their wallet directly.
@@ -237,23 +238,23 @@ export class WebSocketService {
     channels.forEach((channel: string) => {
       client.subscriptions.add(String(channel));
     });
-  
+
     this.sendToClient(client.id, {
       type: 'subscription_confirmed',
-      payload: { 
+      payload: {
         channels: Array.from(client.subscriptions),
         subscribed: channels,
         note: 'Successfully subscribed to channels'
       },
       timestamp: new Date().toISOString()
     });
-  
+
     logger.info(`Client ${client.id} subscribed to channels: ${channels.join(', ')}`);
   }
 
   private handleUnsubscription(client: WebSocketClient, message: WebSocketMessage): void {
     const channels = message.payload?.channels;
-    
+
     if (channels && Array.isArray(channels)) {
       channels.forEach((channel: string) => {
         client.subscriptions.delete(channel);
@@ -357,7 +358,7 @@ export class WebSocketService {
 
   getSubscriptionCount(): { [channel: string]: number } {
     const counts: { [channel: string]: number } = {};
-    
+
     this.clients.forEach((client) => {
       client.subscriptions.forEach((channel) => {
         counts[channel] = (counts[channel] || 0) + 1;
@@ -365,54 +366,6 @@ export class WebSocketService {
     });
 
     return counts;
-  }
-
-  // Add method to send system health updates
-  sendSystemHealthUpdate(): void {
-    const healthMessage: WebSocketMessage = {
-      type: 'system_health',
-      payload: {
-        clients: this.getClientCount(),
-        subscriptions: this.getSubscriptionCount(),
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        memory: process.memoryUsage(),
-        environment: process.env.NODE_ENV || 'development'
-      },
-      timestamp: new Date().toISOString()
-    };
-
-    this.sendToChannel('system', healthMessage);
-  }
-
-  // Add demo events for testing
-  sendDemoMintingEvent(): void {
-    const demoWallets = [
-      '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-      '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
-      '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC'
-    ];
-    
-    const demoBadges = ['verified-creator', 'early-supporter', 'dao-voter'];
-    const demoWallet = demoWallets[Math.floor(Math.random() * demoWallets.length)];
-    const demoBadge = demoBadges[Math.floor(Math.random() * demoBadges.length)];
-    const status = ['pending', 'completed', 'failed'][Math.floor(Math.random() * 3)];
-
-    const demoEvent: WebSocketMessage = {
-      type: 'demo_minting_event',
-      payload: {
-        wallet: demoWallet,
-        badgeTypeKey: demoBadge,
-        status: status,
-        transactionHash: '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join(''),
-        timestamp: new Date().toISOString(),
-        note: 'This is a demo event for testing WebSocket functionality'
-      },
-      timestamp: new Date().toISOString()
-    };
-
-    this.sendToChannel('minting', demoEvent);
-    this.sendToChannel('transactions', demoEvent);
   }
 
   private sendError(clientId: string, error: string): void {

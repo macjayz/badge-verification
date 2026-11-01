@@ -627,12 +627,11 @@
     <div class="dashboard">
         <!-- Sidebar -->
         <div class="sidebar">
-            <h1>🎯 Badge Admin</h1>
+            <h1>Badge Admin</h1>
             <nav>
-                <a href="/admin-dashboard.html">📊 Dashboard</a>
-                <a href="/user-management.html" class="active">👥 Users</a>
-                <a href="/badge-management.html">🪙 Badges</a>
-                <a href="#">⚙️ Settings</a>
+                <a href="/admin-dashboard.html">Dashboard</a>
+                <a href="/user-management.html" class="active">Users</a>
+                <a href="/badge-management.html">Badges</a>
             </nav>
         </div>
 
@@ -642,9 +641,8 @@
                 <h2>User Management & Analytics</h2>
                 <div class="header-actions">
                     <span id="lastUpdate" class="text-muted">Last update: Just now</span>
-                    <button class="btn btn-info" onclick="exportUserData()">📥 Export Data</button>
-                    <button class="btn btn-purple" onclick="showUserAnalytics()">📈 Analytics</button>
-                    <button class="btn btn-primary" onclick="refreshAllData()">🔄 Refresh</button>
+                    <button class="btn btn-info" onclick="exportUserData()">Export Data</button>
+                    <button class="btn btn-primary" onclick="refreshAllData()">Refresh</button>
                 </div>
             </div>
 
@@ -723,7 +721,7 @@
 
             <!-- Quick Actions -->
             <div class="quick-actions">
-                <h3>🚀 Quick Actions</h3>
+                <h3>Quick Actions</h3>
                 <div class="actions-grid">
                     <div class="action-item" onclick="showBulkActions()">
                         <div class="action-icon">👥</div>
@@ -736,10 +734,6 @@
                     <div class="action-item" onclick="showInactiveUsers()">
                         <div class="action-icon">😴</div>
                         <div>Inactive Users</div>
-                    </div>
-                    <div class="action-item" onclick="showNewUsers()">
-                        <div class="action-icon">🆕</div>
-                        <div>New Users</div>
                     </div>
                     <div class="action-item" onclick="refreshAllData()">
                         <div class="action-icon">🔄</div>
@@ -910,7 +904,6 @@
                     document.getElementById('newUsers').textContent = stats.newUsers.toLocaleString();
                     document.getElementById('verifiedUsers').textContent = stats.verifiedUsers.toLocaleString();
 
-                    // Update trend indicators
                     updateTrendIndicators(stats);
                 }
             } catch (error) {
@@ -918,83 +911,49 @@
             }
         }
 
-        // Update trend indicators
+        // Only new sign-ups have a week-over-week figure; the other cards show no trend line.
         function updateTrendIndicators(stats) {
-            // Simulated trend data - in real app, this would come from the API
-            const trends = {
-                total: '+12%',
-                active: '+8%', 
-                new: '+15%',
-                verified: '+10%'
-            };
-            
-            document.getElementById('usersChange').textContent = `${trends.total} this week`;
-            document.getElementById('activeChange').textContent = `${trends.active} this week`;
-            document.getElementById('newChange').textContent = `${trends.new} this week`;
-            document.getElementById('verifiedChange').textContent = `${trends.verified} this week`;
+            const pct = stats.newUsersChangePct;
+            const newChange = document.getElementById('newChange');
+            newChange.textContent = pct === null || pct === undefined
+                ? `${stats.newUsersThisWeek ?? 0} this week`
+                : `${pct >= 0 ? '+' : ''}${pct}% vs last week`;
+            newChange.className = `stat-change ${pct < 0 ? 'negative' : 'positive'}`;
+            document.getElementById('usersChange').textContent = '';
+            document.getElementById('activeChange').textContent = 'holding at least one badge';
+            document.getElementById('verifiedChange').textContent = 'with a completed verification';
         }
 
-        // Load analytics charts data
         async function loadChartsData() {
-            const timeRange = document.getElementById('chartTimeRange').value;
-            
+            const days = document.getElementById('chartTimeRange').value;
             try {
-                // Generate sample data for demonstration
-                const registrationData = generateRegistrationData(parseInt(timeRange));
-                const statusData = generateStatusData();
-                const activityData = generateActivityData();
-                
-                initializeRegistrationChart(registrationData);
-                initializeStatusChart(statusData);
-                initializeActivityChart(activityData);
+                const response = await authFetch(`${API_BASE_URL}/users/stats?days=${days}`);
+                if (!response) return;
+                const stats = await response.json();
+
+                initializeRegistrationChart({
+                    labels: stats.registrations.map(r =>
+                        new Date(r.date + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })),
+                    data: stats.registrations.map(r => r.count)
+                });
+                initializeStatusChart({
+                    active: stats.totalUsers - stats.suspendedUsers,
+                    suspended: stats.suspendedUsers
+                });
+                initializeActivityChart({
+                    labels: stats.monthlyMints.map(m =>
+                        new Date(m.month + '-01T00:00:00Z').toLocaleDateString('en-US', { month: 'short', year: '2-digit', timeZone: 'UTC' })),
+                    successful: stats.monthlyMints.map(m => m.successful),
+                    failed: stats.monthlyMints.map(m => m.failed)
+                });
             } catch (error) {
                 console.error('Error loading charts:', error);
             }
         }
 
-        // Load activity data
         async function loadActivityData() {
-            const activityData = generateActivityData();
-            initializeActivityChart(activityData);
-            showSuccess('Activity data refreshed!');
-        }
-
-        // Generate sample registration data
-        function generateRegistrationData(days) {
-            const labels = [];
-            const data = [];
-            
-            for (let i = days - 1; i >= 0; i--) {
-                const date = new Date();
-                date.setDate(date.getDate() - i);
-                labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-                
-                // Random registration data with realistic pattern
-                const base = 5;
-                const variation = Math.sin(i * 0.5) * 3;
-                data.push(Math.max(1, Math.floor(base + variation + Math.random() * 4)));
-            }
-            
-            return { labels, data };
-        }
-
-        // Generate sample status data
-        function generateStatusData() {
-            return {
-                active: 65,
-                inactive: 15,
-                suspended: 5,
-                pending: 15
-            };
-        }
-
-        // Generate sample activity data
-        function generateActivityData() {
-            const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const successful = [45, 52, 38, 65, 72, 58, 80, 75, 68, 82, 78, 85];
-            const failed = [8, 12, 6, 15, 10, 8, 12, 9, 11, 14, 10, 8];
-            
-            return { labels, successful, failed };
+            await loadChartsData();
+            showSuccess('Activity data refreshed');
         }
 
         // Initialize registration chart
@@ -1051,14 +1010,12 @@
             charts.statusChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Active', 'Inactive', 'Suspended', 'Pending'],
+                    labels: ['Active', 'Suspended'],
                     datasets: [{
-                        data: [data.active, data.inactive, data.suspended, data.pending],
+                        data: [data.active, data.suspended],
                         backgroundColor: [
                             '#2ecc71',
-                            '#95a5a6',
-                            '#e74c3c',
-                            '#f39c12'
+                            '#e74c3c'
                         ],
                         borderWidth: 2,
                         borderColor: '#fff'
@@ -1147,7 +1104,6 @@
                 if (!response) return;
                 
                 const result = await response.json();
-                console.log('API Response:', result); // Debug log
                 
                 // Check if the response has users array (direct response without success wrapper)
                 if (result.users !== undefined) {
@@ -1220,9 +1176,6 @@
                             <div class="action-buttons">
                                 <button class="action-btn btn-view" onclick="viewUserDetails('${user.id}')">
                                     View
-                                </button>
-                                <button class="action-btn btn-analytics" onclick="viewUserAnalytics('${user.id}')">
-                                    Analytics
                                 </button>
                                 ${user.isActive ? 
                                     `<button class="action-btn btn-deactivate" onclick="updateUserStatus('${user.id}', false)">
@@ -1430,9 +1383,6 @@
                     <button class="btn btn-info" onclick="exportUserReport('${user.id}')">
                         Export User Report
                     </button>
-                    <button class="btn btn-purple" onclick="viewUserAnalytics('${user.id}')">
-                        View Analytics
-                    </button>
                     <button class="btn" onclick="closeUserModal()">
                         Close
                     </button>
@@ -1445,18 +1395,6 @@
         // Close user modal
         function closeUserModal() {
             document.getElementById('userModal').style.display = 'none';
-        }
-
-        // View user analytics
-        function viewUserAnalytics(userId) {
-            // Redirect to user analytics page or open in new tab
-            window.open(`/user-analytics.html?id=${userId}`, '_blank');
-        }
-
-        // Show user analytics dashboard
-        function showUserAnalytics() {
-            alert('Opening comprehensive user analytics dashboard...');
-            // This would open a full analytics view
         }
 
         // Update user status
@@ -1499,22 +1437,45 @@
             loadUsers(1, currentSearch);
         }
 
-        function showNewUsers() {
-            // This would filter for users created in the last 7 days
-            document.getElementById('searchInput').value = '';
-            document.getElementById('statusFilter').value = '';
-            document.getElementById('verificationFilter').value = '';
-            loadUsers(1, '');
-            showSuccess('Showing all users. New users filter would be implemented with date filtering.');
+        function download(filename, type, content) {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([content], { type }));
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(link.href);
         }
 
-        // Export functionality
-        function exportUserData() {
-            showSuccess('Preparing user data export... This would generate a CSV report in production.');
+        // Exports every user matching the current search and status filter, not just this page.
+        async function exportUserData() {
+            try {
+                const params = new URLSearchParams({ page: 1, limit: 10000 });
+                const search = document.getElementById('searchInput').value;
+                const status = document.getElementById('statusFilter').value;
+                if (search) params.append('search', search);
+                if (status) params.append('status', status);
+
+                const response = await authFetch(`${API_BASE_URL}/users?${params}`);
+                if (!response) return;
+                const { users = [] } = await response.json();
+
+                const columns = ['id', 'walletAddress', 'isActive', 'verificationStatus', 'badgesCount', 'totalMints', 'createdAt', 'lastActivity'];
+                const escape = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
+                const csv = [columns.join(','), ...users.map(u => columns.map(c => escape(u[c])).join(','))].join('\n');
+                download(`users-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv', csv);
+                showSuccess(`Exported ${users.length} user(s)`);
+            } catch (error) {
+                showError('Export failed: ' + error.message);
+            }
         }
 
-        function exportUserReport(userId) {
-            showSuccess(`Generating detailed report for user ${userId}...`);
+        async function exportUserReport(userId) {
+            try {
+                const response = await authFetch(`${API_BASE_URL}/users/${userId}`);
+                if (!response) return;
+                download(`user-${userId}.json`, 'application/json', JSON.stringify(await response.json(), null, 2));
+            } catch (error) {
+                showError('Export failed: ' + error.message);
+            }
         }
 
         // Utility functions

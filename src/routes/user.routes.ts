@@ -19,9 +19,9 @@ router.post('/achievements/initialize', UserController.initializeAchievements);
 // Badge minting endpoints
 router.post('/mint-badge', UserController.mintBadge);
 router.post('/check-eligibility', UserController.checkEligibility);
-router.post('/complete-verification', UserController.completeVerification); // NEW
+router.post('/complete-verification', UserController.completeVerification);
 
-// NEW: Issuer-specific routes
+// Issuer-specific routes
 router.get('/issuers', UserController.getUserIssuers);
 router.get('/issuer/:issuerId/requirements', UserController.getIssuerVerificationRequirements);
 router.get('/issuer/:issuerId/eligibility', UserController.checkIssuerEligibility);

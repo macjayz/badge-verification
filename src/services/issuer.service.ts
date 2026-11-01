@@ -29,7 +29,7 @@ export class IssuerService {
     }
 
     const apiKey = this.generateApiKey();
-    
+
     const issuer = issuerRepository.create({
       name,
       wallet: wallet.toLowerCase(),
@@ -40,9 +40,9 @@ export class IssuerService {
     });
 
     await issuerRepository.save(issuer);
-    
+
     logger.info(`Created new issuer: ${name} (${wallet})`);
-    
+
     return { issuer, apiKey };
   }
 
@@ -99,9 +99,9 @@ export class IssuerService {
     });
 
     await badgeTypeRepository.save(badgeType);
-    
+
     logger.info(`Created badge type: ${name} (${key}) for issuer: ${issuer.name}`);
-    
+
     return badgeType;
   }
 
@@ -149,7 +149,7 @@ export class IssuerService {
     await badgeTypeRepository.save(badgeType);
 
     logger.info(`Updated badge type: ${badgeType.name} (${badgeType.key})`);
-    
+
     return badgeType;
   }
 
@@ -167,7 +167,7 @@ export class IssuerService {
     await issuerRepository.save(issuer);
 
     logger.info(`Rotated API key for issuer: ${issuer.name}`);
-    
+
     return { issuer, newApiKey };
   }
 

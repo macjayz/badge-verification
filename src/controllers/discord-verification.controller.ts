@@ -1,8 +1,8 @@
-// src/controllers/discord-verification.controller.ts
 import { Request, Response } from 'express';
 import { discordService } from '../services/discord.service';
+import { issuerSocialService } from '../services/issuer-social.service';
 import { logger } from '../utils/logger';
-import { verificationService } from '../services/verification.service'; // ADDED
+import { verificationService } from '../services/verification.service';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { oauthStateStore } from '../services/oauth-state.service';
 import { renderOAuthCallbackPage, renderOAuthErrorPage } from '../utils/oauth-pages';
@@ -149,13 +149,13 @@ export class DiscordVerificationController {
   }
 
   /**
-   * Get Discord connection status - UPDATED to accept issuerId
+   * Get Discord connection status
    */
   async getConnectionStatus(req: Request, res: Response) {
     try {
       const { wallet } = req.params;
-      const { issuerId } = req.query; // ADDED: Optional issuerId query param
-      
+      const { issuerId } = req.query;
+
       if (!wallet) {
         return res.status(400).json({
           success: false,
@@ -163,8 +163,8 @@ export class DiscordVerificationController {
         });
       }
 
-      const status = await discordService.getConnectionStatus(wallet, issuerId as string); // UPDATED
-      
+      const status = await discordService.getConnectionStatus(wallet, issuerId as string);
+
       res.json({
         success: true,
         data: status
@@ -180,12 +180,12 @@ export class DiscordVerificationController {
   }
 
   /**
-   * Verify Discord server membership - UPDATED to handle issuer-specific
+   * Verify Discord server membership
    */
   async verifyServerMembership(req: Request, res: Response) {
     try {
-      const { wallet, serverId, issuerId } = req.body; // ADDED issuerId
-      
+      const { wallet, serverId, issuerId } = req.body;
+
       if (!wallet) {
         return res.status(400).json({
           success: false,
@@ -193,14 +193,9 @@ export class DiscordVerificationController {
         });
       }
 
-      // If issuerId provided but no serverId, get issuer's Discord server
       let finalServerId = serverId;
       if (issuerId && !serverId) {
-        // In real implementation, fetch issuer's Discord server from database
-        const issuerServer = await this.getIssuerDiscordServer(issuerId);
-        if (issuerServer) {
-          finalServerId = issuerServer.serverId;
-        }
+        finalServerId = (await issuerSocialService.getDiscordServer(issuerId))?.serverId;
       }
 
       if (!finalServerId) {
@@ -211,11 +206,11 @@ export class DiscordVerificationController {
       }
 
       const result = await discordService.verifyServerMembership(
-        wallet, 
+        wallet,
         finalServerId,
-        issuerId // ADDED: Pass issuerId
+        issuerId
       );
-      
+
       res.json({
         success: true,
         data: result
@@ -237,7 +232,7 @@ export class DiscordVerificationController {
     try {
       const { issuerId } = req.params;
       const { wallet } = req.query;
-      
+
       if (!issuerId) {
         return res.status(400).json({
           success: false,
@@ -245,16 +240,18 @@ export class DiscordVerificationController {
         });
       }
 
-      // In real implementation, fetch issuer's Discord requirements from ProjectSocialRules
+      const server = await issuerSocialService.getDiscordServer(issuerId);
+      if (!server) {
+        return res.status(404).json({
+          success: false,
+          error: 'This issuer has not configured a Discord requirement'
+        });
+      }
       const issuerRequirements = {
         ruleType: 'discord_member',
         name: 'Discord Membership',
         description: 'Join the issuer\'s Discord server',
-        parameters: {
-          serverId: 'issuer_discord_server_id',
-          serverName: 'Issuer Discord Server',
-          requiredRole: 'member'
-        },
+        parameters: { serverId: server.serverId, serverName: server.serverName },
         isRequired: true
       };
 
@@ -266,13 +263,13 @@ export class DiscordVerificationController {
         const verifications = await verificationService.getAllVerifications(wallet as string, {
           provider: 'discord_member'
         });
-        
-        existingVerification = verifications.verifications.find(v => 
+
+        existingVerification = verifications.verifications.find(v =>
           v.metadata?.issuerId === issuerId
         );
-        
+
         if (existingVerification) {
-          status = existingVerification.status === 'completed' ? 'completed' : 
+          status = existingVerification.status === 'completed' ? 'completed' :
                    existingVerification.status === 'failed' ? 'failed' : 'pending';
         }
       }
@@ -289,7 +286,7 @@ export class DiscordVerificationController {
             metadata: existingVerification.metadata,
             completedAt: existingVerification.completedAt
           } : null,
-          actionRequired: `Join ${issuerRequirements.parameters.serverName} Discord server`
+          actionRequired: `Join the ${issuerRequirements.parameters.serverName ?? issuerRequirements.parameters.serverId} Discord server`
         }
       });
 
@@ -299,26 +296,6 @@ export class DiscordVerificationController {
         success: false,
         error: 'Failed to get issuer Discord requirements'
       });
-    }
-  }
-
-  /**
-   * Helper: Get issuer's Discord server info (mock implementation)
-   */
-  private async getIssuerDiscordServer(issuerId: string): Promise<{ serverId: string; serverName: string } | null> {
-    try {
-      // In real implementation, fetch from ProjectSocialRules
-      // For now, return mock data
-      const issuerServers: Record<string, { serverId: string; serverName: string }> = {
-        'test-issuer-1': { serverId: '123456789012345678', serverName: 'Web3 Academy Discord' },
-        'test-issuer-2': { serverId: '987654321098765432', serverName: 'DAO Collective Discord' },
-        'test-issuer-3': { serverId: '555555555555555555', serverName: 'NFT Gallery Discord' }
-      };
-      
-      return issuerServers[issuerId] || null;
-    } catch (error) {
-      logger.error(`Error getting Discord server for issuer ${issuerId}:`, error);
-      return null;
     }
   }
 }

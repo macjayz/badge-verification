@@ -26,7 +26,7 @@ export class IdOSRealAdapter implements DIDAdapter {
   constructor() {
     this.apiBaseUrl = process.env.IDOS_API_URL || 'https://api.idos.network';
     this.apiKey = process.env.IDOS_API_KEY!;
-    
+
     if (!this.apiKey) {
       logger.warn('IdOS API key not configured - using fallback mode');
     }
@@ -69,7 +69,7 @@ export class IdOSRealAdapter implements DIDAdapter {
       }
 
       const data = await response.json() as IdOSVerificationAPIResponse;
-      
+
       return {
         success: true,
         challengeUrl: data.verification_url,
@@ -106,7 +106,7 @@ export class IdOSRealAdapter implements DIDAdapter {
       }
 
       const data = await response.json() as IdOSVerificationStatus;
-      
+
       if (data.status === 'completed' && data.verified) {
         return {
           success: true,

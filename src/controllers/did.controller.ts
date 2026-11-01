@@ -1,24 +1,21 @@
-// src/controllers/did.controller.ts
 import { Request, Response } from 'express';
 import { verificationService } from '../services/verification.service';
 import { didService } from '../services/did.service';
 import { logger } from '../utils/logger';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
-import { asyncHandler } from '../middleware/error.middleware'; // ADD THIS IMPORT
-import { ValidationError, AuthenticationError, NotFoundError } from '../utils/errors'; // ADD THIS IMPORT
+import { asyncHandler } from '../middleware/error.middleware';
+import { ValidationError, NotFoundError } from '../utils/errors';
 
 export class DIDController {
-  // ✅ UPDATE ALL METHODS TO USE asyncHandler AND THROW ENHANCED ERRORS
 
   getAvailableProviders = asyncHandler(async (req: Request, res: Response) => {
     const providers = didService.getAvailableAdapters();
-    
-    // Enhanced response with adapter details
+
     const providerDetails = await Promise.all(
       providers.map(async (provider) => {
         const details = didService.getAdapterDetails(provider);
         const health = await didService.checkAdapterHealth(provider);
-        
+
         return {
           name: provider,
           type: 'primary_did',
@@ -29,17 +26,17 @@ export class DIDController {
         };
       })
     );
-    
+
     res.json({
       success: true,
       providers: providerDetails
     });
   });
 
-  // 🆕 Health check for specific provider
+  // Health check for specific provider
   getProviderHealth = asyncHandler(async (req: Request, res: Response) => {
     const { provider } = req.params;
-    
+
     const adapter = didService.getAdapter(provider);
     if (!adapter) {
       throw new NotFoundError('DID provider', provider);
@@ -47,7 +44,7 @@ export class DIDController {
 
     const health = await didService.checkAdapterHealth(provider);
     const details = didService.getAdapterDetails(provider);
-    
+
     res.json({
       success: true,
       provider,
@@ -63,15 +60,15 @@ export class DIDController {
     });
   });
 
-  // 🆕 Health check for all providers
+  // Health check for all providers
   getAllProvidersHealth = asyncHandler(async (req: Request, res: Response) => {
     const providers = didService.getAvailableAdapters();
-    
+
     const healthStatus = await Promise.all(
       providers.map(async (provider) => {
         const health = await didService.checkAdapterHealth(provider);
         const details = didService.getAdapterDetails(provider);
-        
+
         return {
           provider,
           healthy: health.healthy,
@@ -86,10 +83,10 @@ export class DIDController {
         };
       })
     );
-    
+
     const allHealthy = healthStatus.every(status => status.healthy);
     const anyRealAdapters = healthStatus.some(status => status.details.isReal);
-    
+
     res.json({
       success: true,
       healthy: allHealthy,
@@ -106,10 +103,10 @@ export class DIDController {
     });
   });
 
-  // 🆕 Get detailed adapter information
+  // Get detailed adapter information
   getAdapterDetails = asyncHandler(async (req: Request, res: Response) => {
     const { provider } = req.params;
-    
+
     const adapter = didService.getAdapter(provider);
     if (!adapter) {
       throw new NotFoundError('DID provider', provider);
@@ -117,7 +114,7 @@ export class DIDController {
 
     const details = didService.getAdapterDetails(provider);
     const health = await didService.checkAdapterHealth(provider);
-    
+
     res.json({
       success: true,
       provider,
@@ -141,7 +138,7 @@ export class DIDController {
     });
   });
 
-  // 🆕 System status overview
+  // System status overview
   getSystemStatus = asyncHandler(async (req: Request, res: Response) => {
     const providers = didService.getAvailableAdapters();
     const healthStatus = await Promise.all(
@@ -153,12 +150,12 @@ export class DIDController {
 
     const allHealthy = healthStatus.every(status => status.healthy);
     const status = allHealthy ? 'operational' : 'degraded';
-    
+
     res.json({
       success: true,
       status,
-      message: allHealthy 
-        ? 'All DID providers are operational' 
+      message: allHealthy
+        ? 'All DID providers are operational'
         : 'Some DID providers are experiencing issues',
       system: {
         environment: process.env.NODE_ENV || 'development',
@@ -175,11 +172,10 @@ export class DIDController {
     });
   });
 
-  // ✅ UPDATED: Use enhanced error handling
   initiateVerification = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { provider } = req.params;
     const wallet = req.user?.wallet || req.body.wallet;
-    
+
     if (!wallet) {
       throw new ValidationError('Wallet address required', {
         field: 'wallet',
@@ -212,7 +208,6 @@ export class DIDController {
     });
   });
 
-  // ✅ UPDATED: Use enhanced error handling
   handleCallback = asyncHandler(async (req: Request, res: Response) => {
     const { provider } = req.params;
     const { sessionId } = req.query;
@@ -258,10 +253,9 @@ export class DIDController {
     }
   });
 
-  // ✅ UPDATED: Use enhanced error handling
   getVerificationStatus = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const wallet = req.user?.wallet || req.params.wallet;
-    
+
     if (!wallet) {
       throw new ValidationError('Wallet address required', {
         field: 'wallet',
@@ -279,7 +273,6 @@ export class DIDController {
     });
   });
 
-  // ✅ UPDATED: Use enhanced error handling
   getVerificationSession = asyncHandler(async (req: Request, res: Response) => {
     const { sessionId } = req.params;
 

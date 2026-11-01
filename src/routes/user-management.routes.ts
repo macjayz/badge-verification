@@ -1,6 +1,5 @@
-// FIXED: src/routes/user-management.routes.ts
 import { Router } from 'express';
-import { UserManagementController } from '../controllers/user-management.controller'; // Remove the instance import
+import { UserManagementController } from '../controllers/user-management.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
 const router = Router();

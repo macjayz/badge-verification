@@ -1,4 +1,3 @@
-// src/entities/Verification.ts - CLEAN VERSION
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
 import { User } from './User';
 

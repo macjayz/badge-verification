@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.middleware';
-import { logger } from '../utils/logger';
 
 const router = Router();
 

@@ -1,4 +1,3 @@
-// src/utils/oauth-pages.ts
 //
 // HTML returned to the OAuth popup after Twitter/Discord redirect back.
 //
@@ -80,7 +79,7 @@ export function renderOAuthCallbackPage(opts: {
   const data = jsonForScript({ type, code: opts.code, state: opts.state });
 
   const body = `
-    <div class="success">✓ ${label} Authorization Received</div>
+    <div class="success">${label} Authorization Received</div>
     <div class="message" id="message">Completing verification automatically...</div>
     <div class="code" id="fallback" hidden></div>
     <button id="copy" hidden>Copy Authorization Data</button>`;
@@ -113,7 +112,7 @@ export function renderOAuthErrorPage(opts: { provider: OAuthProvider; message: s
   const data = jsonForScript({ type: `${opts.provider.toUpperCase()}_OAUTH_ERROR`, error: opts.message });
 
   const body = `
-    <div class="error">✗ ${label} Verification Failed</div>
+    <div class="error">${label} Verification Failed</div>
     <div class="message">${escapeHtml(opts.message)}</div>
     <div class="message">Please try again.</div>`;
 

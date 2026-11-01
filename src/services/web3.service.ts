@@ -1,22 +1,20 @@
-// src/services/web3.service.ts
 import { ethers } from 'ethers';
 import { logger } from '../utils/logger';
-import { 
-  BlockchainError, 
-  MintingError, 
+import {
+  BlockchainError,
+  MintingError,
   ConfigurationError,
-  ValidationError 
+  ValidationError
 } from '../utils/errors';
 
-// ABI for the BadgeSBT contract
+// The subset of contracts/BadgeSBT.sol the backend calls.
 const BADGE_SBT_ABI = [
   "function mintBadge(address to, uint256 badgeTypeId) external returns (uint256)",
-  "function batchMintBadges(address[] calldata recipients, uint256 badgeTypeId) external",
+  "function revokeBadge(uint256 tokenId) external",
   "function hasBadge(address wallet, uint256 badgeTypeId) external view returns (bool)",
-  "function getWalletBadges(address wallet) external view returns (uint256[] memory)",
-  "function tokenURI(uint256 tokenId) external view returns (string memory)",
   "function owner() external view returns (address)",
-  "event BadgeMinted(uint256 indexed tokenId, uint256 indexed badgeTypeId, address indexed to, address mintedBy)"
+  "event BadgeMinted(uint256 indexed tokenId, uint256 indexed badgeTypeId, address indexed to, address mintedBy)",
+  "event BadgeRevoked(uint256 indexed tokenId, uint256 indexed badgeTypeId, address indexed from)"
 ];
 
 interface MintResult {
@@ -33,31 +31,31 @@ export class Web3Service {
   private contract?: ethers.Contract;
   private isConfigured: boolean = false;
   private useRealAdapters: boolean = false;
-  
+
   constructor() {
     try {
       this.useRealAdapters = process.env.USE_REAL_ADAPTERS === 'true';
-      
+
       // If we're not using real adapters, skip blockchain setup entirely
       if (!this.useRealAdapters) {
         logger.info('Web3 service running in stub mode - using mock transactions');
         return;
       }
-      
+
       const rpcUrl = this.getRpcUrl();
       const privateKey = process.env.DEPLOYER_PRIVATE_KEY;
       const contractAddress = process.env.CONTRACT_ADDRESS;
-      
+
       if (!rpcUrl || !privateKey || !contractAddress) {
         logger.warn('Web3 configuration incomplete - using mock mode');
         return;
       }
-      
+
       this.provider = new ethers.JsonRpcProvider(rpcUrl);
       this.wallet = new ethers.Wallet(privateKey, this.provider);
       this.contract = new ethers.Contract(contractAddress, BADGE_SBT_ABI, this.wallet);
       this.isConfigured = true;
-      
+
       logger.info(`Web3 service initialized for contract: ${contractAddress}`);
     } catch (error) {
       logger.error('Web3 service initialization failed:', error);
@@ -84,7 +82,7 @@ export class Web3Service {
       });
     }
 
-    // If not configured or using stub mode, return mock data for development
+    // Stub mode (local development only; production refuses to start without real adapters)
     if (!this.isConfigured || !this.contract || !this.useRealAdapters) {
       logger.info('Web3 service using mock mode for minting');
       return this.mockMintBadge(to, badgeTypeId);
@@ -92,23 +90,23 @@ export class Web3Service {
 
     try {
       logger.info(`Minting badge type ${badgeTypeId} for ${to}`);
-      
+
       // Check contract connection
       await this.verifyContractConnection();
-      
+
       // Estimate gas first
       const gasEstimate = await this.contract.mintBadge.estimateGas(to, badgeTypeId);
-      
+
       // Execute mint with 20% extra gas
       const tx = await this.contract.mintBadge(to, badgeTypeId, {
         gasLimit: gasEstimate * 120n / 100n
       });
-      
+
       logger.info(`Mint transaction submitted: ${tx.hash}`);
-      
+
       // Wait for confirmation (2 blocks)
       const receipt = await tx.wait(2);
-      
+
       if (!receipt) {
         throw new MintingError(
           'Transaction receipt not available - transaction may have been dropped',
@@ -116,7 +114,7 @@ export class Web3Service {
           { to, badgeTypeId }
         );
       }
-      
+
       if (receipt.status === 0) {
         throw new MintingError(
           'Transaction reverted on-chain',
@@ -130,7 +128,7 @@ export class Web3Service {
           }
         );
       }
-      
+
       // Find the BadgeMinted event to get tokenId
       const event = receipt.logs.find((log: any) => {
         try {
@@ -140,7 +138,7 @@ export class Web3Service {
           return false;
         }
       });
-      
+
       let tokenId: number;
       if (event) {
         const parsedEvent = this.contract!.interface.parseLog(event);
@@ -150,7 +148,7 @@ export class Web3Service {
         tokenId = Date.now() % 1000000;
         logger.warn(`BadgeMinted event not found, using generated tokenId: ${tokenId}`);
       }
-      
+
       const result: MintResult = {
         tokenId,
         transactionHash: tx.hash,
@@ -158,13 +156,13 @@ export class Web3Service {
         contractAddress: await this.contract.getAddress(),
         gasUsed: receipt.gasUsed
       };
-      
+
       logger.info(`Badge minted successfully: Token ${tokenId} for ${to}`);
       return result;
-      
+
     } catch (error: any) {
       logger.error('Web3 mint failed:', error);
-      
+
       // Handle specific blockchain errors
       if (error.code === 'INSUFFICIENT_FUNDS') {
         throw new MintingError(
@@ -177,7 +175,7 @@ export class Web3Service {
           }
         );
       }
-      
+
       if (error.code === 'CALL_EXCEPTION') {
         throw new MintingError(
           'Smart contract call failed',
@@ -190,7 +188,7 @@ export class Web3Service {
           }
         );
       }
-      
+
       if (error.code === 'NETWORK_ERROR' || error.code === 'TIMEOUT') {
         throw new BlockchainError(
           'Blockchain network unreachable',
@@ -202,7 +200,7 @@ export class Web3Service {
           }
         );
       }
-      
+
       if (error.code === 'NONCE_EXPIRED') {
         throw new MintingError(
           'Transaction nonce expired',
@@ -214,7 +212,7 @@ export class Web3Service {
           }
         );
       }
-      
+
       throw new BlockchainError(
         `Minting transaction failed: ${error.message}`,
         { to, badgeTypeId, originalError: error.message }
@@ -228,8 +226,8 @@ export class Web3Service {
     }
 
     if (!this.isConfigured || !this.contract || !this.useRealAdapters) {
-      logger.info('Web3 service using mock mode for badge check');
-      return Math.random() > 0.5;
+      // Stub mode has no chain to ask; the database is the record of what was minted.
+      return false;
     }
 
     try {
@@ -244,26 +242,27 @@ export class Web3Service {
     }
   }
 
-  async getWalletBadges(wallet: string): Promise<number[]> {
-    if (!ethers.isAddress(wallet)) {
-      throw new ValidationError('Invalid wallet address format', { wallet });
-    }
-
+  /**
+   * Burns the token on-chain. Returns the transaction hash, or null in stub mode where there is
+   * no chain to write to.
+   */
+  async revokeBadge(tokenId: string): Promise<string | null> {
     if (!this.isConfigured || !this.contract || !this.useRealAdapters) {
-      logger.info('Web3 service using mock mode for wallet badges');
-      return [1, 2, 3].filter(() => Math.random() > 0.7);
+      return null;
     }
 
     try {
       await this.verifyContractConnection();
-      const tokenIds = await this.contract.getWalletBadges(wallet);
-      return tokenIds.map((id: bigint) => Number(id));
+      const tx = await this.contract.revokeBadge(BigInt(tokenId));
+      const receipt = await tx.wait(2);
+      if (!receipt || receipt.status === 0) {
+        throw new BlockchainError('Revocation transaction reverted', { tokenId, transactionHash: tx.hash });
+      }
+      return tx.hash;
     } catch (error: any) {
-      logger.error('Get wallet badges failed:', error);
-      throw new BlockchainError(
-        `Failed to get wallet badges: ${error.message}`,
-        { wallet }
-      );
+      if (error instanceof BlockchainError) throw error;
+      logger.error('Revoke badge failed:', error);
+      throw new BlockchainError(`Failed to revoke badge on-chain: ${error.message}`, { tokenId });
     }
   }
 
@@ -272,7 +271,7 @@ export class Web3Service {
       logger.info('Web3 service using mock mode - cannot get transaction receipt');
       return null;
     }
-    
+
     try {
       return await this.provider.getTransactionReceipt(transactionHash);
     } catch (error: any) {
@@ -309,30 +308,35 @@ export class Web3Service {
   }
 
   private getRpcUrl(): string {
+    if (process.env.RPC_URL) return process.env.RPC_URL;
+
     const chainId = process.env.DEFAULT_CHAIN_ID || '31337';
     const rpcUrls: { [key: string]: string } = {
       '1': process.env.ETHEREUM_RPC_URL || '',
-      '11155111': process.env.SEPOLIA_RPC_URL || 'https://eth-sepolia.public.blastapi.io',
+      '11155111': process.env.SEPOLIA_RPC_URL || '',
+      '8453': process.env.BASE_RPC_URL || 'https://mainnet.base.org',
+      '84532': process.env.BASE_SEPOLIA_RPC_URL || 'https://sepolia.base.org',
       '137': process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com',
-      '80001': process.env.MUMBAI_RPC_URL || 'https://rpc-mumbai.maticvigil.com',
-      '31337': 'http://localhost:8545' // Hardhat local network
+      '80002': process.env.AMOY_RPC_URL || 'https://rpc-amoy.polygon.technology',
+      '31337': 'http://localhost:8545'
     };
-    
-    const rpcUrl = rpcUrls[chainId] || rpcUrls['31337'];
-    
+
+    // No silent fallback: minting on the wrong chain is worse than refusing to start.
+    const rpcUrl = rpcUrls[chainId];
+
     if (!rpcUrl) {
       throw new ConfigurationError(
         'Web3Service',
-        `No RPC URL configured for chain ID ${chainId}`
+        `No RPC URL configured for chain ID ${chainId}; set RPC_URL`
       );
     }
-    
+
     return rpcUrl;
   }
 
   private mockMintBadge(to: string, badgeTypeId: number): MintResult {
     logger.info(`Mock minting badge type ${badgeTypeId} for ${to}`);
-    
+
     // Generate deterministic mock data based on input
     const mockTokenId = Math.abs(
       to.split('').reduce((a, b) => {
@@ -340,10 +344,10 @@ export class Web3Service {
         return a & a;
       }, 0)
     ) % 1000000 + 1;
-    
+
     return {
       tokenId: mockTokenId,
-      transactionHash: '0x' + Array(64).fill(0).map(() => 
+      transactionHash: '0x' + Array(64).fill(0).map(() =>
         Math.floor(Math.random() * 16).toString(16)
       ).join(''),
       blockNumber: Math.floor(Math.random() * 10000) + 1,
@@ -352,7 +356,17 @@ export class Web3Service {
     };
   }
 
-  // Health check method
+  /** Number of transactions sent from the wallet (its nonce) on the configured chain. */
+  async getTransactionCount(wallet: string): Promise<number> {
+    if (!this.provider) {
+      throw new ConfigurationError(
+        'Web3Service',
+        'On-chain checks need USE_REAL_ADAPTERS=true and an RPC URL for DEFAULT_CHAIN_ID'
+      );
+    }
+    return this.provider.getTransactionCount(wallet);
+  }
+
   async healthCheck(): Promise<{ healthy: boolean; details: any }> {
     if (!this.isConfigured || !this.useRealAdapters) {
       return {
@@ -369,7 +383,7 @@ export class Web3Service {
       await this.verifyContractConnection();
       const network = await this.provider!.getNetwork();
       const blockNumber = await this.provider!.getBlockNumber();
-      
+
       return {
         healthy: true,
         details: {
@@ -396,3 +410,4 @@ export class Web3Service {
     }
   }
 }
+export const web3Service = new Web3Service();

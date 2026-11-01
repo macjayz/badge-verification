@@ -1,9 +1,14 @@
-// src/controllers/admin-auth.controller.ts
 import { Request, Response } from 'express';
 import { jwtService } from '../services/jwt.service';
 import { logger } from '../utils/logger';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { config } from '../config';
+import { createHash, timingSafeEqual } from 'crypto';
+
+function safeEqual(a: string, b: string): boolean {
+  // Hashing first gives equal-length inputs, which timingSafeEqual requires.
+  return timingSafeEqual(createHash('sha256').update(a).digest(), createHash('sha256').update(b).digest());
+}
 
 // Admin credentials come from ADMIN_USERNAME / ADMIN_PASSWORD. In development
 // they fall back to admin/admin123; production refuses to boot unless they are
@@ -26,8 +31,10 @@ export class AdminAuthController {
         });
       }
 
-      // Simple credential check (replace with proper auth in production)
-      if (username !== ADMIN_CREDENTIALS.username || password !== ADMIN_CREDENTIALS.password) {
+      // Compare both fields in constant time so response timing does not leak either one.
+      const userOk = safeEqual(String(username), ADMIN_CREDENTIALS.username);
+      const passwordOk = safeEqual(String(password), ADMIN_CREDENTIALS.password);
+      if (!userOk || !passwordOk) {
         return res.status(401).json({
           success: false,
           error: 'Invalid credentials'

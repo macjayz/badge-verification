@@ -1,4 +1,3 @@
-// src/routes/discord-verification.routes.ts
 import { Router } from 'express';
 import { discordVerificationController } from '../controllers/discord-verification.controller';
 import { authenticateToken, requireOwnWallet } from '../middleware/auth.middleware';

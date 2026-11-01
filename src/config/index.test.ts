@@ -8,6 +8,11 @@
 
 const DEV_JWT_SECRET = 'fallback-secret-change-me';
 const STRONG_SECRET = 'x'.repeat(32);
+const CHAIN = {
+  USE_REAL_ADAPTERS: 'true',
+  DEPLOYER_PRIVATE_KEY: '0x' + '1'.repeat(64),
+  CONTRACT_ADDRESS: '0x' + '2'.repeat(40),
+};
 
 function loadConfig(env: Record<string, string | undefined>) {
   let mod!: typeof import('./index');
@@ -25,6 +30,7 @@ function loadConfig(env: Record<string, string | undefined>) {
 
 /** Load in production mode, then run the guard with these env values. */
 function assertInProduction(env: Record<string, string | undefined>) {
+  env = { ...CHAIN, ...env };
   const mod = loadConfig({ NODE_ENV: 'production', ...env });
   const original = process.env;
   process.env = { ...original, NODE_ENV: 'production', ...env } as NodeJS.ProcessEnv;
@@ -81,7 +87,24 @@ describe('assertProductionConfig', () => {
     ).toThrow(/JWT_SECRET[\s\S]*ADMIN_PASSWORD/);
   });
 
-  it('starts when both are set to real values', () => {
+  it('refuses to start with stub adapters, which would fake DID checks and mints', () => {
+    expect(() =>
+      assertInProduction({ JWT_SECRET: STRONG_SECRET, ADMIN_PASSWORD: 'a-real-password', USE_REAL_ADAPTERS: undefined }),
+    ).toThrow(/USE_REAL_ADAPTERS/);
+  });
+
+  it('refuses to start without the minting key and contract', () => {
+    expect(() =>
+      assertInProduction({
+        JWT_SECRET: STRONG_SECRET,
+        ADMIN_PASSWORD: 'a-real-password',
+        DEPLOYER_PRIVATE_KEY: undefined,
+        CONTRACT_ADDRESS: undefined,
+      }),
+    ).toThrow(/DEPLOYER_PRIVATE_KEY[\s\S]*CONTRACT_ADDRESS/);
+  });
+
+  it('starts when everything is set to real values', () => {
     expect(() =>
       assertInProduction({ JWT_SECRET: STRONG_SECRET, ADMIN_PASSWORD: 'a-real-password' }),
     ).not.toThrow();

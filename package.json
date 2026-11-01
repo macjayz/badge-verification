@@ -1,13 +1,15 @@
 {
-  "name": "badge-backend",
+  "name": "badge-verification",
   "version": "1.0.0",
-  "description": "Badge Verification Layer Backend",
+  "description": "Sybil-resistant credential platform: DID and social verification, then soulbound badges.",
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "jest",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "typeorm": "typeorm-ts-node-commonjs -d src/db/datasource.ts",
     "migration:generate": "npm run typeorm -- migration:generate",
     "migration:run": "npm run typeorm -- migration:run",
@@ -15,7 +17,7 @@
     "migration:run:prod": "typeorm -d dist/db/datasource.js migration:run",
     "migrate": "npm run migration:run",
     "deploy:sepolia": "npx hardhat run scripts/deploy.ts --network sepolia",
-    "deploy:mumbai": "npx hardhat run scripts/deploy.ts --network mumbai",
+    "deploy:base-sepolia": "npx hardhat run scripts/deploy.ts --network baseSepolia",
     "verify:contract": "npx hardhat run scripts/verify.ts --network sepolia",
     "compile": "npx hardhat compile",
     "test:contract": "npx hardhat test"
@@ -32,6 +34,7 @@
     "dotenv": "^16.6.1",
     "ethers": "^6.15.0",
     "express": "^4.21.2",
+    "helmet": "^8.3.0",
     "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.3",
@@ -43,6 +46,7 @@
     "ws": "^8.18.3"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@nomicfoundation/hardhat-toolbox": "^6.1.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.19",
@@ -51,19 +55,26 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.19.25",
     "@types/supertest": "^6.0.3",
-    "@typescript-eslint/eslint-plugin": "^8.46.4",
-    "@typescript-eslint/parser": "^8.46.4",
     "eslint": "^9.39.1",
+    "globals": "^17.14.0",
     "hardhat": "^2.27.0",
     "jest": "^29.7.0",
     "prettier": "^3.6.2",
     "supertest": "^6.3.4",
     "ts-jest": "^29.4.5",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs"
+  "author": "Mangai Machen John",
+  "license": "MIT",
+  "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/macjayz/badge-verification.git"
+  },
+  "engines": {
+    "node": ">=22"
+  }
 }

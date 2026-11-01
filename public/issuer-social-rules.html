@@ -465,13 +465,13 @@
     <div class="dashboard">
         <!-- Sidebar -->
         <div class="sidebar">
-            <h1>🏢 Issuer Portal</h1>
+            <h1>Issuer Portal</h1>
             <nav>
-                <a href="/issuer-dashboard.html">📊 Dashboard</a>
-                <a href="/issuer-badge-creator.html">🪙 Create Badge</a>
-                <a href="/issuer-analytics.html">📈 Analytics</a>
-                <a href="/issuer-social-rules.html" class="active">🔗 Social Rules</a>
-                <a href="/issuer-settings.html">⚙️ Settings</a>
+                <a href="/issuer-dashboard.html">Dashboard</a>
+                <a href="/issuer-badge-creator.html">Create Badge</a>
+                <a href="/issuer-analytics.html">Analytics</a>
+                <a href="/issuer-social-rules.html" class="active">Social Rules</a>
+                <a href="/issuer-settings.html">Settings</a>
             </nav>
             
             <div class="issuer-info">
@@ -485,9 +485,8 @@
             <div class="header">
                 <h2>Social Verification Rules</h2>
                 <div class="header-actions">
-                    <button class="btn btn-warning" onclick="debugAuthState()">🔧 Debug</button>
                     <button class="btn btn-success" onclick="generateBadgeRules()">
-                        🚀 Generate Badge Rules
+                        Generate Badge Rules
                     </button>
                 </div>
             </div>
@@ -518,7 +517,7 @@
 
             <!-- Create New Rule -->
             <div class="create-section">
-                <div class="section-title">➕ Create New Rule</div>
+                <div class="section-title">Create New Rule</div>
                 
                 <form id="ruleCreationForm">
                     <div class="form-group">
@@ -620,7 +619,6 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Social Rules Loading...');
             
             // Check if issuer is authenticated
             const apiKey = localStorage.getItem('issuerApiKey');
@@ -647,7 +645,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error loading issuer data:', error);
+                console.error('Error loading issuer data:', error);
             }
         }
 
@@ -678,7 +676,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error loading social rules:', error);
+                console.error('Error loading social rules:', error);
                 showError('Error loading social rules: ' + error.message);
             }
         }
@@ -786,12 +784,27 @@
             const totalRules = socialRules.length;
             const activeRules = socialRules.filter(rule => rule.isActive).length;
             const requiredRules = socialRules.filter(rule => rule.isRequired).length;
-            const avgSuccess = Math.floor(Math.random() * 30) + 70; // Mock data
-            
+
             document.getElementById('totalRules').textContent = totalRules;
             document.getElementById('activeRules').textContent = activeRules;
             document.getElementById('requiredRules').textContent = requiredRules;
-            document.getElementById('avgSuccess').textContent = avgSuccess + '%';
+            loadSocialSuccessRate();
+        }
+
+        // Share of this issuer's social verifications that passed.
+        async function loadSocialSuccessRate() {
+            const el = document.getElementById('avgSuccess');
+            try {
+                const response = await issuerAuthFetch(`${ISSUER_DASHBOARD_API}/stats`);
+                if (!response || !response.ok) throw new Error();
+                const rates = (await response.json()).stats.verificationRates || {};
+                const social = ['twitter_follow', 'discord_member', 'snapshot_votes'].map(p => rates[p] || { completed: 0, total: 0 });
+                const completed = social.reduce((sum, r) => sum + r.completed, 0);
+                const total = social.reduce((sum, r) => sum + r.total, 0);
+                el.textContent = total ? `${Math.round((completed / total) * 100)}%` : 'n/a';
+            } catch {
+                el.textContent = 'n/a';
+            }
         }
 
         // Setup Form
@@ -987,7 +1000,6 @@
                     priority
                 };
                 
-                console.log('📦 Creating rule with data:', ruleData);
                 
                 const response = await issuerAuthFetch(`${ISSUER_DASHBOARD_API}/social-rules`, {
                     method: 'POST',
@@ -1007,7 +1019,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error creating rule:', error);
+                console.error('Error creating rule:', error);
                 showError('Error creating rule: ' + error.message);
             } finally {
                 submitBtn.disabled = false;
@@ -1035,7 +1047,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error toggling rule:', error);
+                console.error('Error toggling rule:', error);
                 showError('Error updating rule: ' + error.message);
                 loadSocialRules(); // Reload to reset UI state
             }
@@ -1064,7 +1076,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error deleting rule:', error);
+                console.error('Error deleting rule:', error);
                 showError('Error deleting rule: ' + error.message);
             }
         }
@@ -1102,7 +1114,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error generating badge rules:', error);
+                console.error('Error generating badge rules:', error);
                 showError('Error generating badge rules: ' + error.message);
             }
         }
@@ -1112,18 +1124,6 @@
             document.querySelector('.create-section').scrollIntoView({ 
                 behavior: 'smooth' 
             });
-        }
-
-        // Debug Auth State
-        function debugAuthState() {
-            const apiKey = localStorage.getItem('issuerApiKey');
-            const issuer = localStorage.getItem('issuerData');
-            
-            console.log('=== 🔍 ISSUER AUTH DEBUG ===');
-            console.log('API Key exists:', !!apiKey);
-            console.log('Issuer data exists:', !!issuer);
-            console.log('Social rules count:', socialRules.length);
-            console.log('========================');
         }
 
         // Auth Fetch for Issuer API
@@ -1156,7 +1156,7 @@
                 
                 return response;
             } catch (error) {
-                console.error('❌ Fetch error:', error);
+                console.error('Fetch error:', error);
                 throw error;
             }
         }
@@ -1167,7 +1167,7 @@
             el.textContent = message;
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 5000);
-            console.error('💥 Error:', message);
+            console.error('Error:', message);
         }
 
         function showSuccess(message) {
@@ -1175,7 +1175,6 @@
             el.textContent = message;
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 5000);
-            console.log('✅ Success:', message);
         }
     </script>
 </body>
