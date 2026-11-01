@@ -1,8 +1,8 @@
 # Badge Verification
 
 A backend and web UI for issuing soulbound badges only to wallets that pass the issuer's checks.
-Issuers define the rules for each badge: proof of a unique identity through a decentralized
-identifier (Privado ID, formerly Polygon ID, or idOS), plus social and on-chain checks such as
+Issuers define the rules for each badge: proof of a unique identity through Privado ID (formerly
+Polygon ID), plus social and on-chain checks such as
 following an X account, membership of a Discord server, Snapshot votes or a minimum number of
 transactions. A wallet that passes is minted a non-transferable ERC-721 token.
 
@@ -14,18 +14,22 @@ personal data: the identity proof is a credential the user holds, not a KYC uplo
 ## How it works
 
 1. A user signs in with their wallet (Sign-In with Ethereum, EIP-4361).
-2. They verify their identity with a DID provider and connect the social accounts a badge needs
-   (X and Discord through OAuth 2.0 with PKCE).
-3. The eligibility engine evaluates the badge's rules: identity providers combined with AND or
-   OR, then each social or on-chain check, which can be required or optional.
+2. They prove their identity by scanning a QR code with the Privado ID wallet, which sends a
+   zero-knowledge proof of a credential (by default: a KYC credential showing they are over 18)
+   to Privado's verifier. They also connect the social accounts a badge needs (X and Discord
+   through OAuth 2.0 with PKCE).
+3. The eligibility engine evaluates the badge's rules: the identity check, then each social or
+   on-chain check, which can be required or optional.
 4. If the wallet qualifies, the backend mints the badge from `contracts/BadgeSBT.sol` and pushes
    progress to the browser over a WebSocket.
 
-Checks fail closed. A rule the server cannot evaluate, an unreachable API or an X API plan
-without follow lookups all count as "not met", never as a pass.
+Checks fail closed. An unreachable API or an X API plan without follow lookups counts as "not
+met", never as a pass, and badge rules naming a check the server does not support are rejected
+when they are saved. One identity can verify only one wallet.
 
 | Check | Method | Source |
 | --- | --- | --- |
+| Identity | `privadoid` | Privado ID verifier backend; the DID comes from the wallet's signed response |
 | X follow | `twitter_follow` | X API v2, through the user's OAuth connection |
 | Discord membership | `discord_member` | The user's guild list (`guilds` OAuth scope) |
 | Snapshot votes | `snapshot_votes` | Snapshot GraphQL API |
@@ -42,8 +46,9 @@ without follow lookups all count as "not met", never as a pass.
 
 ## Running locally
 
-Local development needs no wallet, API keys or chain. With `USE_REAL_ADAPTERS=false`, DID checks
-and mints are simulated.
+Local development needs no wallet, API keys or chain. With `USE_REAL_ADAPTERS=false`, the
+identity check and minting are simulated: the QR code appears, and the session verifies on the
+first poll. Set `USE_REAL_ADAPTERS=true` to use the live Privado ID verifier instead.
 
 ```bash
 npm install
@@ -79,8 +84,11 @@ Production refuses to start unless all of these are set:
 - `ADMIN_PASSWORD`: not the development default
 - `USE_REAL_ADAPTERS=true`
 - `DEPLOYER_PRIVATE_KEY` and `CONTRACT_ADDRESS`
+- `PRIVADO_ALLOWED_ISSUERS`: the issuer DIDs whose credentials you accept. `*` is refused, because
+  anyone can issue themselves a credential.
 
-This means a misconfigured deploy fails at boot instead of minting simulated badges.
+This means a misconfigured deploy fails at boot instead of minting simulated badges or accepting
+self-issued identities.
 
 1. Deploy the contract and note its address:
 
@@ -111,7 +119,10 @@ the database answers. On a managed host, set `DATABASE_URL` and `DB_SSL=true` in
 
 | Variable | Default | Effect |
 | --- | --- | --- |
-| `USE_REAL_ADAPTERS` | `false` | `false` simulates DID checks and mints, for local development only |
+| `USE_REAL_ADAPTERS` | `false` | `false` simulates the identity check and mints, for local development only |
+| `PRIVADO_ALLOWED_ISSUERS` | `*` | Comma-separated issuer DIDs whose credentials pass the identity check |
+| `PRIVADO_CHAIN_ID` | `80002` | Chain the credentials are anchored on: `80002` (Polygon Amoy test network) or `137` (Polygon) |
+| `PRIVADO_CREDENTIAL_TYPE`, `PRIVADO_CREDENTIAL_CONTEXT`, `PRIVADO_CREDENTIAL_SUBJECT` | KYC age, over 18 | The credential and query the wallet must prove |
 | `DEFAULT_CHAIN_ID` | `31337` | Chain for minting and on-chain checks. Built-in RPC URLs cover 1, 11155111, 8453, 84532, 137 and 80002 |
 | `RPC_URL` | | Overrides the RPC URL for `DEFAULT_CHAIN_ID` |
 | `TWITTER_ACCEPT_CONNECTION_AS_FOLLOW` | `false` | On X API plans without follow lookups, accept a connected account in place of a verified follow |
@@ -137,7 +148,7 @@ burns the token on-chain. Webhooks for a verification go only to the issuer it w
 contracts/       BadgeSBT, the soulbound ERC-721
 scripts/         Contract deployment and verification
 src/
-  adapters/did/  Privado ID and idOS adapters, plus stubs for local development
+  adapters/did/  Privado ID adapter, plus a stub for local development
   controllers/   HTTP handlers
   services/      Eligibility engine, minting, OAuth, Snapshot, WebSocket events
   entities/      TypeORM models
@@ -155,6 +166,10 @@ test/            Contract tests
   unless `TWITTER_ACCEPT_CONNECTION_AS_FOLLOW=true`.
 - Revoking burns the token, and the contract will not mint the same badge type to that wallet
   again.
+- The identity check is tested against Privado's live verifier up to "waiting for the wallet",
+  and the success path is covered by unit tests. A full run with a real wallet proof has not been
+  done yet.
+- idOS is not supported. It integrates through its own SDKs and access grants, not a REST API.
 
 ## Security
 

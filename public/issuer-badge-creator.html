@@ -612,15 +612,11 @@
                                     <div class="rules-title">Primary Identity Verification</div>
                                     <div class="primary-rules">
                                         <div class="rule-checkbox">
-                                            <input type="checkbox" name="primaryRules" value="polygonid" id="polygonid" checked>
-                                            <label for="polygonid">Polygon ID</label>
-                                        </div>
-                                        <div class="rule-checkbox">
-                                            <input type="checkbox" name="primaryRules" value="idos" id="idos" checked>
-                                            <label for="idos">IdOS</label>
+                                            <input type="checkbox" name="primaryRules" value="privadoid" id="privadoid" checked>
+                                            <label for="privadoid">Privado ID (formerly Polygon ID)</label>
                                         </div>
                                     </div>
-                                    <div class="form-help">Users must verify their identity with at least one of these providers</div>
+                                    <div class="form-help">Untick to issue the badge without an identity check</div>
                                 </div>
                                 
                                 <!-- Logic Operator -->
@@ -713,7 +709,7 @@
                         <ul class="rules-list" id="previewRules">
                             <li>
                                 <span class="rule-icon">🔐</span>
-                                <span>Verify identity with Polygon ID or IdOS</span>
+                                <span>Verify identity with Privado ID</span>
                             </li>
                             <li id="noSecondaryRules">
                                 <span class="rule-icon">💡</span>
@@ -847,7 +843,7 @@
         function applyTemplate(template) {
             switch (template) {
                 case 'community':
-                    setPrimaryRules(['polygonid', 'idos']);
+                    setPrimaryRules(['privadoid']);
                     clearSecondaryRules();
                     addTemplateRule('twitter_follow', 'Twitter Follow', { account: 'yourproject' }, true);
                     addTemplateRule('discord_member', 'Discord Member', { serverId: '123456789' }, true);
@@ -855,17 +851,16 @@
                     break;
                     
                 case 'governance':
-                    setPrimaryRules(['polygonid']);
+                    setPrimaryRules(['privadoid']);
                     clearSecondaryRules();
                     addTemplateRule('snapshot_votes', 'Snapshot Voter', { space: 'yourproject.eth', minVotes: 1 }, true);
-                    addTemplateRule('onchain_governance', 'On-chain Governance', { minVotes: 1 }, false);
+                    addTemplateRule('onchain_activity', 'On-chain Activity', { minTransactions: 1 }, false);
                     document.getElementById('rulesLogic').value = 'OR';
                     break;
                     
                 case 'contributor':
-                    setPrimaryRules(['idos']);
+                    setPrimaryRules(['privadoid']);
                     clearSecondaryRules();
-                    addTemplateRule('github_contributor', 'GitHub Contributor', { organization: 'yourproject', minContributions: 1 }, true);
                     addTemplateRule('onchain_activity', 'On-chain Activity', { minTransactions: 5 }, false);
                     document.getElementById('rulesLogic').value = 'AND';
                     break;
@@ -918,8 +913,6 @@
                                 <option value="discord_member" ${method === 'discord_member' ? 'selected' : ''}>Discord Member</option>
                                 <option value="snapshot_votes" ${method === 'snapshot_votes' ? 'selected' : ''}>Snapshot Votes</option>
                                 <option value="onchain_activity" ${method === 'onchain_activity' ? 'selected' : ''}>On-chain Activity</option>
-                                <option value="onchain_governance" ${method === 'onchain_governance' ? 'selected' : ''}>On-chain Governance</option>
-                                <option value="github_contributor" ${method === 'github_contributor' ? 'selected' : ''}>GitHub Contributor</option>
                             </select>
                         </div>
                         <div>
@@ -970,8 +963,6 @@
                                 <option value="discord_member">Discord Member</option>
                                 <option value="snapshot_votes">Snapshot Votes</option>
                                 <option value="onchain_activity">On-chain Activity</option>
-                                <option value="onchain_governance">On-chain Governance</option>
-                                <option value="github_contributor">GitHub Contributor</option>
                             </select>
                         </div>
                         <div>
@@ -1072,7 +1063,7 @@
             // Add primary rules
             if (primaryRules.length > 0) {
                 const providers = primaryRules.map(p => {
-                    const names = { polygonid: 'Polygon ID', idos: 'IdOS' };
+                    const names = { privadoid: 'Privado ID', polygonid: 'Privado ID' };
                     return names[p] || p;
                 }).join(' or ');
                 
@@ -1214,8 +1205,6 @@
                                     <option value="discord_member" ${rule.method === 'discord_member' ? 'selected' : ''}>Discord Member</option>
                                     <option value="snapshot_votes" ${rule.method === 'snapshot_votes' ? 'selected' : ''}>Snapshot Votes</option>
                                     <option value="onchain_activity" ${rule.method === 'onchain_activity' ? 'selected' : ''}>On-chain Activity</option>
-                                    <option value="onchain_governance" ${rule.method === 'onchain_governance' ? 'selected' : ''}>On-chain Governance</option>
-                                    <option value="github_contributor" ${rule.method === 'github_contributor' ? 'selected' : ''}>GitHub Contributor</option>
                                 </select>
                             </div>
                             <div>

@@ -3,7 +3,7 @@ import { AppDataSource } from '../db/datasource';
 import { User } from '../entities/User';
 import { BadgeMint } from '../entities/BadgeMint';
 import { BadgeType } from '../entities/BadgeType';
-import { Verification, VerificationStatus, VerificationType } from '../entities/Verification';
+import { Verification } from '../entities/Verification';
 import { ProjectSocialRules } from '../entities/ProjectSocialRules';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { mintingService } from '../services/minting.service';
@@ -346,123 +346,6 @@ export class UserController {
     }
   }
 
-  static async completeVerification(req: Request, res: Response) {
-    try {
-      const userId = (req as AuthenticatedRequest).user?.userId;
-      const { provider, did, issuerId, metadata: additionalMetadata } = req.body;
-
-      // Get user first to get wallet
-      const user = await userRepository.findOne({
-        where: { id: userId }
-      });
-
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      // Determine verification type based on provider - USING ACTUAL ENUMS
-      const getVerificationType = (provider: string): VerificationType => {
-        const primaryProviders = ['polygonid', 'idos'];
-
-        if (primaryProviders.includes(provider)) {
-          return VerificationType.PRIMARY_DID;
-        } else {
-          return VerificationType.SECONDARY;
-        }
-      };
-
-      const verificationType = getVerificationType(provider);
-
-      // Check if verification already exists (with issuer context)
-      const query: any = {
-        wallet: user.wallet,
-        provider
-      };
-
-      // If issuerId provided, look for issuer-specific verification
-      if (issuerId) {
-        query.metadata = { issuerId };
-      }
-
-      const existingVerification = await verificationRepository.findOne({
-        where: query
-      });
-
-      let verification;
-
-      if (existingVerification) {
-        // Update existing verification
-        existingVerification.status = VerificationStatus.COMPLETED;
-        existingVerification.did = did;
-        existingVerification.type = verificationType;
-
-        // Preserve issuer context in metadata
-        const metadata = {
-          ...existingVerification.metadata,
-          ...additionalMetadata,
-          completedAt: new Date().toISOString(),
-          lastVerified: new Date().toISOString(),
-          test: true
-        };
-
-        // Ensure issuerId is preserved
-        if (issuerId && !metadata.issuerId) {
-          metadata.issuerId = issuerId;
-        }
-
-        existingVerification.metadata = metadata;
-        existingVerification.completedAt = new Date();
-        verification = await verificationRepository.save(existingVerification);
-      } else {
-        // Create new verification with proper type and issuer context
-        const metadata = {
-          ...additionalMetadata,
-          completedAt: new Date().toISOString(),
-          test: true,
-          method: 'simulated'
-        };
-
-        // Include issuerId in metadata if provided
-        if (issuerId) {
-          metadata.issuerId = issuerId;
-          metadata.verificationContext = 'issuer_specific';
-        }
-
-        verification = verificationRepository.create({
-          wallet: user.wallet,
-          provider,
-          type: verificationType,
-          status: VerificationStatus.COMPLETED,
-          did,
-          metadata,
-          completedAt: new Date()
-        });
-        await verificationRepository.save(verification);
-      }
-
-      res.json({
-        success: true,
-        verification: {
-          id: verification.id,
-          provider: verification.provider,
-          type: verification.type,
-          status: verification.status,
-          did: verification.did,
-          completedAt: verification.completedAt,
-          issuerId: verification.metadata?.issuerId
-        },
-        message: `Successfully completed ${provider} verification${issuerId ? ` for issuer ${issuerId}` : ''}`
-      });
-    } catch (error) {
-      logger.error('Complete verification error:', error);
-      res.status(500).json({
-        error: 'Failed to complete verification',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  }
-
-  // Get user's verifications
   static async getUserVerifications(req: Request, res: Response) {
     try {
       const userId = (req as AuthenticatedRequest).user?.userId;
@@ -961,8 +844,6 @@ export class UserController {
         return `Vote ${parameters.minVotes ? `at least ${parameters.minVotes} time(s) ` : ''}in ${parameters.space || 'the issuer\'s'} Snapshot space`;
       case 'onchain_activity':
         return `Complete ${parameters.minTransactions || 'required'} on-chain transactions`;
-      case 'github_contributor':
-        return `Contribute to ${parameters.organization || 'the issuer\'s'} GitHub repository`;
       default:
         return 'Complete verification requirement';
     }

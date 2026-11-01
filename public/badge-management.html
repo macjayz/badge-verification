@@ -600,15 +600,11 @@
                         <label class="form-label">Primary Verification (DID Providers) *</label>
                         <div class="primary-rules">
                             <div class="rule-checkbox">
-                                <input type="checkbox" name="primaryRules" value="polygonid" id="polygonid">
-                                <label for="polygonid">Polygon ID</label>
-                            </div>
-                            <div class="rule-checkbox">
-                                <input type="checkbox" name="primaryRules" value="idos" id="idos">
-                                <label for="idos">IdOS</label>
+                                <input type="checkbox" name="primaryRules" value="privadoid" id="privadoid">
+                                <label for="privadoid">Privado ID (formerly Polygon ID)</label>
                             </div>
                         </div>
-                        <div class="form-help">At least one primary verification method is required</div>
+                        <div class="form-help">Leave unticked to issue the badge without an identity check</div>
                     </div>
                     
                     <div class="form-group">
@@ -1082,7 +1078,6 @@
                                 <option value="discord_member">Discord Member</option>
                                 <option value="onchain_activity">On-chain Activity</option>
                                 <option value="snapshot_votes">Snapshot Votes</option>
-                                <option value="github_contributor">GitHub Contributor</option>
                             </select>
                         </div>
                         <div>

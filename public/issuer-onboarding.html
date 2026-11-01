@@ -423,20 +423,6 @@
                         </div>
                     </div>
                     
-                    <!-- GitHub -->
-                    <div class="platform-card" data-platform="github">
-                        <div class="platform-icon">💻</div>
-                        <div class="platform-name">GitHub</div>
-                        <div class="platform-description">Contributions, repository access</div>
-                        <div class="platform-fields">
-                            <div class="form-group" style="margin-top: 15px;">
-                                <label class="form-label">Organization</label>
-                                <input type="text" class="form-input github-org" 
-                                       placeholder="your-organization">
-                                <div class="form-help">Your GitHub organization name</div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 
                 <div class="onboarding-actions">
@@ -664,9 +650,6 @@
                         onboardingData.snapshotSpace = document.querySelector('.snapshot-space').value.trim();
                     }
                     
-                    if (selectedPlatforms.has('github')) {
-                        onboardingData.githubOrganization = document.querySelector('.github-org').value.trim();
-                    }
                     break;
                     
                 case 3:
@@ -704,13 +687,6 @@
                 });
             }
             
-            if (selectedPlatforms.has('github') && onboardingData.githubOrganization) {
-                rules.push({
-                    icon: '💻',
-                    name: 'GitHub Contributor',
-                    description: `Contribute to ${onboardingData.githubOrganization} organization`
-                });
-            }
             
             if (rules.length === 0) {
                 rulesList.innerHTML = '<p style="color: #6c757d; font-style: italic;">No rules generated yet. Connect social platforms in the previous step.</p>';
@@ -855,16 +831,6 @@
                 });
             }
             
-            if (selectedPlatforms.has('github') && onboardingData.githubOrganization) {
-                rules.push({
-                    ruleType: 'github_contributor',
-                    name: 'GitHub Contributor',
-                    parameters: { organization: onboardingData.githubOrganization, minContributions: 1 },
-                    description: `Contribute to ${onboardingData.githubOrganization} organization`,
-                    isRequired: false,
-                    priority: 70
-                });
-            }
             
             // Create each rule via API
             for (const rule of rules) {
@@ -971,12 +937,6 @@
                 document.querySelector('.snapshot-space').value = profile.snapshotSpace || '';
             }
             
-            if (profile.githubOrganization) {
-                const githubCard = document.querySelector('.platform-card[data-platform="github"]');
-                githubCard.classList.add('selected');
-                selectedPlatforms.add('github');
-                document.querySelector('.github-org').value = profile.githubOrganization || '';
-            }
             
             onboardingData = { ...profile };
         }

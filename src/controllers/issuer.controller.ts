@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import { issuerService } from '../services/issuer.service';
+import { badgeRulesProblem } from '../services/rule-support';
 import { logger } from '../utils/logger';
 import { AuthenticatedIssuerRequest } from '../middleware/apiKey.middleware';
-import { BadgeRules } from '../entities/BadgeType';
 
 export class IssuerController {
   async registerIssuer(req: Request, res: Response) {
@@ -85,12 +85,9 @@ export class IssuerController {
         });
       }
 
-      // Validate rules structure
-      if (!IssuerController.validateBadgeRules(rules)) {
-        return res.status(400).json({
-          success: false,
-          error: 'Invalid rules format'
-        });
+      const rulesProblem = badgeRulesProblem(rules);
+      if (rulesProblem) {
+        return res.status(400).json({ success: false, error: rulesProblem });
       }
 
       const badgeType = await issuerService.createBadgeType(
@@ -309,24 +306,6 @@ export class IssuerController {
   }
 
   // Make this a static method to avoid 'this' binding issues
-  private static validateBadgeRules(rules: any): rules is BadgeRules {
-    if (!rules.primary || !Array.isArray(rules.primary)) {
-      return false;
-    }
-
-    if (!rules.secondary || !Array.isArray(rules.secondary)) {
-      return false;
-    }
-
-    // Validate each secondary rule
-    for (const rule of rules.secondary) {
-      if (!rule.method || typeof rule.required !== 'boolean') {
-        return false;
-      }
-    }
-
-    return true;
-  }
 }
 
 export const issuerController = new IssuerController();

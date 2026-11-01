@@ -5,6 +5,7 @@ import { Issuer } from '../entities/Issuer';
 import { BadgeType } from '../entities/BadgeType';
 import { BadgeMint } from '../entities/BadgeMint';
 import { Verification } from '../entities/Verification';
+import { SUPPORTED_RULE_METHODS } from './rule-support';
 import { logger } from '../utils/logger';
 
 const issuerProfileRepository = AppDataSource.getRepository(IssuerProfile);
@@ -163,7 +164,10 @@ export class IssuerDashboardService {
       throw new Error('Issuer not found');
     }
 
-    // Create the rule object properly
+    if (!SUPPORTED_RULE_METHODS.includes(ruleType)) {
+      throw new Error(`Unsupported rule type "${ruleType}". Supported: ${SUPPORTED_RULE_METHODS.join(', ')}`);
+    }
+
     const rule = new ProjectSocialRules();
     rule.issuerId = issuerId;
     rule.ruleType = ruleType as any; // Type assertion for the enum
@@ -417,13 +421,6 @@ export class IssuerDashboardService {
         description: 'Require users to have on-chain transaction history',
         parameters: { minTransactions: 1 },
         required: false
-      },
-      {
-        type: 'github_contributor',
-        name: 'GitHub Contributor',
-        description: 'Require users to contribute to your GitHub repositories',
-        parameters: { organization: '', minContributions: 1 },
-        required: false
       }
     ];
   }
@@ -439,7 +436,7 @@ export class IssuerDashboardService {
     }));
 
     return {
-      primary: ['polygonid', 'idos'], // Default primary verification
+      primary: ['privadoid'],
       secondary: secondaryRules,
       logic: 'AND' // Default to AND logic for social rules
     };

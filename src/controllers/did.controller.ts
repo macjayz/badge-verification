@@ -229,6 +229,12 @@ export class DIDController {
       sessionId as string
     );
 
+    if (verification.status === 'pending') {
+      // The wallet has not sent its proof yet; the page polls this endpoint until it has.
+      res.status(202).json({ success: false, status: 'pending', message: 'Waiting for the proof from your wallet' });
+      return;
+    }
+
     if (verification.status === 'completed') {
       res.json({
         success: true,

@@ -488,6 +488,7 @@
         color: #666;
     }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 </head>
 <body>
     <div class="header">
@@ -905,22 +906,13 @@
                 `${secondaryVerifications.length} verification${secondaryVerifications.length !== 1 ? 's' : ''} available`;
         }
     
-        // Change lines 873-879 in getPrimaryVerifications() function:
         function getPrimaryVerifications() {
             const primaryVerifications = [
                 { 
-                    provider: 'privadoid',  // CHANGED FROM 'polygonid'
-                    name: 'Privado ID',     // CHANGED FROM 'Polygon ID'
-                    icon: '🆔', 
-                    description: 'Decentralized Identity Verification using Privado ID', // UPDATED
-                    required: true,
-                    type: 'primary'
-                },
-                { 
-                    provider: 'idos', 
-                    name: 'IdOS', 
-                    icon: '🔐', 
-                    description: 'Identity Operating System verification',
+                    provider: 'privadoid',
+                    name: 'Privado ID',
+                    icon: '🆔',
+                    description: 'Prove a verified credential from your Privado ID wallet without sharing the data itself',
                     required: true,
                     type: 'primary'
                 }
@@ -984,14 +976,6 @@
                         name: 'On-chain Activity', 
                         icon: '⛓️', 
                         description: 'Complete on-chain transactions and interactions',
-                        required: false,
-                        type: 'secondary'
-                    },
-                    { 
-                        provider: 'onchain_governance', 
-                        name: 'On-chain Governance', 
-                        icon: '🏛️', 
-                        description: 'Participate in on-chain governance proposals',
                         required: false,
                         type: 'secondary'
                     }
@@ -1224,121 +1208,96 @@
         }
     
         // Verification functions
-        // Add special handling for privadoid in startVerification():
 async function startVerification(provider, issuerId = null) {
     const buttonId = issuerId ? `btn-${provider}-${issuerId}` : `btn-${provider}`;
     const button = document.getElementById(buttonId);
     if (!button) return;
-    
-    const originalText = button.textContent;
-    
-    try {
-        button.classList.add('loading');
-        button.disabled = true;
 
-        // SPECIAL HANDLING FOR PRIVADO ID
-        if (provider === 'privadoid') {
-            await startPrivadoIDVerification(button);
-            return;
-        }
-
-        // Existing code for other providers...
-        // ... rest of the function stays the same
-    } catch (error) {
-        showError(`Verification failed: ${error.message}`);
-        button.textContent = originalText;
-        button.disabled = false;
-        button.classList.remove('loading');
+    if (provider !== 'privadoid') {
+        showError(`${provider} verification is not supported`);
+        return;
     }
-}
 
-// Add new function for Privado ID verification:
-async function startPrivadoIDVerification(button) {
+    button.classList.add('loading');
+    button.disabled = true;
     try {
-        showToast('Starting Privado ID verification...', 'info');
-        
-        // Initiate Privado ID verification
-        const response = await fetch('/api/did/privadoid/init', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${userToken}`
-            },
-            body: JSON.stringify({
-                wallet: userWallet
-            })
-        });
-
-        if (response.ok) {
-            const result = await response.json();
-            
-            if (result.success && result.challenge) {
-                // Show QR code or redirect
-                if (result.challenge.qrCode) {
-                    // Display QR code modal
-                    showQRCodeModal(result.challenge.qrCode, 'Scan with Privado ID Wallet');
-                } else if (result.challenge.challengeUrl) {
-                    // Open verification URL
-                    window.open(result.challenge.challengeUrl, 'privadoid_verification', 'width=600,height=700');
-                }
-                
-                showToast('Privado ID verification initiated! Scan the QR code or open the link.', 'success');
-            } else {
-                throw new Error(result.error || 'Failed to initiate Privado ID verification');
-            }
-        } else {
-            throw new Error('Failed to start Privado ID verification');
-        }
+        await startPrivadoIDVerification();
     } catch (error) {
         showError(`Privado ID verification failed: ${error.message}`);
-        throw error;
+    } finally {
+        button.classList.remove('loading');
+        button.disabled = false;
     }
 }
 
-// Add QR code modal function:
-function showQRCodeModal(qrCodeData, title) {
-    // Create modal
-    const modal = document.createElement('div');
-    modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.7);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-    `;
-    
-    modal.innerHTML = `
-        <div style="background: white; padding: 2rem; border-radius: 10px; text-align: center; max-width: 500px;">
-            <h3 style="margin-bottom: 1rem;">${title}</h3>
-            <div id="qrCodeContainer" style="margin: 1rem auto;"></div>
-            <p style="margin: 1rem 0; color: #666;">Scan this QR code with your Privado ID Wallet app</p>
-            <button onclick="this.parentElement.parentElement.remove()" 
-                    style="background: #667eea; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 5px; cursor: pointer;">
-                Close
-            </button>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Generate QR code
-    setTimeout(() => {
-        const qrCodeContainer = document.getElementById('qrCodeContainer');
-        if (qrCodeData.startsWith('{')) {
-            // It's a JSON object, convert to QR code
-            const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeData)}`;
-            qrCodeContainer.innerHTML = `<img src="${qrCodeUrl}" alt="QR Code" style="max-width: 200px;">`;
-        } else {
-            qrCodeContainer.innerHTML = `<pre style="text-align: left; overflow: auto; max-height: 200px;">${qrCodeData}</pre>`;
-        }
-    }, 100);
+// Privado ID: show the proof request as a QR code for the wallet app, then poll until the wallet
+// has sent its proof and the backend confirms it.
+async function startPrivadoIDVerification() {
+    const response = await fetch('/api/did/privadoid/init', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
+        body: JSON.stringify({ wallet: userWallet })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success || !result.challenge?.qrCode) {
+        throw new Error(result.error?.message || result.error || 'Could not start Privado ID verification');
+    }
+
+    const modal = showQRCodeModal(result.challenge.qrCode);
+    const outcome = await pollPrivadoID(result.sessionId, modal);
+    modal.remove();
+
+    if (outcome.success) {
+        showToast('Identity verified with Privado ID', 'success');
+        await loadVerifications();
+    } else if (outcome.error) {
+        showError(outcome.error);
+    }
 }
-    
+
+async function pollPrivadoID(sessionId, modal) {
+    const deadline = Date.now() + 5 * 60 * 1000;
+    while (document.body.contains(modal) && Date.now() < deadline) {
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        if (!document.body.contains(modal)) break;
+
+        const response = await fetch(`/api/did/privadoid/callback?sessionId=${encodeURIComponent(sessionId)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: '{}'
+        });
+        if (response.status === 202) continue;
+
+        const body = await response.json().catch(() => ({}));
+        if (response.ok && body.success) return { success: true };
+        return { success: false, error: body.error?.message || body.error || 'Verification failed' };
+    }
+    return { success: false, error: document.body.contains(modal) ? 'The verification request expired, start again' : null };
+}
+
+function showQRCodeModal(request) {
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 10000;';
+    modal.innerHTML = `
+        <div style="background: white; padding: 2rem; border-radius: 10px; text-align: center; max-width: 420px;">
+            <h3 style="margin-bottom: 1rem;">Verify with Privado ID</h3>
+            <div id="qrCodeContainer" style="display: flex; justify-content: center;"></div>
+            <p style="margin: 1rem 0; color: #666;">Scan with the Privado ID wallet app, or open the request on this device.</p>
+            <p style="margin: 0 0 1rem; color: #999; font-size: 0.85rem;">Waiting for your wallet...</p>
+            <a id="walletLink" style="display: inline-block; margin-right: 0.5rem; color: #667eea;">Open in wallet</a>
+            <button id="qrClose" style="background: #667eea; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 5px; cursor: pointer;">Cancel</button>
+        </div>`;
+    document.body.appendChild(modal);
+
+    const qr = qrcode(0, 'M');
+    qr.addData(request);
+    qr.make();
+    modal.querySelector('#qrCodeContainer').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2 });
+    modal.querySelector('#walletLink').href = request;
+    modal.querySelector('#qrClose').onclick = () => modal.remove();
+    return modal;
+}
+
         async function startTwitterVerification(issuerId = null) {
             const buttonId = issuerId ? `btn-twitter_follow-${issuerId}` : `btn-twitter_follow`;
             const button = document.getElementById(buttonId);
@@ -1583,8 +1542,8 @@ function showQRCodeModal(qrCodeData, title) {
         // Change lines 1148-1160:
         function getProviderName(provider) {
             const names = {
-                'privadoid': 'Privado ID',  // CHANGED FROM 'polygonid': 'Polygon ID'
-                'idos': 'IdOS',
+                'privadoid': 'Privado ID',
+                'polygonid': 'Privado ID',
                 'twitter_follow': 'Twitter Follow',
                 'discord_member': 'Discord Member',
                 'snapshot_votes': 'Snapshot Votes',

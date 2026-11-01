@@ -1,275 +1,169 @@
-import {
-    DIDAdapter,
-    DIDVerificationRequest,
-    DIDVerificationResponse,
-    DIDVerificationResult
-  } from './DIDAdapter.interface';
-  import { logger } from '../../utils/logger';
+import { DIDAdapter, DIDVerificationRequest, DIDVerificationResponse, DIDVerificationResult } from './DIDAdapter.interface';
+import { logger } from '../../utils/logger';
 
-  // Interfaces based on EXACT API documentation
-  interface PrivadoIDVerificationCreateRequest {
-    chainID: string;  // "80002" for Polygon Amoy, "137" for Mainnet
-    circuitID: string; // "credentialAtomicQuerySigV2" or "credentialAtomicQueryMTPV2"
-    skipClaimRevocationCheck: boolean;
-    query: {
-      context: string;
-      allowedIssuers: string[];  // ["*"] for any, or specific issuer DIDs
-      type: string;  // Credential type like "KYCAgeCredential"
-      credentialSubject: Record<string, any>;
+/**
+ * Privado ID (formerly Polygon ID) through its hosted verifier backend.
+ *
+ * initVerification creates a session that asks the user's Privado ID wallet for a zero-knowledge
+ * proof of a credential. The wallet sends that proof to the verifier backend, which checks it;
+ * verifyCallback then reads the outcome from /status. The user's DID is the sender ("from") of
+ * the signed authorization response the backend returns.
+ */
+
+const DEFAULT_BASE_URL = 'https://verifier-backend.privado.id';
+const KYC_AGE_CONTEXT = 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld';
+
+interface SignInResponse {
+  qrCode: string; // iden3comm:// link for the wallet
+  sessionID: string;
+}
+
+interface StatusResponse {
+  status: 'pending' | 'success' | 'error';
+  jwz: string | null;
+  message: string | null;
+}
+
+/** The DID that signed a JWZ token: header.payload.proof, payload being the authorization response. */
+export function didFromJwz(jwz: string): string | undefined {
+  const payload = jwz.split('.')[1];
+  if (!payload) return undefined;
+  try {
+    const message = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    return typeof message.from === 'string' && message.from.startsWith('did:') ? message.from : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export class PrivadoIDRealAdapter implements DIDAdapter {
+  readonly name = 'privadoid';
+  private readonly baseUrl = (process.env.PRIVADO_VERIFIER_API_URL || DEFAULT_BASE_URL).replace(/\/$/, '');
+  private readonly apiKey = process.env.PRIVADO_API_KEY;
+
+  getName(): string {
+    return this.name;
+  }
+
+  isAvailable(): boolean {
+    // The hosted verifier backend works without a key.
+    return true;
+  }
+
+  /** The proof request: which credential, from which issuers, and what it must show. */
+  buildSignInRequest() {
+    const type = process.env.PRIVADO_CREDENTIAL_TYPE || 'KYCAgeCredential';
+    const context = process.env.PRIVADO_CREDENTIAL_CONTEXT || KYC_AGE_CONTEXT;
+    const allowedIssuers = (process.env.PRIVADO_ALLOWED_ISSUERS || '*')
+      .split(',')
+      .map(issuer => issuer.trim())
+      .filter(Boolean);
+
+    // Default: a KYC age credential proving the holder is at least 18, without revealing the birthday.
+    let credentialSubject: Record<string, unknown> = {};
+    if (process.env.PRIVADO_CREDENTIAL_SUBJECT) {
+      credentialSubject = JSON.parse(process.env.PRIVADO_CREDENTIAL_SUBJECT);
+    } else if (type === 'KYCAgeCredential') {
+      credentialSubject = { birthday: { $lt: Number(`${new Date().getUTCFullYear() - 18}0101`) } };
+    }
+
+    return {
+      chainID: process.env.PRIVADO_CHAIN_ID || '80002',
+      skipClaimRevocationCheck: false,
+      scope: [
+        {
+          circuitId: 'credentialAtomicQuerySigV2',
+          id: 1,
+          query: { allowedIssuers, context, type, credentialSubject }
+        }
+      ]
     };
   }
 
-  interface PrivadoIDVerificationCreateResponse {
-    qrCode: {
-      body: {
-        callbackUrl: string;
-        reason: string;
-        scope: Array<{
-          circuitId: string;
-          id: number;
-          query: {
-            allowedIssuers: string[];
-            context: string;
-            credentialSubject: Record<string, any>;
-            skipClaimRevocationCheck?: boolean;
-            type: string;
-          };
-        }>;
+  private headers(): Record<string, string> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (this.apiKey) headers['Authorization'] = `Bearer ${this.apiKey}`;
+    return headers;
+  }
+
+  async initVerification(request: DIDVerificationRequest): Promise<DIDVerificationResponse> {
+    try {
+      const response = await fetch(`${this.baseUrl}/sign-in`, {
+        method: 'POST',
+        headers: this.headers(),
+        body: JSON.stringify(this.buildSignInRequest())
+      });
+
+      if (!response.ok) {
+        const detail = await response.text();
+        logger.error('Privado ID sign-in request failed', { status: response.status, detail });
+        return {
+          success: false,
+          error: response.status === 429
+            ? 'Privado ID is rate limiting requests, try again shortly'
+            : `Privado ID rejected the request (${response.status})`
+        };
+      }
+
+      const data = (await response.json()) as SignInResponse;
+      logger.info('Privado ID session created', { wallet: request.wallet, sessionId: data.sessionID });
+      return { success: true, sessionId: data.sessionID, qrCode: data.qrCode, challengeUrl: data.qrCode };
+    } catch (error: any) {
+      logger.error('Privado ID sign-in request failed', { error: error.message });
+      return { success: false, error: 'Privado ID is unreachable' };
+    }
+  }
+
+  async verifyCallback(_payload: any, sessionId?: string): Promise<DIDVerificationResult> {
+    if (!sessionId) {
+      return { success: false, error: 'Session ID is required' };
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/status?sessionID=${encodeURIComponent(sessionId)}`, {
+        headers: this.headers()
+      });
+
+      if (!response.ok) {
+        logger.warn('Privado ID status check failed', { status: response.status, sessionId });
+        return {
+          success: false,
+          error: response.status === 404 || response.status === 400
+            ? 'Verification session not found or expired'
+            : `Privado ID status check failed (${response.status})`
+        };
+      }
+
+      const data = (await response.json()) as StatusResponse;
+
+      if (data.status === 'pending') {
+        return { success: false, pending: true, error: 'Waiting for the proof from the Privado ID wallet' };
+      }
+
+      if (data.status !== 'success') {
+        return { success: false, error: data.message || 'Privado ID rejected the proof' };
+      }
+
+      // Never invent a DID: without one the verification cannot be tied to an identity.
+      const did = data.jwz ? didFromJwz(data.jwz) : undefined;
+      if (!did) {
+        logger.error('Privado ID reported success without a readable DID', { sessionId });
+        return { success: false, error: 'Privado ID did not return the holder DID' };
+      }
+
+      return {
+        success: true,
+        did,
+        verificationId: sessionId,
+        metadata: {
+          provider: 'privadoid',
+          credentialType: this.buildSignInRequest().scope[0].query.type,
+          verifiedAt: new Date().toISOString()
+        }
       };
-      from: string;  // Verifier DID
-      id: string;
-      thid: string;
-      typ: string;
-      type: string;
-    };
-    sessionID: number;
-  }
-
-  interface PrivadoIDVerificationStatusResponse {
-    sessionID: number;
-    status: 'pending' | 'verified' | 'failed' | 'expired';
-    did?: string;
-    verifiedAt?: string;
-    error?: string;
-  }
-
-  export class PrivadoIDRealAdapter implements DIDAdapter {
-    readonly name = 'privadoid';
-    private readonly apiBaseUrl: string;
-    private readonly apiKey?: string;
-
-    constructor() {
-      // Using their hosted verifier backend API
-      this.apiBaseUrl = process.env.PRIVADO_VERIFIER_API_URL || 'https://verifier-backend.privado.id';
-      this.apiKey = process.env.PRIVADO_API_KEY;
-
-      if (!this.apiKey) {
-        logger.warn('Privado ID API key not configured - using public verifier backend (may have rate limits)');
-      }
-    }
-
-    getName(): string {
-      return this.name;
-    }
-
-    isAvailable(): boolean {
-      // Can work without API key (public), but with limits
-      return true;
-    }
-
-    async initVerification(request: DIDVerificationRequest): Promise<DIDVerificationResponse> {
-      try {
-        logger.info(`Initiating Privado ID verification for wallet: ${request.wallet}`);
-
-        // Calculate birth year for "over 18" check
-        const currentYear = new Date().getFullYear();
-        const birthYearThreshold = currentYear - 18;
-
-        // Prepare the verification request based on EXACT API documentation
-        const verificationRequest: PrivadoIDVerificationCreateRequest = {
-          chainID: process.env.PRIVADO_CHAIN_ID || '80002', // Polygon Amoy testnet
-          circuitID: 'credentialAtomicQuerySigV2', // Signature-based proof
-          skipClaimRevocationCheck: false,
-          query: {
-            context: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-            allowedIssuers: ['*'], // Accept any issuer for testing
-            type: 'KYCAgeCredential',
-            credentialSubject: {
-              birthday: {
-                $lt: parseInt(`${birthYearThreshold}0101`) // Born before Jan 1 of (current year - 18)
-              }
-            }
-          }
-        };
-
-        // Add API key header if available
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-        };
-
-        if (this.apiKey) {
-          headers['Authorization'] = `Bearer ${this.apiKey}`;
-          headers['X-API-Key'] = this.apiKey;
-        }
-
-        logger.debug('Sending Privado ID verification request:', verificationRequest);
-
-        // Make EXACT API call as per documentation
-        const response = await fetch(`${this.apiBaseUrl}/sign-in`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(verificationRequest)
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          logger.error(`Privado ID API error (${response.status}): ${errorText}`);
-
-          if (response.status === 401) {
-            throw new Error('Invalid API key. Please check your PRIVADO_API_KEY.');
-          }
-
-          if (response.status === 429) {
-            throw new Error('Rate limit exceeded. Please try again later or use an API key.');
-          }
-
-          throw new Error(`Failed to create verification: ${response.statusText}`);
-        }
-
-        const data = await response.json() as PrivadoIDVerificationCreateResponse;
-
-        logger.info(`Privado ID verification created. Session ID: ${data.sessionID}`);
-
-        // Create QR code data - frontend can render this
-        const qrCodeData = JSON.stringify(data.qrCode);
-        const universalLink = `iden3comm://?i_m=${Buffer.from(qrCodeData).toString('base64')}`;
-
-        return {
-          success: true,
-          qrCode: qrCodeData, // Frontend will render this as QR
-          sessionId: data.sessionID.toString(),
-          challengeUrl: universalLink
-        };
-
-      } catch (error: any) {
-        logger.error('Privado ID initiation failed:', error);
-        return {
-          success: false,
-          error: error.message || 'Failed to initiate Privado ID verification'
-        };
-      }
-    }
-
-    async verifyCallback(payload: any, sessionId?: string): Promise<DIDVerificationResult> {
-      try {
-        if (!sessionId) {
-          return {
-            success: false,
-            error: 'Session ID is required for verification'
-          };
-        }
-
-        logger.info(`Checking Privado ID verification status for session: ${sessionId}`);
-
-        // Prepare headers
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-        };
-
-        if (this.apiKey) {
-          headers['Authorization'] = `Bearer ${this.apiKey}`;
-          headers['X-API-Key'] = this.apiKey;
-        }
-
-        // Check verification status as per documentation
-        const response = await fetch(`${this.apiBaseUrl}/status?sessionID=${sessionId}`, {
-          method: 'GET',
-          headers
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          logger.error(`Privado ID status check failed (${response.status}): ${errorText}`);
-
-          // If 404, session might not exist yet
-          if (response.status === 404) {
-            return {
-              success: false,
-              error: 'Verification session not found. It may have expired.'
-            };
-          }
-
-          throw new Error(`Failed to check verification status: ${response.statusText}`);
-        }
-
-        const data = await response.json() as PrivadoIDVerificationStatusResponse;
-
-        logger.info(`Privado ID verification status for session ${sessionId}: ${data.status}`);
-
-        switch (data.status) {
-          case 'verified':
-            return {
-              success: true,
-              did: data.did || this.extractDIDFromPayload(payload),
-              verificationId: sessionId,
-              metadata: {
-                verifiedAt: data.verifiedAt,
-                provider: 'privadoid',
-                credentialType: 'KYCAgeCredential',
-                status: 'verified'
-              }
-            };
-
-          case 'failed':
-            return {
-              success: false,
-              error: data.error || 'Verification failed'
-            };
-
-          case 'expired':
-            return {
-              success: false,
-              error: 'Verification session expired'
-            };
-
-          case 'pending':
-          default:
-            return {
-              success: false,
-              error: 'Verification still pending. Please complete the verification in your wallet.'
-            };
-        }
-
-      } catch (error: any) {
-        logger.error('Privado ID callback verification failed:', error);
-        return {
-          success: false,
-          error: error.message || 'Verification service unavailable'
-        };
-      }
-    }
-
-    // Helper method to extract DID from callback payload
-    private extractDIDFromPayload(payload: any): string | undefined {
-      // The actual proof payload from wallet will contain the DID
-      if (payload?.from) {
-        return payload.from;
-      }
-
-      if (payload?.did) {
-        return payload.did;
-      }
-
-      if (payload?.sender) {
-        return payload.sender;
-      }
-
-      // Try to extract from iden3comm message
-      if (payload?.body?.from) {
-        return payload.body.from;
-      }
-
-      // Return a fallback DID (for testing only)
-      return `did:polygonid:polygon:amoy:unknown-${Date.now()}`;
+    } catch (error: any) {
+      logger.error('Privado ID status check failed', { sessionId, error: error.message });
+      return { success: false, error: 'Privado ID is unreachable' };
     }
   }
+}

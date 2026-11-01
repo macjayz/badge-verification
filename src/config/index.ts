@@ -72,11 +72,17 @@ export function assertProductionConfig(): void {
 
   // Stub adapters fake DID checks and mints; they exist for local development only.
   if (process.env.USE_REAL_ADAPTERS !== 'true') {
-    problems.push('USE_REAL_ADAPTERS is not "true" (DID checks and mints would be simulated)');
+    problems.push('USE_REAL_ADAPTERS is not "true" (identity checks and mints would be simulated)');
   } else {
     for (const name of ['DEPLOYER_PRIVATE_KEY', 'CONTRACT_ADDRESS']) {
       if (!process.env[name]) problems.push(`${name} is not set (badges cannot be minted on-chain)`);
     }
+  }
+
+  // With "*", anyone can issue themselves a credential and pass the identity check.
+  const issuers = (process.env.PRIVADO_ALLOWED_ISSUERS || '').split(',').map(i => i.trim()).filter(Boolean);
+  if (issuers.length === 0 || issuers.includes('*')) {
+    problems.push('PRIVADO_ALLOWED_ISSUERS must list the issuer DIDs you trust, not "*"');
   }
 
   if (problems.length > 0) {
