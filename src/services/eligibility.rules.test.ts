@@ -6,10 +6,15 @@
  * access, which is why they can be tested directly.
  */
 import { EligibilityService } from './eligibility.service';
+import { discordService } from './discord.service';
+import { web3Service } from './web3.service';
 
 jest.mock('../db/datasource', () => ({
   AppDataSource: { getRepository: jest.fn(() => ({})) },
 }));
+jest.mock('./discord.service', () => ({ discordService: { verifyServerMembership: jest.fn() } }));
+jest.mock('./web3.service', () => ({ web3Service: { getTransactionCount: jest.fn() } }));
+jest.mock('./twitter.service', () => ({ twitterService: { verifyFollow: jest.fn() } }));
 jest.mock('../utils/logger', () => ({
   logger: { error: jest.fn(), info: jest.fn(), warn: jest.fn() },
 }));
@@ -81,5 +86,41 @@ describe('secondary (social) requirements', () => {
 
   it('treats a missing "required" flag as required', () => {
     expect(secondary([{ method: 'twitter_follow', verified: false }], 'AND')).toBe(false);
+  });
+});
+
+describe('individual social checks', () => {
+  const wallet = '0x' + 'a'.repeat(40);
+  const check = (method: string, params?: any) =>
+    (service as any).verifySecondaryRule(wallet, { method, params });
+
+  it('never passes a method this server cannot check', async () => {
+    for (let i = 0; i < 20; i++) {
+      expect((await check('onchain_governance')).verified).toBe(false);
+    }
+  });
+
+  it('fails a Discord rule that names no server instead of guessing', async () => {
+    expect((await check('discord_member', {})).verified).toBe(false);
+    expect(discordService.verifyServerMembership).not.toHaveBeenCalled();
+  });
+
+  it('asks Discord for membership of the configured server', async () => {
+    (discordService.verifyServerMembership as jest.Mock).mockResolvedValue({ verified: true, details: {} });
+    expect((await check('discord_member', { serverId: '42' })).verified).toBe(true);
+    expect(discordService.verifyServerMembership).toHaveBeenCalledWith(wallet, '42');
+  });
+
+  it('counts real transactions for on-chain activity', async () => {
+    (web3Service.getTransactionCount as jest.Mock).mockResolvedValue(3);
+    expect((await check('onchain_activity', { minTransactions: 3 })).verified).toBe(true);
+    expect((await check('onchain_activity', { minTransactions: 4 })).verified).toBe(false);
+  });
+
+  it('fails closed when the chain cannot be reached', async () => {
+    (web3Service.getTransactionCount as jest.Mock).mockRejectedValue(new Error('RPC down'));
+    const result = await check('onchain_activity', { minTransactions: 1 });
+    expect(result.verified).toBe(false);
+    expect(result.details.apiError).toBe(true);
   });
 });

@@ -129,7 +129,7 @@
 <body>
     <div class="login-container">
         <div class="login-header">
-            <h1>🎯 Badge Admin</h1>
+            <h1>Badge Admin</h1>
             <p>Sign in to access the dashboard</p>
         </div>
         
@@ -145,7 +145,6 @@
                     name="username" 
                     required 
                     placeholder="Enter admin username"
-                    value="admin"
                 >
             </div>
             
@@ -157,7 +156,6 @@
                     name="password" 
                     required 
                     placeholder="Enter admin password"
-                    value="admin123"
                 >
             </div>
             
@@ -166,7 +164,7 @@
             </button>
         </form>
         
-        <div class="demo-credentials">
+        <div class="demo-credentials" id="demoCredentials" hidden>
             <strong>Demo Credentials:</strong><br>
             Username: <code>admin</code><br>
             Password: <code>admin123</code>
@@ -174,7 +172,13 @@
     </div>
 
     <script>
-        const API_BASE_URL = 'http://localhost:3001/api/admin/auth';
+        const API_BASE_URL = '/api/admin/auth';
+
+        // Development servers run with the default credentials; show them only there.
+        fetch('/api/auth/options')
+            .then(response => response.json())
+            .then(options => { document.getElementById('demoCredentials').hidden = !options.demoLogin; })
+            .catch(() => {});
         
         // Get redirect URL from query parameters or default to dashboard
         function getRedirectUrl() {
@@ -218,7 +222,6 @@
             loginBtn.textContent = 'Signing in...';
             
             try {
-                console.log('🔐 Attempting login for user:', username);
                 
                 const response = await fetch(`${API_BASE_URL}/login`, {
                     method: 'POST',
@@ -229,22 +232,18 @@
                 });
                 
                 const result = await response.json();
-                console.log('📡 Login response:', result);
                 
                 if (result.success && result.token) {
                     // Store token and user info
                     localStorage.setItem('adminToken', result.token);
                     localStorage.setItem('adminUser', JSON.stringify(result.user));
                     
-                    console.log('✅ Login successful, token stored:', result.token.substring(0, 20) + '...');
-                    console.log('👤 User info stored:', result.user);
                     
                     successDiv.textContent = 'Login successful! Redirecting...';
                     successDiv.style.display = 'block';
                     
                     // Get the redirect URL
                     const redirectUrl = getRedirectUrl();
-                    console.log('🔄 Redirecting to:', redirectUrl);
                     
                     // Redirect after short delay
                     setTimeout(() => {
@@ -253,13 +252,13 @@
                     
                 } else {
                     const errorMsg = result.error || 'Login failed';
-                    console.error('❌ Login failed:', errorMsg);
+                    console.error('Login failed:', errorMsg);
                     errorDiv.textContent = errorMsg;
                     errorDiv.style.display = 'block';
                 }
                 
             } catch (error) {
-                console.error('❌ Network error:', error);
+                console.error('Network error:', error);
                 errorDiv.textContent = 'Network error. Please check if the server is running.';
                 errorDiv.style.display = 'block';
             } finally {
@@ -272,7 +271,6 @@
         // Enhanced token verification with better error handling
         async function verifyToken(token) {
             try {
-                console.log('🔄 Verifying token...');
                 const response = await fetch(`${API_BASE_URL}/verify`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -284,11 +282,10 @@
                 }
                 
                 const result = await response.json();
-                console.log('✅ Token verification result:', result);
                 return result;
                 
             } catch (error) {
-                console.error('❌ Token verification failed:', error);
+                console.error('Token verification failed:', error);
                 return { success: false, error: error.message };
             }
         }
@@ -298,11 +295,6 @@
             const token = localStorage.getItem('adminToken');
             const user = localStorage.getItem('adminUser');
             
-            console.log('🔍 Checking existing authentication:', { 
-                hasToken: !!token, 
-                hasUser: !!user,
-                currentUrl: window.location.href
-            });
             
             if (token && user) {
                 try {
@@ -311,7 +303,6 @@
                     if (result.success) {
                         // Already logged in, redirect to appropriate page
                         const redirectUrl = getRedirectUrl();
-                        console.log('✅ Already authenticated, redirecting to:', redirectUrl);
                         
                         // Small delay to show the login page briefly
                         setTimeout(() => {
@@ -319,28 +310,19 @@
                         }, 500);
                     } else {
                         // Token invalid, clear storage
-                        console.log('❌ Token invalid, clearing storage');
                         localStorage.removeItem('adminToken');
                         localStorage.removeItem('adminUser');
                     }
                 } catch (error) {
-                    console.error('❌ Error during token verification:', error);
+                    console.error('Error during token verification:', error);
                     localStorage.removeItem('adminToken');
                     localStorage.removeItem('adminUser');
                 }
             } else {
-                console.log('🔐 No existing authentication found');
             }
         });
 
         // Add some debug info to help troubleshooting
-        console.log('=== LOGIN PAGE DEBUG INFO ===');
-        console.log('Current URL:', window.location.href);
-        console.log('URL Search Params:', new URLSearchParams(window.location.search).toString());
-        console.log('Redirect target:', getRedirectUrl());
-        console.log('LocalStorage adminToken:', localStorage.getItem('adminToken') ? 'Present' : 'Missing');
-        console.log('LocalStorage adminUser:', localStorage.getItem('adminUser') ? 'Present' : 'Missing');
-        console.log('============================');
     </script>
 </body>
 </html>

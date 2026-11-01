@@ -1,4 +1,3 @@
-// src/routes/admin-auth.routes.ts
 import { Router } from 'express';
 import { adminAuthController } from '../controllers/admin-auth.controller';
 import { authenticateToken } from '../middleware/auth.middleware';

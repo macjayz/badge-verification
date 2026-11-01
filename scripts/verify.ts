@@ -1,30 +1,25 @@
 import { run } from "hardhat";
+import { BADGE_NAME, BADGE_SYMBOL } from "./collection";
 
 async function main() {
-  const contractAddress = process.env.CONTRACT_ADDRESS;
-  
-  if (!contractAddress) {
-    console.log("❌ CONTRACT_ADDRESS not set in environment variables");
-    return;
+  const address = process.env.CONTRACT_ADDRESS;
+  if (!address) {
+    throw new Error("Set CONTRACT_ADDRESS to the deployed BadgeSBT address");
   }
 
-  console.log(`🔍 Verifying contract at ${contractAddress}...`);
-
   try {
-    await run("verify:verify", {
-      address: contractAddress,
-      constructorArguments: ["DeFi Camp Badges", "DFCBADGE"],
-    });
-    console.log("✅ Contract verified successfully!");
+    await run("verify:verify", { address, constructorArguments: [BADGE_NAME, BADGE_SYMBOL] });
+    console.log(`Verified ${address}`);
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message.toLowerCase().includes("already verified")) {
-        console.log("✅ Contract already verified");
-      } else {
-        console.log("❌ Verification failed:", error.message);
-      }
+    if (error instanceof Error && error.message.toLowerCase().includes("already verified")) {
+      console.log(`${address} is already verified`);
+      return;
     }
+    throw error;
   }
 }
 
-main();
+main().catch((error) => {
+  console.error("Verification failed:", error);
+  process.exitCode = 1;
+});

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { SiweMessage } from 'siwe';
+import { SiweMessage, generateNonce } from 'siwe';
 import { ethers } from 'ethers';
 import { AppDataSource } from '../db/datasource';
 import { User } from '../entities/User';
@@ -7,103 +7,151 @@ import { redisService } from '../services/redis.service';
 import { jwtService, JWTPayload } from '../services/jwt.service';
 import { logger } from '../utils/logger';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
+import { config } from '../config';
 
 const userRepository = AppDataSource.getRepository(User);
+
+// How long a user has to sign the login message.
+const LOGIN_TTL_SECONDS = 5 * 60;
+
+interface PendingLogin {
+  nonce: string;
+  message: string;
+}
+
+const pendingLoginKey = (address: string) => `auth:siwe:${address.toLowerCase()}`;
+
+/**
+ * Build the Sign-In with Ethereum message on the server and remember it.
+ *
+ * The client signs this exact text, so the format is always valid and the
+ * domain, nonce and expiry are ours rather than the browser's. Returns null
+ * for an invalid address.
+ */
+async function startLogin(req: Request, rawAddress: unknown) {
+  if (typeof rawAddress !== 'string' || !ethers.isAddress(rawAddress)) {
+    return null;
+  }
+
+  const address = ethers.getAddress(rawAddress); // SIWE requires the checksummed form
+  const host = req.get('host') ?? 'localhost';
+  const nonce = generateNonce();
+  const issuedAt = new Date();
+
+  const message = new SiweMessage({
+    domain: host,
+    address,
+    statement: 'Sign in to Badge Verification.',
+    uri: `${req.protocol}://${host}`,
+    version: '1',
+    chainId: config.web3.defaultChainId,
+    nonce,
+    issuedAt: issuedAt.toISOString(),
+    expirationTime: new Date(issuedAt.getTime() + LOGIN_TTL_SECONDS * 1000).toISOString(),
+  }).prepareMessage();
+
+  const pending: PendingLogin = { nonce, message };
+  await redisService.set(pendingLoginKey(address), JSON.stringify(pending), LOGIN_TTL_SECONDS);
+
+  logger.info(`Started wallet login for ${address}`);
+  return { address, nonce, message };
+}
+
+async function findOrCreateUser(wallet: string): Promise<User> {
+  const normalized = wallet.toLowerCase();
+  let user = await userRepository.findOne({ where: { wallet: normalized } });
+
+  if (!user) {
+    user = userRepository.create({ wallet: normalized });
+    await userRepository.save(user);
+    logger.info(`Created new user: ${user.wallet}`);
+  }
+
+  if (!user.id) {
+    user = await userRepository.findOneOrFail({ where: { wallet: normalized } });
+  }
+
+  return user;
+}
 
 export class AuthController {
   async getNonce(req: Request, res: Response) {
     try {
-      const { wallet } = req.query;
-      
-      if (!wallet || typeof wallet !== 'string' || !ethers.isAddress(wallet)) {
+      const login = await startLogin(req, req.query.wallet);
+      if (!login) {
         return res.status(400).json({ error: 'Valid Ethereum address required' });
       }
-
-      // Generate cryptographically secure nonce
-      const nonce = Math.random().toString(36).substring(2) + Date.now().toString(36);
-      
-      // Store nonce in Redis with 5-minute expiry
-      await redisService.set(`auth:nonce:${wallet.toLowerCase()}`, nonce, 300);
-
-      logger.info(`Generated nonce for address: ${wallet}`);
-      
-      res.json({ 
-        nonce,
-        expiresIn: '5 minutes'
-      });
+      res.json({ ...login, expiresIn: '5 minutes' });
     } catch (error) {
       logger.error('Get nonce error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
-  
+
   async initAuth(req: Request, res: Response) {
     try {
-      const { address } = req.body;
-      
-      if (!address || !ethers.isAddress(address)) {
+      const login = await startLogin(req, req.body?.address);
+      if (!login) {
         return res.status(400).json({ error: 'Valid Ethereum address required' });
       }
-
-      // Generate cryptographically secure nonce
-      const nonce = Math.random().toString(36).substring(2) + Date.now().toString(36);
-      
-      // Store nonce in Redis with 5-minute expiry
-      await redisService.set(`auth:nonce:${address.toLowerCase()}`, nonce, 300);
-
-      logger.info(`Generated nonce for address: ${address}`);
-      
-      res.json({ 
-        nonce,
-        expiresIn: '5 minutes'
-      });
+      res.json({ ...login, expiresIn: '5 minutes' });
     } catch (error) {
       logger.error('Init auth error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
 
+  /**
+   * Finish a wallet login. Succeeds only if the signature was made by the
+   * wallet named in the message, over the exact message we issued, for this
+   * site, before it expired. Each issued message works once.
+   */
   async verifyAuth(req: Request, res: Response) {
+    const reject = (reason: string) => {
+      logger.warn(`Wallet login rejected: ${reason}`);
+      return res.status(401).json({ error: 'Wallet login failed. Please try again.' });
+    };
+
     try {
-      const { message, signature, address } = req.body; // Add address to body
-
-      // TEMPORARY: In stub mode, accept any valid signature
-      // Extract address from message for stub mode
-      const addressMatch = message.match(/0x[a-fA-F0-9]{40}/);
-      const extractedAddress = addressMatch ? addressMatch[0] : address;
-      
-      if (!extractedAddress) {
-        return res.status(400).json({ error: 'Could not extract address from message' });
+      const { message, signature } = req.body ?? {};
+      if (typeof message !== 'string' || typeof signature !== 'string') {
+        return res.status(400).json({ error: 'message and signature are required' });
       }
 
-      // Check nonce (simplified for stub mode)
-      const storedNonce = await redisService.get(`auth:nonce:${extractedAddress.toLowerCase()}`);
-      if (!storedNonce) {
-        return res.status(401).json({ error: 'Invalid or expired nonce' });
+      let siwe: SiweMessage;
+      try {
+        siwe = new SiweMessage(message);
+      } catch {
+        return reject('message is not a valid sign-in message');
       }
 
-      // Clean up used nonce
-      await redisService.del(`auth:nonce:${extractedAddress.toLowerCase()}`);
+      // Consume first, so a message can't be retried even if verification fails.
+      const raw = await redisService.getDel(pendingLoginKey(siwe.address));
+      if (!raw) {
+        return reject(`no pending login for ${siwe.address}`);
+      }
 
-      // Upsert user (same as before)
-      let user = await userRepository.findOne({
-        where: { wallet: extractedAddress.toLowerCase() }
-      });
+      const pending = JSON.parse(raw) as PendingLogin;
+      if (pending.message !== message) {
+        return reject('message differs from the one issued');
+      }
 
-      if (!user) {
-        user = userRepository.create({
-          wallet: extractedAddress.toLowerCase()
+      try {
+        await siwe.verify({
+          signature,
+          nonce: pending.nonce,
+          domain: req.get('host'),
+          time: new Date().toISOString(),
         });
-        await userRepository.save(user);
-        logger.info(`Created new user: ${user.wallet}`);
+      } catch (error: any) {
+        return reject(error?.error?.type ?? 'signature verification failed');
       }
 
-      // Generate JWT token
-      const tokenPayload: JWTPayload = {
-        userId: user.id,
-        wallet: user.wallet
-      };
-
+      const user = await findOrCreateUser(siwe.address);
+      if (user.isActive === false) {
+        return res.status(403).json({ error: 'This account is suspended' });
+      }
+      const tokenPayload: JWTPayload = { userId: user.id, wallet: user.wallet };
       const token = jwtService.generateToken(tokenPayload);
 
       res.json({
@@ -121,83 +169,10 @@ export class AuthController {
     }
   }
 
-  // Helper methods for fallback verification
-  private extractNonceFromMessage(message: string): string | null {
-    try {
-      // Try multiple patterns to extract nonce
-      const patterns = [
-        /Nonce:\s*([^\s\n]+)/i,
-        /nonce["']?\s*:\s*["']?([^"'\s\n]+)/i,
-        /nonce["']?\s*:\s*["']?([^"',}\s\n]+)/i
-      ];
-      
-      for (const pattern of patterns) {
-        const match = message.match(pattern);
-        if (match && match[1]) {
-          return match[1];
-        }
-      }
-      
-      // Last resort: look for any string that looks like a nonce after "Nonce:"
-      const nonceIndex = message.toLowerCase().indexOf('nonce');
-      if (nonceIndex !== -1) {
-        const afterNonce = message.substring(nonceIndex + 5);
-        const nonceMatch = afterNonce.match(/([a-zA-Z0-9]+)/);
-        if (nonceMatch) {
-          return nonceMatch[1];
-        }
-      }
-      
-      return null;
-    } catch (error) {
-      logger.warn('Failed to extract nonce from message:', error);
-      return null;
-    }
-  }
-
-  private extractDomainFromMessage(message: string): string | null {
-    try {
-      const patterns = [
-        /Domain:\s*([^\s\n]+)/i,
-        /(\S+)\s+wants you to sign in/i,
-        /domain["']?\s*:\s*["']?([^"'\s\n]+)/i
-      ];
-      
-      for (const pattern of patterns) {
-        const match = message.match(pattern);
-        if (match && match[1]) {
-          return match[1];
-        }
-      }
-      return null;
-    } catch (error) {
-      return null;
-    }
-  }
-
-  private extractUriFromMessage(message: string): string | null {
-    try {
-      const patterns = [
-        /URI:\s*([^\s\n]+)/i,
-        /uri["']?\s*:\s*["']?([^"'\s\n]+)/i
-      ];
-      
-      for (const pattern of patterns) {
-        const match = message.match(pattern);
-        if (match && match[1]) {
-          return match[1];
-        }
-      }
-      return null;
-    } catch (error) {
-      return null;
-    }
-  }
-
   async getAuthStatus(req: Request, res: Response) {
     try {
       const { wallet } = req.params;
-      
+
       const user = await userRepository.findOne({
         where: { wallet: wallet.toLowerCase() }
       });
@@ -272,41 +247,27 @@ export class AuthController {
     }
   }
 
-  // Keep the dev verify for testing
+  /**
+   * Demo login: hands out a token for any wallet with no proof of ownership.
+   * Handy for local testing, so it exists outside production only.
+   */
   async devVerify(req: Request, res: Response) {
+    if (config.server.isProduction) {
+      return res.status(404).json({ error: 'Demo login is disabled on this server' });
+    }
+
     try {
       const { wallet } = req.body;
-      
+
       if (!wallet || !ethers.isAddress(wallet)) {
         return res.status(400).json({ error: 'Valid Ethereum address required' });
       }
 
-      // For development only - skip actual SIWE verification
-      let user = await userRepository.findOne({
-        where: { wallet: wallet.toLowerCase() }
-      });
-
-      if (!user) {
-        user = userRepository.create({
-          wallet: wallet.toLowerCase()
-        });
-        await userRepository.save(user);
-        logger.info(`[DEV] Created new user: ${user.wallet}`);
+      const user = await findOrCreateUser(wallet);
+      if (user.isActive === false) {
+        return res.status(403).json({ error: 'This account is suspended' });
       }
-
-      // Ensure we have the user ID
-      if (!user.id) {
-        user = await userRepository.findOneOrFail({
-          where: { wallet: wallet.toLowerCase() }
-        });
-      }
-
-      // Generate proper JWT token
-      const tokenPayload: JWTPayload = {
-        userId: user.id,
-        wallet: user.wallet
-      };
-
+      const tokenPayload: JWTPayload = { userId: user.id, wallet: user.wallet };
       const token = jwtService.generateToken(tokenPayload);
 
       res.json({

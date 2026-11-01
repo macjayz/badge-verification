@@ -313,7 +313,7 @@
 <body>
     <div class="onboarding-container">
         <div class="onboarding-header">
-            <h1>🚀 Project Onboarding</h1>
+            <h1>Project Onboarding</h1>
             <p>Set up your project profile and social verification rules</p>
         </div>
         
@@ -455,7 +455,7 @@
                 <p style="color: #6c757d; margin-bottom: 30px;">Configure automatic verification rules based on your social platforms.</p>
                 
                 <div id="autoRulesInfo" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                    <h4 style="margin-bottom: 10px;">✨ Automatic Rule Generation</h4>
+                    <h4 style="margin-bottom: 10px;">Automatic Rule Generation</h4>
                     <p style="color: #6c757d; margin-bottom: 15px;">Based on your social platform connections, we'll automatically create these verification rules:</p>
                     <div id="generatedRulesList">
                         <!-- Dynamic content -->
@@ -531,7 +531,7 @@
 
     <script>
         // API Configuration
-        const ISSUER_DASHBOARD_API = 'http://localhost:3001/api/issuer-dashboard';
+        const ISSUER_DASHBOARD_API = '/api/issuer-dashboard';
         
         // Global State
         let currentStep = 1;
@@ -802,7 +802,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Onboarding error:', error);
+                console.error('Onboarding error:', error);
                 showError('Error completing onboarding: ' + error.message);
                 
                 // Reset button
@@ -889,7 +889,7 @@
             el.textContent = message;
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 5000);
-            console.error('💥 Error:', message);
+            console.error('Error:', message);
         }
 
         function showSuccess(message) {
@@ -897,12 +897,10 @@
             el.textContent = message;
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 5000);
-            console.log('✅ Success:', message);
         }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Issuer Onboarding Loading...');
             
             // Check if issuer is authenticated
             const apiKey = localStorage.getItem('issuerApiKey');
@@ -939,7 +937,6 @@
                 // If 404, no profile exists yet - that's fine, we'll create one
                 
             } catch (error) {
-                console.log('No existing profile found or error loading:', error);
             }
         }
 

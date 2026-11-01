@@ -32,7 +32,7 @@ export class EligibilityController {
 
     } catch (error) {
       logger.error('Check eligibility error:', error);
-      
+
       if (error instanceof Error) {
         return res.status(400).json({
           success: false,
@@ -78,7 +78,7 @@ export class EligibilityController {
 
     } catch (error) {
       logger.error('Check user eligibility error:', error);
-      
+
       if (error instanceof Error) {
         return res.status(400).json({
           success: false,
@@ -113,7 +113,7 @@ export class EligibilityController {
 
     } catch (error) {
       logger.error('Check all eligibilities error:', error);
-      
+
       if (error instanceof Error) {
         return res.status(400).json({
           success: false,

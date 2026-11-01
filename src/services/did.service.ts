@@ -1,10 +1,9 @@
-// src/services/did.service.ts
 import { PrivadoIDRealAdapter } from '../adapters/did/PrivadoIDRealAdapter';
 import { IdOSRealAdapter } from '../adapters/did/IdOSRealAdapter';
 import { logger } from '../utils/logger';
-import { 
-  DIDProviderError, 
-  ValidationError, 
+import {
+  DIDProviderError,
+  ValidationError,
   ConfigurationError
 } from '../utils/errors';
 
@@ -17,31 +16,31 @@ export class DIDService {
 
   private initializeRealAdapters(): void {
     try {
-      logger.info('🚀 Initializing REAL DID adapters only (no stubs)...');
-      
+      logger.info('Initializing REAL DID adapters only (no stubs)...');
+
       let adaptersRegistered = 0;
-      
+
       // 1. Initialize Privado ID adapter (REQUIRED)
       const privadoIDAdapter = new PrivadoIDRealAdapter();
       if (privadoIDAdapter.isAvailable()) {
         this.adapters.set(privadoIDAdapter.getName(), privadoIDAdapter);
         adaptersRegistered++;
-        logger.info(`✅ Registered Privado ID adapter: ${privadoIDAdapter.getName()}`);
+        logger.info(`Registered Privado ID adapter: ${privadoIDAdapter.getName()}`);
       } else {
-        logger.error('❌ Privado ID adapter NOT available - missing PRIVADO_API_KEY');
-        logger.info('📝 Get API key from: https://developer.privado.id');
+        logger.error('Privado ID adapter NOT available - missing PRIVADO_API_KEY');
+        logger.info('Get API key from: https://developer.privado.id');
       }
-      
+
       // 2. Initialize IdOS adapter (OPTIONAL)
       const idOSAdapter = new IdOSRealAdapter();
       if (idOSAdapter.isAvailable()) {
         this.adapters.set(idOSAdapter.getName(), idOSAdapter);
         adaptersRegistered++;
-        logger.info(`✅ Registered IdOS adapter: ${idOSAdapter.getName()}`);
+        logger.info(`Registered IdOS adapter: ${idOSAdapter.getName()}`);
       } else {
-        logger.warn('⚠️  IdOS adapter not available (optional)');
+        logger.warn('IdOS adapter not available (optional)');
       }
-      
+
       // Check if at least Privado ID is available
       if (!privadoIDAdapter.isAvailable()) {
         throw new ConfigurationError(
@@ -49,11 +48,11 @@ export class DIDService {
           'Privado ID adapter not configured. Set PRIVADO_API_KEY in environment variables.'
         );
       }
-      
-      logger.info(`🎉 DID Service initialized with ${adaptersRegistered} real adapter(s)`);
-      
+
+      logger.info(`DID Service initialized with ${adaptersRegistered} real adapter(s)`);
+
     } catch (error: any) {
-      logger.error('💥 Failed to initialize DID adapters:', error);
+      logger.error('Failed to initialize DID adapters:', error);
       throw new ConfigurationError(
         'DIDService',
         `Failed to initialize real adapters: ${error.message}`
@@ -64,11 +63,11 @@ export class DIDService {
   getAdapter(provider: string): any | null {
     const normalizedProvider = provider.toLowerCase();
     const adapter = this.adapters.get(normalizedProvider);
-    
+
     if (!adapter) {
       throw new ValidationError(
         `Unsupported DID provider: ${provider}`,
-        { 
+        {
           supportedProviders: Array.from(this.adapters.keys()),
           suggestion: `Available providers: ${Array.from(this.adapters.keys()).join(', ')}`
         }
@@ -106,25 +105,25 @@ export class DIDService {
     const adapter = this.getAdapter(provider);
 
     try {
-      logger.info(`🔐 Initializing ${provider} verification for wallet: ${request.wallet}`);
+      logger.info(`Initializing ${provider} verification for wallet: ${request.wallet}`);
       const result = await adapter.initVerification(request);
-      
+
       if (result.success) {
-        logger.info(`✅ ${provider} verification initiated, session: ${result.sessionId}`);
+        logger.info(`${provider} verification initiated, session: ${result.sessionId}`);
       } else {
-        logger.warn(`❌ ${provider} verification initiation failed: ${result.error}`);
+        logger.warn(`${provider} verification initiation failed: ${result.error}`);
         throw new DIDProviderError(
           provider,
           result.error || 'Verification initiation failed',
           { wallet: request.wallet }
         );
       }
-      
+
       return result;
     } catch (error: any) {
       if (error instanceof DIDProviderError) throw error;
-      
-      logger.error(`💥 Error initializing ${provider} verification:`, error);
+
+      logger.error(`Error initializing ${provider} verification:`, error);
       throw new DIDProviderError(
         provider,
         `Failed to initialize verification: ${error.message}`,
@@ -141,25 +140,25 @@ export class DIDService {
     const adapter = this.getAdapter(provider);
 
     try {
-      logger.info(`📨 Handling ${provider} callback, session: ${sessionId}`);
+      logger.info(`Handling ${provider} callback, session: ${sessionId}`);
       const result = await adapter.verifyCallback(payload, sessionId);
-      
+
       if (result.success) {
-        logger.info(`✅ ${provider} verification successful, DID: ${result.did}`);
+        logger.info(`${provider} verification successful, DID: ${result.did}`);
       } else {
-        logger.warn(`❌ ${provider} verification failed: ${result.error}`);
+        logger.warn(`${provider} verification failed: ${result.error}`);
         throw new DIDProviderError(
           provider,
           result.error || 'Verification rejected by provider',
           { sessionId }
         );
       }
-      
+
       return result;
     } catch (error: any) {
       if (error instanceof DIDProviderError) throw error;
-      
-      logger.error(`💥 Error handling ${provider} callback:`, error);
+
+      logger.error(`Error handling ${provider} callback:`, error);
       throw new DIDProviderError(
         provider,
         `Callback handling failed: ${error.message}`,
@@ -171,7 +170,7 @@ export class DIDService {
   async checkAdapterHealth(provider: string): Promise<{ healthy: boolean; details: any }> {
     try {
       const adapter = this.getAdapter(provider);
-      
+
       if (!adapter.isAvailable()) {
         return {
           healthy: false,
@@ -183,16 +182,16 @@ export class DIDService {
           }
         };
       }
-      
+
       // Test the adapter with a minimal request
       const testRequest = {
         wallet: '0x0000000000000000000000000000000000000000',
         callbackUrl: 'http://localhost:3000/test-callback',
         provider: provider
       };
-      
+
       const result = await adapter.initVerification(testRequest);
-      
+
       return {
         healthy: result.success !== false,
         details: {
@@ -203,7 +202,7 @@ export class DIDService {
         }
       };
     } catch (error: any) {
-      logger.warn(`⚠️  Health check failed for ${provider}:`, error);
+      logger.warn(`Health check failed for ${provider}:`, error);
       return {
         healthy: false,
         details: {
@@ -219,7 +218,7 @@ export class DIDService {
   getAdapterDetails(provider: string): any {
     try {
       const adapter = this.getAdapter(provider);
-      
+
       return {
         name: adapter.getName(),
         type: adapter instanceof PrivadoIDRealAdapter ? 'privadoid' : 'idos',
@@ -227,8 +226,8 @@ export class DIDService {
         isAvailable: adapter.isAvailable(),
         configured: adapter.isAvailable(),
         adapterClass: adapter.constructor.name,
-        supports: adapter instanceof PrivadoIDRealAdapter 
-          ? ['age_verification', 'identity_verification'] 
+        supports: adapter instanceof PrivadoIDRealAdapter
+          ? ['age_verification', 'identity_verification']
           : ['social_verification', 'data_sharing']
       };
     } catch (error) {
@@ -244,7 +243,7 @@ export class DIDService {
   }
 
   getAllAdaptersStatus(): any[] {
-    return Array.from(this.adapters.keys()).map(provider => 
+    return Array.from(this.adapters.keys()).map(provider =>
       this.getAdapterDetails(provider)
     );
   }
@@ -254,7 +253,7 @@ export class DIDService {
     const adapters = this.getAllAdaptersStatus();
     const healthyCount = adapters.filter(a => a.isAvailable).length;
     const totalCount = adapters.length;
-    
+
     return {
       status: healthyCount === totalCount ? 'operational' : 'degraded',
       adapters,

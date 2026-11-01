@@ -491,7 +491,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="logo">🎖️ Badge System - Identity Verification</div>
+        <div class="logo">Badge System - Identity Verification</div>
         <div class="user-info">
             <div class="wallet-address" id="walletAddress">Loading...</div>
             <div class="issuer-selector">
@@ -597,7 +597,7 @@
     </div>
 
     <script>
-        // ========== CONFIGURATION ==========
+        // Configuration
         const API_BASE = '/api/user';
         const VERIFY_API_BASE = '/api/verify';
         let userToken = localStorage.getItem('userToken');
@@ -610,7 +610,7 @@
         let allIssuers = [];
         let allBadges = [];
     
-        // ========== INITIALIZATION ==========
+        // Initialization
         if (!userToken || !userWallet) {
             window.location.href = '/user-login.html';
         }
@@ -639,32 +639,13 @@
             }
         });
     
-        // Add this function right before initializeApp
-function setupIssuerSearch() {
-    const issuerSelector = document.querySelector('.issuer-selector');
-    if (!issuerSelector) return;
-    
-    // Add search button
-    const searchButton = document.createElement('button');
-    searchButton.innerHTML = '🔍';
-    searchButton.style.cssText = 'background:none; border:none; cursor:pointer; font-size:16px; margin-left:5px;';
-    searchButton.title = 'Search issuers';
-    // searchButton.onclick = function() {
-    //     alert('Search functionality coming soon');
-    // };
-    
-    // issuerSelector.appendChild(searchButton);
-}
-        // ========== INITIALIZATION FUNCTIONS ==========
+        // Initialization functions
         async function initializeApp() {
     try {
         showSkeletonLoading();
         
         // Load issuers for dropdown
         await loadIssuers();
-        
-        // Setup issuer search functionality
-        setupIssuerSearch();
         
         // Load user verifications
         await loadVerifications();
@@ -788,7 +769,7 @@ function setupIssuerSearch() {
             }
         }
     
-        // ========== UI UPDATE FUNCTIONS ==========
+        // Ui update functions
         function updateIssuerDropdown() {
             const select = document.getElementById('currentIssuer');
             select.innerHTML = '<option value="">Select Issuer</option>';
@@ -853,7 +834,7 @@ function setupIssuerSearch() {
             });
         }
     
-        // ========== LOAD VERIFICATIONS ==========
+        // Load verifications
         async function loadVerifications() {
             try {
                 const response = await fetch(API_BASE + '/verifications', {
@@ -1085,7 +1066,7 @@ function setupIssuerSearch() {
                 if (type === 'connection_only' || metadata.permissionWarning) {
                     return {
                         statusClass: 'status-connected',
-                        statusText: '✓ Connected',
+                        statusText: 'Connected',
                         detailText: 'Follow verification pending permissions',
                         isConnected: true,
                         isVerified: false
@@ -1093,7 +1074,7 @@ function setupIssuerSearch() {
                 } else {
                     return {
                         statusClass: 'status-verified',
-                        statusText: '✓ Verified',
+                        statusText: 'Verified',
                         isConnected: true,
                         isVerified: true
                     };
@@ -1137,7 +1118,7 @@ function setupIssuerSearch() {
             
             // Get button text
             let buttonText = 'Verify Now';
-            if (status.isVerified) buttonText = 'Verified ✓';
+            if (status.isVerified) buttonText = 'Verified';
             else if (verification.existing?.status === 'pending') buttonText = 'Verification Pending...';
             else if (status.isConnected) buttonText = 'Re-verify';
             
@@ -1242,7 +1223,7 @@ function setupIssuerSearch() {
             `).join('');
         }
     
-        // ========== VERIFICATION FUNCTIONS ==========
+        // Verification functions
         // Add special handling for privadoid in startVerification():
 async function startVerification(provider, issuerId = null) {
     const buttonId = issuerId ? `btn-${provider}-${issuerId}` : `btn-${provider}`;
@@ -1274,7 +1255,7 @@ async function startVerification(provider, issuerId = null) {
 // Add new function for Privado ID verification:
 async function startPrivadoIDVerification(button) {
     try {
-        showToast('🔗 Starting Privado ID verification...', 'info');
+        showToast('Starting Privado ID verification...', 'info');
         
         // Initiate Privado ID verification
         const response = await fetch('/api/did/privadoid/init', {
@@ -1301,7 +1282,7 @@ async function startPrivadoIDVerification(button) {
                     window.open(result.challenge.challengeUrl, 'privadoid_verification', 'width=600,height=700');
                 }
                 
-                showToast('✅ Privado ID verification initiated! Scan the QR code or open the link.', 'success');
+                showToast('Privado ID verification initiated! Scan the QR code or open the link.', 'success');
             } else {
                 throw new Error(result.error || 'Failed to initiate Privado ID verification');
             }
@@ -1462,7 +1443,7 @@ function showQRCodeModal(qrCodeData, title) {
                     button.disabled = true;
                 }
                 
-                showToast('🔍 Checking Snapshot voting activity...', 'info');
+                showToast('Checking Snapshot voting activity...', 'info');
                 
                 // Get spaceId if issuer-specific
                 let spaceId = null;
@@ -1493,9 +1474,9 @@ function showQRCodeModal(qrCodeData, title) {
                     const result = await response.json();
                     
                     if (result.data.verified) {
-                        showToast(`✅ Found ${result.data.details.totalVotes} Snapshot votes!`, 'success');
+                        showToast(`Found ${result.data.details.totalVotes} Snapshot votes!`, 'success');
                     } else {
-                        showToast(`❌ ${result.data.details.message || 'No sufficient Snapshot activity'}`, 'error');
+                        showToast(`${result.data.details.message || 'No sufficient Snapshot activity'}`, 'error');
                     }
                     
                     loadVerifications();
@@ -1598,7 +1579,7 @@ function showQRCodeModal(qrCodeData, title) {
             }
         }
     
-        // ========== UTILITY FUNCTIONS ==========
+        // Utility functions
         // Change lines 1148-1160:
         function getProviderName(provider) {
             const names = {
@@ -1637,7 +1618,7 @@ function showQRCodeModal(qrCodeData, title) {
             }, 3000);
         }
     
-        // ========== EVENT HANDLERS ==========
+        // Event handlers
         function changeIssuer(issuerId) {
             currentIssuerId = issuerId || null;
             localStorage.setItem('currentIssuerId', currentIssuerId);
@@ -1727,7 +1708,7 @@ function showQRCodeModal(qrCodeData, title) {
                     const result = await response.json();
                     if (result.success && result.data.eligibleBadges && result.data.eligibleBadges.length > 0) {
                         const badgeNames = result.data.eligibleBadges.map(b => b.badgeName).join(', ');
-                        showToast(`✅ Eligible for: ${badgeNames}`, 'success');
+                        showToast(`Eligible for: ${badgeNames}`, 'success');
                     } else {
                         showToast('Not yet eligible for any badges', 'error');
                     }
@@ -1742,7 +1723,7 @@ function showQRCodeModal(qrCodeData, title) {
             window.location.href = '/user-dashboard.html';
         }
     
-        // ========== OAUTH COMPLETION HANDLERS ==========
+        // Oauth completion handlers
         async function checkTwitterConnection() {
             try {
                 const response = await fetch(VERIFY_API_BASE + `/twitter/status/${userWallet}`);
@@ -1750,7 +1731,7 @@ function showQRCodeModal(qrCodeData, title) {
                     const data = await response.json();
                     
                     if (data.data.connected) {
-                        showToast('✅ Twitter account connected successfully!');
+                        showToast('Twitter account connected successfully!');
                         loadVerifications();
                     }
                 }
@@ -1766,7 +1747,7 @@ function showQRCodeModal(qrCodeData, title) {
                     const data = await response.json();
                     
                     if (data.data.connected) {
-                        showToast('✅ Discord account connected successfully!');
+                        showToast('Discord account connected successfully!');
                         loadVerifications();
                     }
                 }
@@ -1776,11 +1757,13 @@ function showQRCodeModal(qrCodeData, title) {
         }
     
         window.addEventListener('message', function(event) {
+            // Only trust messages from our own OAuth callback pages.
+            if (event.origin !== window.location.origin || !event.data) {
+                return;
+            }
             if (event.data.type === 'TWITTER_OAUTH_SUCCESS') {
-                console.log('Received Twitter OAuth success message:', event.data);
                 completeTwitterOAuth(event.data.code, event.data.state);
             } else if (event.data.type === 'DISCORD_OAUTH_SUCCESS') {
-                console.log('Received Discord OAuth success message:', event.data);
                 completeDiscordOAuth(event.data.code, event.data.state);
             }
         });
@@ -1832,14 +1815,14 @@ function showQRCodeModal(qrCodeData, title) {
                         );
                         
                         if (twitterVerification && twitterVerification.status === 'completed') {
-                            showToast('✅ Twitter follow verification completed successfully!');
+                            showToast('Twitter follow verification completed successfully!');
                         } else if (twitterVerification && twitterVerification.status === 'failed') {
-                            showToast('❌ Twitter connected, but you need to follow the required accounts');
+                            showToast('Twitter connected, but you need to follow the required accounts');
                         } else {
-                            showToast('✅ Twitter account connected! Verification pending...');
+                            showToast('Twitter account connected! Verification pending...');
                         }
                     } else {
-                        showToast('✅ Twitter account connected successfully!');
+                        showToast('Twitter account connected successfully!');
                     }
                     
                     loadVerifications();
@@ -1888,7 +1871,7 @@ function showQRCodeModal(qrCodeData, title) {
         
                 if (response.ok) {
                     const result = await response.json();
-                    showToast('✅ Discord account connected successfully!');
+                    showToast('Discord account connected successfully!');
                     loadVerifications();
                 } else {
                     const errorData = await response.json();
@@ -1904,7 +1887,7 @@ function showQRCodeModal(qrCodeData, title) {
             }
         }
 
-        // ========== ISSUER SEARCH FUNCTIONS ==========
+        // Issuer search functions
 
 function toggleIssuerSearch() {
     const searchContainer = document.querySelector('.issuer-search');

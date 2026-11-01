@@ -1,11 +1,10 @@
-// src/services/snapshot.service.ts - FIXED VERSION
+import { randomUUID } from 'crypto';
+// src/services/snapshot.service.ts
 import { AppDataSource } from '../db/datasource';
-import { UserSocialConnection } from '../entities/UserSocialConnection';
 import { Verification, VerificationStatus, VerificationType } from '../entities/Verification';
 import { logger } from '../utils/logger';
 import axios from 'axios';
 
-const socialConnectionRepository = AppDataSource.getRepository(UserSocialConnection);
 
 export interface SnapshotSpace {
   id: string;
@@ -54,9 +53,9 @@ export class SnapshotService {
   }> {
     try {
       logger.info(`Initiating Snapshot verification for wallet: ${wallet}`);
-      
-      const verificationId = `snapshot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
+      const verificationId = `snapshot_${randomUUID()}`;
+
       return {
         verificationId,
         message: 'Snapshot verification ready - checking voting activity'
@@ -85,7 +84,7 @@ export class SnapshotService {
     try {
       logger.info(`Verifying Snapshot votes for wallet: ${wallet}`, { params });
 
-      // ✅ SIMPLE, WORKING QUERY
+      // SIMPLE, WORKING QUERY
       const query = `
         query Votes($voter: String!, $first: Int!, $skip: Int, $orderBy: String) {
           votes(
@@ -120,8 +119,8 @@ export class SnapshotService {
         orderBy: 'created',
       };
 
-      console.log('Executing Snapshot GraphQL query...');
-      
+      logger.debug('Executing Snapshot GraphQL query...');
+
       const response = await axios.post(
         this.baseURL,
         { query, variables },
@@ -140,7 +139,7 @@ export class SnapshotService {
 
       const votes: SnapshotVote[] = response.data.data?.votes || [];
       const totalVotes = votes.length;
-      console.log(`Found ${totalVotes} votes for wallet ${wallet}`);
+      logger.debug(`Found ${totalVotes} votes for wallet ${wallet}`);
 
       // Filter by space if needed (client-side filtering)
       let filteredVotes = votes;
@@ -150,7 +149,7 @@ export class SnapshotService {
 
       // Filter by timeframe if needed
       if (params?.timeRange) {
-        filteredVotes = filteredVotes.filter(vote => 
+        filteredVotes = filteredVotes.filter(vote =>
           vote.created >= params.timeRange!.from && vote.created <= params.timeRange!.to
         );
       }
@@ -160,7 +159,7 @@ export class SnapshotService {
         filteredVotes = filteredVotes.filter(vote => vote.proposal.id === params.proposalId);
       }
 
-      // ✅ FIXED: Calculate votes per space with proper typing
+      // Calculate votes per space with proper typing
       const spaceVotes: Record<string, { id: string; name: string; votes: number }> = {};
       filteredVotes.forEach(vote => {
         const space = vote.proposal.space; // This is already typed as SnapshotSpace
@@ -177,7 +176,7 @@ export class SnapshotService {
       // Check verification criteria
       const minVotes = params?.minVotes || 1;
       const votesInSpace = params?.spaceId ? filteredVotes.length : undefined;
-      
+
       let verified = true;
       let message = '';
 
@@ -209,8 +208,8 @@ export class SnapshotService {
             return acc;
           }, {} as Record<string, number>),
           proposals: filteredVotes.map(v => v.proposal.id),
-          message: verified 
-            ? `Successfully verified ${filteredVotes.length} votes across ${Object.keys(spaceVotes).length} spaces` 
+          message: verified
+            ? `Successfully verified ${filteredVotes.length} votes across ${Object.keys(spaceVotes).length} spaces`
             : message,
           checkedAt: new Date().toISOString(),
           spaces: spaceVotes,
@@ -219,7 +218,7 @@ export class SnapshotService {
 
     } catch (error) {
       logger.error('Snapshot verification error:', error);
-      
+
       let errorMessage = 'Unknown error';
       if (axios.isAxiosError(error)) {
         if (error.response) {
@@ -235,7 +234,7 @@ export class SnapshotService {
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
-      
+
       return {
         verified: false,
         details: {
@@ -262,7 +261,7 @@ export class SnapshotService {
   ): Promise<void> {
     try {
       const verificationRepository = AppDataSource.getRepository(Verification);
-      
+
       const verificationDetails = {
         wallet,
         totalVotes: votes.length,
@@ -273,15 +272,15 @@ export class SnapshotService {
         checkedAt: new Date().toISOString(),
         verified: verified // Add verification status
       };
-  
+
       // Check if verification already exists
       let verification = await verificationRepository.findOne({
-        where: { 
+        where: {
           wallet: wallet,
           provider: 'snapshot_votes'
         }
       });
-  
+
       if (verification) {
         // Update existing verification
         verification.status = verified ? VerificationStatus.COMPLETED : VerificationStatus.FAILED;
@@ -290,7 +289,7 @@ export class SnapshotService {
         verification.verificationId = `snapshot_${wallet}_${Date.now()}`;
         verification.completedAt = new Date();
         verification.updatedAt = new Date();
-        
+
         if (!verified) {
           verification.errorMessage = 'Insufficient Snapshot votes';
         }
@@ -308,22 +307,22 @@ export class SnapshotService {
           createdAt: new Date(),
           updatedAt: new Date()
         });
-        
+
         if (!verified) {
           verification.errorMessage = 'Insufficient Snapshot votes';
         }
       }
-  
+
       await verificationRepository.save(verification);
       logger.info(`Created Snapshot verification for wallet: ${wallet} (verified: ${verified})`);
-      
+
     } catch (error) {
       logger.error('Failed to create Snapshot verification record:', error);
     }
   }
 
   /**
-   * Check specific vote requirements - FIXED TO ALWAYS RETURN FALSE ON ERROR
+   * Check specific vote requirements
    */
   async checkVoteRequirements(
     wallet: string,
@@ -335,15 +334,15 @@ export class SnapshotService {
     }
   ): Promise<{ meetsRequirements: boolean; details: any }> {
     try {
-      const timeRange = requirements.timeframe 
+      const timeRange = requirements.timeframe
         ? {
             from: Math.floor((Date.now() - requirements.timeframe.days * 24 * 60 * 60 * 1000) / 1000),
             to: Math.floor(Date.now() / 1000)
           }
         : undefined;
 
-      console.log(`[SNAPSHOT] Checking requirements for ${wallet}:`, requirements);
-      
+      logger.debug(`[SNAPSHOT] Checking requirements for ${wallet}:`, requirements);
+
       const result = await this.verifyWallet(wallet, {
         minVotes: requirements.minVotes,
         spaceId: requirements.spaceId,
@@ -351,15 +350,15 @@ export class SnapshotService {
         timeRange,
       });
 
-      console.log(`[SNAPSHOT] Result for ${wallet}:`, {
+      logger.debug(`[SNAPSHOT] Result for ${wallet}:`, {
         verified: result.verified,
         totalVotes: result.details.totalVotes,
         message: result.details.message
       });
 
-      // ✅ CRITICAL: If API error, return false
+      // If API error, return false
       if (!result.verified && result.details.message?.includes('Snapshot API error')) {
-        console.log(`[SNAPSHOT] API error detected, returning false`);
+        logger.debug(`[SNAPSHOT] API error detected, returning false`);
         return {
           meetsRequirements: false,
           details: {
@@ -375,7 +374,7 @@ export class SnapshotService {
         details: result.details,
       };
     } catch (error) {
-      console.error('[SNAPSHOT] Error checking vote requirements:', error);
+      logger.error('[SNAPSHOT] Error checking vote requirements:', error);
       return {
         meetsRequirements: false,
         details: {

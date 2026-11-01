@@ -1,12 +1,11 @@
-// FIXED: src/routes/user-management.routes.ts
 import { Router } from 'express';
-import { UserManagementController } from '../controllers/user-management.controller'; // Remove the instance import
-import { authenticateToken } from '../middleware/auth.middleware';
+import { UserManagementController } from '../controllers/user-management.controller';
+import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
 
 // All routes require admin authentication
-router.use(authenticateToken);
+router.use(authenticateToken, requireAdmin);
 
 // User management routes - use static methods directly
 router.get('/', UserManagementController.getUsers);

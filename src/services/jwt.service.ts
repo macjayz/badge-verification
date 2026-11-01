@@ -1,4 +1,3 @@
-// src/services/jwt.service.ts
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
 import { logger } from '../utils/logger';

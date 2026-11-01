@@ -1,6 +1,6 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { AppDataSource } from '../db/datasource';
-import { BadgeType, BadgeRules } from '../entities/BadgeType';
+import { BadgeType } from '../entities/BadgeType';
 import { Issuer } from '../entities/Issuer';
 import { BadgeMint } from '../entities/BadgeMint';
 import { logger } from '../utils/logger';
@@ -12,8 +12,10 @@ function getErrorMessage(error: unknown): string {
 }
 
 // Helper function to get mint status from BadgeMint
+// Older rows recorded a minted badge as 'success'; newer ones use 'completed'.
 function getMintStatus(mint: BadgeMint): string {
-  return mint.metadata?.status || 'unknown';
+  const status = mint.metadata?.status || 'unknown';
+  return status === 'success' ? 'completed' : status;
 }
 
 export class BadgeManagementController {
@@ -21,7 +23,7 @@ export class BadgeManagementController {
   private issuerRepository = AppDataSource.getRepository(Issuer);
   private badgeMintRepository = AppDataSource.getRepository(BadgeMint);
 
-  // 📋 Get all badge types with pagination and search
+  // Get all badge types with pagination and search
   getAllBadgeTypes = async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { page = 1, limit = 20, search = '', issuerId = '', isActive = '' } = req.query;
@@ -114,19 +116,19 @@ export class BadgeManagementController {
     }
   };
 
-  // 🆕 Create new badge type
+  // Create new badge type
   createBadgeType = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { 
-        key, 
-        name, 
-        description, 
-        imageUrl, 
-        issuerId, 
-        rules, 
+      const {
+        key,
+        name,
+        description,
+        imageUrl,
+        issuerId,
+        rules,
         isGlobal = false,
         contractBadgeTypeId,
-        metadataIpfs 
+        metadataIpfs
       } = req.body;
 
       // Validate required fields
@@ -203,7 +205,7 @@ export class BadgeManagementController {
     }
   };
 
-  // ✏️ Update badge type
+  // Update badge type
   updateBadgeType = async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { badgeTypeId } = req.params;
@@ -254,7 +256,7 @@ export class BadgeManagementController {
     }
   };
 
-  // 📊 Get badge analytics
+  // Get badge analytics
   getBadgeAnalytics = async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { badgeTypeId } = req.params;
@@ -274,25 +276,26 @@ export class BadgeManagementController {
       const mints = badgeType.mints || [];
       const completedMints = mints.filter(m => getMintStatus(m) === 'completed');
       const failedMints = mints.filter(m => getMintStatus(m) === 'failed');
-      const pendingMints = mints.filter(m => 
+      const pendingMints = mints.filter(m =>
         getMintStatus(m) === 'pending' || getMintStatus(m) === 'unknown'
       );
 
-      // Daily mint statistics (last 30 days)
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const days = Math.min(Math.max(parseInt(req.query.days as string) || 30, 1), 365);
+      const since = new Date();
+      since.setUTCHours(0, 0, 0, 0);
+      since.setUTCDate(since.getUTCDate() - (days - 1));
 
       const dailyStats = await this.badgeMintRepository
         .createQueryBuilder('mint')
-        .select('DATE(mint.createdAt)', 'date')
+        .select("to_char(date_trunc('day', mint.createdAt AT TIME ZONE 'UTC'), 'YYYY-MM-DD')", 'date')
         .addSelect('COUNT(*)', 'total')
-        .addSelect('COUNT(CASE WHEN mint.metadata ->> \'status\' = \'completed\' THEN 1 END)', 'completed')
+        .addSelect('COUNT(CASE WHEN mint.metadata ->> \'status\' IN (\'completed\', \'success\') THEN 1 END)', 'completed')
         .addSelect('COUNT(CASE WHEN mint.metadata ->> \'status\' = \'failed\' THEN 1 END)', 'failed')
         .where('mint.badgeTypeId = :badgeTypeId', { badgeTypeId })
-        .andWhere('mint.createdAt >= :date', { date: thirtyDaysAgo })
-        .groupBy('DATE(mint.createdAt)')
-        .orderBy('date', 'ASC')
+        .andWhere('mint.createdAt >= :since', { since })
+        .groupBy('date')
         .getRawMany();
+      const statsByDay = new Map(dailyStats.map(stat => [stat.date, stat]));
 
       const analytics = {
         badgeType: {
@@ -305,29 +308,39 @@ export class BadgeManagementController {
           rules: badgeType.rules,
           isGlobal: badgeType.isGlobal,
           contractBadgeTypeId: badgeType.contractBadgeTypeId,
-          metadataIpfs: badgeType.metadataIpfs
+          metadataIpfs: badgeType.metadataIpfs,
+          isActive: badgeType.isActive,
+          createdAt: badgeType.createdAt
         },
         statistics: {
           totalMints: mints.length,
           completedMints: completedMints.length,
           failedMints: failedMints.length,
           pendingMints: pendingMints.length,
-          successRate: mints.length > 0 ? (completedMints.length / mints.length) * 100 : 0
+          successRate: mints.length > 0 ? (completedMints.length / mints.length) * 100 : 0,
+          uniqueWallets: new Set(mints.map(m => m.wallet.toLowerCase())).size
         },
-        dailyStats: dailyStats.map(stat => ({
-          date: stat.date,
-          total: parseInt(stat.total),
-          completed: parseInt(stat.completed),
-          failed: parseInt(stat.failed)
-        })),
-        recentMints: completedMints
+        // Every day in the window, including days with no mints.
+        dailyStats: Array.from({ length: days }, (_, i) => {
+          const day = new Date(since);
+          day.setUTCDate(since.getUTCDate() + i);
+          const date = day.toISOString().slice(0, 10);
+          const stat = statsByDay.get(date);
+          return {
+            date,
+            total: stat ? parseInt(stat.total) : 0,
+            completed: stat ? parseInt(stat.completed) : 0,
+            failed: stat ? parseInt(stat.failed) : 0
+          };
+        }),
+        recentMints: [...mints]
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           .slice(0, 10)
           .map(mint => ({
             id: mint.id,
             wallet: mint.wallet,
             transactionHash: mint.transactionHash,
-            status: getMintStatus(mint),
+            status: mint.isRevoked ? 'revoked' : getMintStatus(mint),
             createdAt: mint.createdAt
           }))
       };
@@ -348,7 +361,7 @@ export class BadgeManagementController {
     }
   };
 
-  // ⚙️ Update eligibility rules
+  // Update eligibility rules
   updateEligibilityRules = async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { badgeTypeId } = req.params;
@@ -394,7 +407,7 @@ export class BadgeManagementController {
     }
   };
 
-  // 🔄 Toggle badge active status
+  // Toggle badge active status
   toggleBadgeStatus = async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { badgeTypeId } = req.params;

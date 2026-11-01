@@ -1,17 +1,11 @@
-// src/controllers/minting.controller.ts
 import { Request, Response } from 'express';
 import { mintingService } from '../services/minting.service';
-import { logger } from '../utils/logger';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { asyncHandler } from '../middleware/error.middleware';
-import { 
-  ValidationError, 
-  AuthenticationError,
-  NotFoundError 
-} from '../utils/errors';
+import { ValidationError, AuthenticationError, NotFoundError } from '../utils/errors';
 
 export class MintingController {
-  
+
   initiateMint = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { badgeTypeKey, verificationId } = req.body;
     const wallet = req.user?.wallet;
@@ -29,7 +23,7 @@ export class MintingController {
 
     // Check if user can mint this badge
     const canMint = await mintingService.canMintBadge(wallet, badgeTypeKey);
-    
+
     if (!canMint.canMint) {
       throw new ValidationError(
         `Cannot mint badge: ${canMint.reason}`,
@@ -68,7 +62,7 @@ export class MintingController {
 
   getMintStatus = asyncHandler(async (req: Request, res: Response) => {
     const { mintId } = req.params;
-    
+
     if (!mintId) {
       throw new ValidationError('Mint ID is required', {
         field: 'mintId',
@@ -206,14 +200,6 @@ export class MintingController {
         required: true,
         suggestion: 'Provide a clear reason for revocation (e.g., "violation of terms", "user request")'
       });
-    }
-
-    // TODO: Add authorization check - only issuer should be able to revoke
-    // For now, this is a placeholder for authorization
-    const isAuthorized = true; // Replace with actual authorization logic
-    
-    if (!isAuthorized) {
-      throw new AuthenticationError('Not authorized to revoke badges');
     }
 
     const success = await mintingService.revokeBadge(mintId, reason);

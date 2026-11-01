@@ -1,9 +1,7 @@
-// src/entities/User.ts - FIXED VERSION
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, OneToMany, Unique } from 'typeorm';
-import { Verification } from './Verification';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, Unique } from 'typeorm';
 
 @Entity('users')
-@Unique(['wallet'])  // ✅ ADD THIS LINE - makes wallet unique
+@Unique(['wallet'])
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -18,18 +16,13 @@ export class User {
   @Column({ type: 'varchar', nullable: true })
   provider?: string;
 
+  // Suspended accounts cannot sign in or mint. Set from the admin user-management page.
+  @Column({ type: 'boolean', default: true })
+  isActive!: boolean;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
-
-  // FIXED: Remove the problematic relationship reference
-  // Remove this line entirely:
-  // @OneToMany(() => Verification, verification => verification.user)
-  // verifications?: Verification[];
-
-  // Or if you want to keep the relationship, fix the reference:
-  // @OneToMany(() => Verification, verification => verification.wallet)
-  // verifications?: Verification[];
 }

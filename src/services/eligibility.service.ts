@@ -1,20 +1,19 @@
-// src/services/eligibility.service.ts
 import { AppDataSource } from '../db/datasource';
 import { BadgeType, BadgeRules } from '../entities/BadgeType';
-import { Verification } from '../entities/Verification';
 import { verificationService } from './verification.service';
 import { snapshotService } from './snapshot.service';
 import { logger } from '../utils/logger';
-import { 
-  EligibilityError, 
-  ValidationError, 
-  NotFoundError 
+import {
+  EligibilityError,
+  ValidationError,
+  NotFoundError
 } from '../utils/errors';
 import { twitterService } from './twitter.service';
+import { discordService } from './discord.service';
+import { web3Service } from './web3.service';
 
 // Create repositories directly in this file
 const badgeTypeRepository = AppDataSource.getRepository(BadgeType);
-const verificationRepository = AppDataSource.getRepository(Verification);
 
 export interface EligibilityResult {
   eligible: boolean;
@@ -54,7 +53,7 @@ export class EligibilityService {
         throw new EligibilityError(
           badgeKey,
           'Badge type is currently inactive',
-          { 
+          {
             badgeName: badgeType.name,
             suggestion: 'Contact the issuer for more information'
           }
@@ -62,35 +61,35 @@ export class EligibilityService {
       }
 
       const rules = badgeType.rules;
-      
+
       // Validate rules structure
       if (!rules?.primary || !Array.isArray(rules.primary)) {
         throw new EligibilityError(
           badgeKey,
           'Invalid badge rules configuration',
-          { 
+          {
             badgeName: badgeType.name,
             suggestion: 'Contact issuer to fix badge configuration'
           }
         );
       }
-      
+
       // Check primary requirements (DID verification)
-      const primaryResults = await this.checkPrimaryRequirements(wallet, rules.primary, rules.logic);
-      
+      const primaryResults = await this.checkPrimaryRequirements(wallet, rules.primary);
+
       // Check secondary requirements (social/on-chain)
-      const secondaryResults = await this.checkSecondaryRequirements(wallet, rules.secondary || [], rules.logic);
+      const secondaryResults = await this.checkSecondaryRequirements(wallet, rules.secondary || []);
 
       // Determine overall eligibility
       const primaryEligible = this.evaluatePrimaryLogic(primaryResults, rules.logic);
       const secondaryEligible = this.evaluateSecondaryLogic(secondaryResults, rules.logic);
-      
+
       const eligible = primaryEligible && secondaryEligible;
 
       // Build reasons and missing requirements
       const { reasons, missingRequirements } = this.buildEligibilityDetails(
-        primaryResults, 
-        secondaryResults, 
+        primaryResults,
+        secondaryResults,
         rules,
         primaryEligible,
         badgeType.name
@@ -112,7 +111,7 @@ export class EligibilityService {
       if (error instanceof EligibilityError || error instanceof ValidationError || error instanceof NotFoundError) {
         throw error;
       }
-      
+
       logger.error(`Eligibility check error for ${wallet}, badge ${badgeKey}:`, error);
       throw new EligibilityError(
         badgeKey,
@@ -123,9 +122,8 @@ export class EligibilityService {
   }
 
   private async checkPrimaryRequirements(
-    wallet: string, 
-    primaryProviders: string[], 
-    logic: 'AND' | 'OR' = 'OR'
+    wallet: string,
+    primaryProviders: string[]
   ): Promise<Array<{ provider: string; verified: boolean; did?: string }>> {
     const results = [];
 
@@ -163,9 +161,8 @@ export class EligibilityService {
   }
 
   private async checkSecondaryRequirements(
-    wallet: string, 
-    secondaryRules: BadgeRules['secondary'],
-    logic: 'AND' | 'OR' = 'AND'
+    wallet: string,
+    secondaryRules: BadgeRules['secondary']
   ): Promise<Array<{ method: string; verified: boolean; details?: any }>> {
     const results = [];
 
@@ -191,7 +188,7 @@ export class EligibilityService {
           method: rule.method,
           verified: false,
           required: rule.required !== false,
-          details: { 
+          details: {
             error: error instanceof Error ? error.message : 'Unknown error',
             suggestion: 'Verification service temporarily unavailable'
           }
@@ -203,76 +200,81 @@ export class EligibilityService {
   }
 
   private async verifySecondaryRule(
-    wallet: string, 
+    wallet: string,
     rule: BadgeRules['secondary'][0]
   ): Promise<{ verified: boolean; details?: any }> {
-    console.log('🚨 [DEBUG] verifySecondaryRule called for:', rule.method, 'wallet:', wallet);
     switch (rule.method) {
       case 'twitter_follow':
         if (!rule.params?.account) {
-          return {
-            verified: false,
-            details: {
-              error: 'Twitter account not specified in badge rules',
-              requiredAction: 'Contact badge issuer to fix configuration'
-            }
-          };
+          return this.misconfigured('Twitter account not specified in badge rules');
         }
         return await twitterService.verifyFollow(wallet, rule.params.account);
-      
+
       case 'discord_member':
-        return await this.mockDiscordMemberCheck(wallet, rule.params);
-      
-      // ✅ REAL SNAPSHOT VERIFICATION
+        if (!rule.params?.serverId) {
+          return this.misconfigured('Discord server not specified in badge rules');
+        }
+        return await discordService.verifyServerMembership(wallet, rule.params.serverId);
+
       case 'snapshot_votes':
         return await this.checkSnapshotVotes(wallet, rule.params);
-      
+
       case 'onchain_activity':
-        return await this.mockOnChainActivityCheck(wallet, rule.params);
-      
-      case 'onchain_governance':
-        return await this.mockOnChainGovernanceCheck(wallet, rule.params);
-      
+        return await this.checkOnChainActivity(wallet, rule.params);
+
       default:
-        logger.warn(`Unsupported verification method: ${rule.method}, using mock`);
-        return await this.mockGenericVerification(wallet, rule.method, rule.params);
+        // Fail closed: a rule this server cannot check must never grant a badge.
+        logger.warn(`Unsupported verification method: ${rule.method}`);
+        return {
+          verified: false,
+          details: {
+            method: rule.method,
+            error: `Verification method "${rule.method}" is not supported`,
+            requiredAction: 'Contact the badge issuer to fix this badge\'s rules'
+          }
+        };
     }
   }
 
-  // ✅ REAL SNAPSHOT VERIFICATION METHOD
-  // In eligibility.service.ts - update the checkSnapshotVotes method:
+  private misconfigured(error: string): { verified: boolean; details: any } {
+    return {
+      verified: false,
+      details: { error, requiredAction: 'Contact the badge issuer to fix this badge\'s rules' }
+    };
+  }
+
   private async checkSnapshotVotes(
-    wallet: string, 
+    wallet: string,
     params: any
   ): Promise<{ verified: boolean; details?: any }> {
-    console.log('🔍 [ELIGIBILITY] REAL Snapshot check called for wallet:', wallet);
-    
+    logger.debug('[ELIGIBILITY] REAL Snapshot check called for wallet:', wallet);
+
     try {
       const minVotes = params?.minVotes || 1;
       const spaceId = params?.space;
       const proposalId = params?.proposal;
       const timeframe = params?.timeframe;
-  
+
       const requirements: any = {};
       if (minVotes !== undefined) requirements.minVotes = minVotes;
       if (spaceId) requirements.spaceId = spaceId;
       if (proposalId) requirements.proposalId = proposalId;
       if (timeframe) requirements.timeframe = { days: timeframe.days || 365 };
-  
-      console.log('   Requirements:', requirements);
-      
+
+      logger.debug('Requirements:', requirements);
+
       const result = await snapshotService.checkVoteRequirements(wallet, requirements);
-      
-      console.log('   Snapshot service result:', {
+
+      logger.debug('Snapshot service result:', {
         meetsRequirements: result.meetsRequirements,
         totalVotes: result.details?.totalVotes,
         message: result.details?.message,
         apiError: result.details?.apiError
       });
-      
-      // ✅ CRITICAL: If API error occurred, verification fails
+
+      // If API error occurred, verification fails
       if (result.details?.apiError) {
-        console.log('   ❌ API error detected - verification fails');
+        logger.debug('API error detected - verification fails');
         return {
           verified: false,
           details: {
@@ -283,19 +285,19 @@ export class EligibilityService {
           }
         };
       }
-      
+
       return {
         verified: result.meetsRequirements,
         details: {
           ...result.details,
           requirement: `Minimum ${minVotes} Snapshot vote(s)${spaceId ? ` in ${spaceId}` : ''}${timeframe ? ` within last ${timeframe.days} days` : ''}`,
-          requiredAction: spaceId 
+          requiredAction: spaceId
             ? `Vote on proposals in ${spaceId} Snapshot space`
             : `Participate in Snapshot governance voting`,
         }
       };
     } catch (error) {
-      console.error('❌ [ELIGIBILITY] Snapshot check error:', error);
+      logger.error('[ELIGIBILITY] Snapshot check error:', error);
       return {
         verified: false,
         details: {
@@ -309,146 +311,34 @@ export class EligibilityService {
     }
   }
 
-  // Mock implementations - will be replaced with real adapters
-  private async mockTwitterFollowCheck(wallet: string, params: any): Promise<{ verified: boolean; details?: any }> {
-    if (!params?.account) {
+  private async checkOnChainActivity(
+    wallet: string,
+    params: any
+  ): Promise<{ verified: boolean; details?: any }> {
+    const minTransactions = Number(params?.minTransactions ?? 1);
+    const requirement = `Minimum ${minTransactions} on-chain transaction(s)`;
+    if (!Number.isInteger(minTransactions) || minTransactions < 0) {
+      return this.misconfigured('minTransactions must be a whole number of 0 or more');
+    }
+
+    try {
+      const transactionCount = await web3Service.getTransactionCount(wallet);
+      return {
+        verified: transactionCount >= minTransactions,
+        details: { transactionCount, minRequired: minTransactions, requirement, checkedAt: new Date().toISOString() }
+      };
+    } catch (error) {
+      logger.error('On-chain activity check failed', { wallet, error });
       return {
         verified: false,
         details: {
-          account: params?.account || 'unknown',
-          requiredAction: `Follow @${params?.account || 'specified account'} on Twitter`,
-          checkedAt: new Date().toISOString(),
-          mock: true,
-          note: 'This is a mock implementation - will be replaced with real Twitter API'
+          error: error instanceof Error ? error.message : 'Unknown error',
+          requirement,
+          requiredAction: 'Try again later',
+          apiError: true
         }
       };
     }
-
-    // Mock: 70% success rate for testing
-    const verified = Math.random() > 0.3;
-    return {
-      verified,
-      details: {
-        account: params.account,
-        requiredAction: `Follow @${params.account} on Twitter`,
-        checkedAt: new Date().toISOString(),
-        mock: true,
-        note: 'This is a mock implementation - will be replaced with real Twitter API'
-      }
-    };
-  }
-
-  private async mockOnChainActivityCheck(wallet: string, params: any): Promise<{ verified: boolean; details?: any }> {
-    const minTransactions = params?.minTransactions || 1;
-    const beforeDate = params?.beforeDate ? new Date(params.beforeDate) : new Date();
-    
-    if (minTransactions < 0) {
-      return {
-        verified: false,
-        details: {
-          minTransactions,
-          requirement: `Minimum ${minTransactions} on-chain transaction(s)`,
-          checkedAt: new Date().toISOString(),
-          mock: true,
-          note: 'Invalid configuration - minTransactions must be >= 0'
-        }
-      };
-    }
-
-    // Mock: Random transaction count between 0-20
-    const transactionCount = Math.floor(Math.random() * 21);
-    const verified = transactionCount >= minTransactions;
-    
-    return {
-      verified,
-      details: {
-        transactionCount,
-        minRequired: minTransactions,
-        beforeDate: beforeDate.toISOString(),
-        requirement: `Minimum ${minTransactions} on-chain transaction(s)`,
-        mock: true,
-        note: 'This is a mock implementation - will be replaced with real blockchain data'
-      }
-    };
-  }
-
-  // ✅ REMOVED mockSnapshotVotesCheck method - now using real checkSnapshotVotes above
-
-  private async mockOnChainGovernanceCheck(wallet: string, params: any): Promise<{ verified: boolean; details?: any }> {
-    const minVotes = params?.minVotes || 1;
-    
-    if (minVotes < 0) {
-      return {
-        verified: false,
-        details: {
-          minVotes,
-          requirement: `Participate in on-chain governance`,
-          checkedAt: new Date().toISOString(),
-          mock: true,
-          note: 'Invalid configuration - minVotes must be >= 0'
-        }
-      };
-    }
-
-    // Mock: Random governance participation
-    const hasParticipated = Math.random() > 0.5;
-    const verified = hasParticipated;
-    
-    return {
-      verified,
-      details: {
-        hasParticipated,
-        minRequired: minVotes,
-        requirement: `Participate in on-chain governance`,
-        mock: true,
-        note: 'This is a mock implementation - will be replaced with real governance data'
-      }
-    };
-  }
-
-  private async mockDiscordMemberCheck(wallet: string, params: any): Promise<{ verified: boolean; details?: any }> {
-    if (!params?.serverId) {
-      return {
-        verified: false,
-        details: {
-          serverId: params?.serverId || 'unknown',
-          requiredAction: `Join Discord server ${params?.serverId || 'specified server'}`,
-          checkedAt: new Date().toISOString(),
-          mock: true,
-          note: 'This is a mock implementation - will be replaced with real Discord API'
-        }
-      };
-    }
-
-    // Mock: 80% success rate for testing
-    const verified = Math.random() > 0.2;
-    return {
-      verified,
-      details: {
-        serverId: params.serverId,
-        serverName: params.serverName || 'Community Server',
-        requiredAction: `Join Discord server: ${params.serverName || params.serverId}`,
-        checkedAt: new Date().toISOString(),
-        mock: true,
-        note: 'This is a mock implementation - will be replaced with real Discord API'
-      }
-    };
-  }
-
-  private async mockGenericVerification(wallet: string, method: string, params: any): Promise<{ verified: boolean; details?: any }> {
-    // Generic mock for any unsupported method during development
-    const verified = Math.random() > 0.3;
-    return {
-      verified,
-      details: {
-        method,
-        params,
-        requiredAction: `Complete ${method} verification`,
-        checkedAt: new Date().toISOString(),
-        mock: true,
-        note: `Mock implementation for ${method} - will be replaced with real API`
-      }
-    };
   }
 
   private evaluatePrimaryLogic(
@@ -508,7 +398,7 @@ export class EligibilityService {
       // For OR logic, at least one primary must pass
       if (successfulPrimary.length > 0) {
         reasons.push(`Identity verified with ${successfulPrimary.map(r => r.provider).join(' or ')}`);
-      } else {
+      } else if (primaryResults.length > 0) {
         missingRequirements.push(`Missing identity verification (need one of: ${primaryResults.map(r => r.provider).join(', ')})`);
       }
     }
@@ -519,17 +409,17 @@ export class EligibilityService {
       const isRequired = rule?.required !== false;
 
       if (result.verified) {
-        reasons.push(`✓ ${result.method} requirement satisfied`);
+        reasons.push(`${result.method} requirement satisfied`);
       } else if (isRequired) {
-        const requirementText = result.details?.requirement || result.method;
-        missingRequirements.push(`✗ ${requirementText}`);
-        
+        const requirementText = result.details?.requirement || result.details?.error || result.method;
+        missingRequirements.push(`${requirementText}`);
+
         // Add specific suggestions if available
         if (result.details?.requiredAction) {
           missingRequirements.push(`  → ${result.details.requiredAction}`);
         }
       } else {
-        reasons.push(`○ Optional ${result.method} not satisfied`);
+        reasons.push(`Optional ${result.method} not satisfied`);
       }
     });
 
@@ -571,7 +461,7 @@ export class EligibilityService {
     }
 
     const results: EligibilityResult[] = [];
-    
+
     // Check each badge type
     for (const badge of allBadgeTypes) {
       try {

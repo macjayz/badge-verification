@@ -32,6 +32,11 @@ export class RedisService {
     return this.client.get(key);
   }
 
+  /** Read and delete in a single atomic step (Redis 6.2+). */
+  async getDel(key: string): Promise<string | null> {
+    return this.client.getdel(key);
+  }
+
   async del(key: string): Promise<void> {
     await this.client.del(key);
   }

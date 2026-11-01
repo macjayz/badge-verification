@@ -1,4 +1,3 @@
-// src/entities/Achievement.ts - FIXED VERSION
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 export enum AchievementType {
@@ -11,7 +10,7 @@ export enum AchievementType {
 
 export enum AchievementTier {
   BRONZE = 'bronze',
-  SILVER = 'silver', 
+  SILVER = 'silver',
   GOLD = 'gold',
   PLATINUM = 'platinum'
 }
@@ -65,13 +64,13 @@ export class Achievement {
 
   updateProgress(newValue: number): boolean {
     this.currentValue = newValue;
-    
+
     if (!this.isCompleted && this.currentValue >= this.targetValue) {
       this.isCompleted = true;
       this.completedAt = new Date();
       return true; // Achievement unlocked!
     }
-    
+
     return false;
   }
 }

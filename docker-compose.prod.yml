@@ -1,34 +1,28 @@
-# Full stack: app + Postgres + Redis.
+# Full stack: app, Postgres and Redis.
 #
-#   cp .env.example .env     # then set JWT_SECRET and ADMIN_PASSWORD
+#   cp .env.example .env     # fill in the production values (see README, "Deploying")
 #   docker compose -f docker-compose.prod.yml up -d --build
 #   docker compose -f docker-compose.prod.yml run --rm app npm run migration:run:prod
-#
-# docker-compose.yml (without -f) remains the local-development file that
-# starts only Postgres and Redis for `npm run dev`.
 
 services:
   app:
     build: .
     restart: unless-stopped
+    env_file: .env
     ports:
       - "${PORT:-3000}:3000"
     environment:
       NODE_ENV: production
       PORT: 3000
-      # Service names on the compose network, not the host port mappings
+      # Compose service names, not the host port mappings used for local development.
       DB_HOST: db
       DB_PORT: 5432
-      DB_USERNAME: ${DB_USERNAME:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      DB_NAME: ${DB_NAME:-badgedb}
       REDIS_URL: redis://redis:6379
-      # Required in production - the app refuses to start without them
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
-      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000}
-      USE_REAL_ADAPTERS: ${USE_REAL_ADAPTERS:-false}
+      USE_REAL_ADAPTERS: "true"
+      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS:?set CONTRACT_ADDRESS in .env}
+      DEPLOYER_PRIVATE_KEY: ${DEPLOYER_PRIVATE_KEY:?set DEPLOYER_PRIVATE_KEY in .env}
     depends_on:
       db:
         condition: service_healthy
@@ -36,11 +30,11 @@ services:
         condition: service_started
 
   db:
-    image: postgres:15
+    image: postgres:16
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
       POSTGRES_DB: ${DB_NAME:-badgedb}
     volumes:
       - postgres_data:/var/lib/postgresql/data

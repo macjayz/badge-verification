@@ -507,13 +507,13 @@
     <div class="dashboard">
         <!-- Sidebar -->
         <div class="sidebar">
-            <h1>🏢 Issuer Portal</h1>
+            <h1>Issuer Portal</h1>
             <nav>
-                <a href="/issuer-dashboard.html">📊 Dashboard</a>
-                <a href="/issuer-badge-creator.html" class="active">🪙 Create Badge</a>
-                <a href="/issuer-analytics.html">📈 Analytics</a>
-                <a href="/issuer-social-rules.html">🔗 Social Rules</a>
-                <a href="/issuer-settings.html">⚙️ Settings</a>
+                <a href="/issuer-dashboard.html">Dashboard</a>
+                <a href="/issuer-badge-creator.html" class="active">Create Badge</a>
+                <a href="/issuer-analytics.html">Analytics</a>
+                <a href="/issuer-social-rules.html">Social Rules</a>
+                <a href="/issuer-settings.html">Settings</a>
             </nav>
             
             <div class="issuer-info">
@@ -527,9 +527,8 @@
             <div class="header">
                 <h2>Create New Badge</h2>
                 <div class="header-actions">
-                    <button class="btn btn-warning" onclick="debugAuthState()">🔧 Debug</button>
                     <button class="btn btn-outline" onclick="loadFromGeneratedRules()">
-                        🚀 Auto-Fill Rules
+                        Auto-Fill Rules
                     </button>
                 </div>
             </div>
@@ -544,7 +543,7 @@
                     <form id="badgeCreationForm">
                         <!-- Basic Information -->
                         <div class="form-section">
-                            <div class="section-title">📝 Basic Information</div>
+                            <div class="section-title">Basic Information</div>
                             
                             <div class="form-group">
                                 <label class="form-label">Badge Key *</label>
@@ -578,7 +577,7 @@
 
                         <!-- Quick Templates -->
                         <div class="form-section">
-                            <div class="section-title">🎨 Quick Templates</div>
+                            <div class="section-title">Quick Templates</div>
                             <div class="template-selector">
                                 <div class="template-card" data-template="community">
                                     <div class="template-icon">👥</div>
@@ -605,7 +604,7 @@
 
                         <!-- Eligibility Rules -->
                         <div class="form-section">
-                            <div class="section-title">🎯 Eligibility Rules</div>
+                            <div class="section-title">Eligibility Rules</div>
                             
                             <div class="rules-builder">
                                 <!-- Primary Verification -->
@@ -647,7 +646,7 @@
                                             + Add Rule
                                         </button>
                                         <button type="button" class="btn btn-outline btn-sm" onclick="openRuleTemplates()">
-                                            📚 Rule Templates
+                                            Rule Templates
                                         </button>
                                     </div>
                                 </div>
@@ -656,7 +655,7 @@
 
                         <!-- Advanced Settings -->
                         <div class="form-section">
-                            <div class="section-title">⚙️ Advanced Settings</div>
+                            <div class="section-title">Advanced Settings</div>
                             
                             <div class="form-group">
                                 <div class="checkbox-group">
@@ -684,13 +683,13 @@
                         <!-- Form Actions -->
                         <div class="form-actions">
                             <button type="submit" class="btn btn-success" id="submitBtn">
-                                🚀 Create Badge
+                                Create Badge
                             </button>
                             <button type="button" class="btn btn-outline" onclick="previewBadge()">
-                                👁️ Preview
+                                Preview
                             </button>
                             <button type="button" class="btn" onclick="resetForm()">
-                                🔄 Reset
+                                Reset
                             </button>
                         </div>
                     </form>
@@ -735,7 +734,7 @@
     <div id="ruleTemplatesModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>📚 Rule Templates</h3>
+                <h3>Rule Templates</h3>
                 <button class="modal-close" onclick="closeRuleTemplates()">&times;</button>
             </div>
             
@@ -753,8 +752,8 @@
 
     <script>
         // API Configuration
-        const ISSUER_DASHBOARD_API = 'http://localhost:3001/api/issuer-dashboard';
-        const ISSUER_API_URL = 'http://localhost:3001/api/issuer';
+        const ISSUER_DASHBOARD_API = '/api/issuer-dashboard';
+        const ISSUER_API_URL = '/api/issuer';
         
         // Global State
         let issuerData = null;
@@ -763,7 +762,6 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Badge Creator Loading...');
             
             // Check if issuer is authenticated
             const apiKey = localStorage.getItem('issuerApiKey');
@@ -800,7 +798,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error loading issuer data:', error);
+                console.error('Error loading issuer data:', error);
             }
         }
 
@@ -1174,7 +1172,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error loading generated rules:', error);
+                console.error('Error loading generated rules:', error);
                 showError('Error loading generated rules: ' + error.message);
             }
         }
@@ -1271,7 +1269,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error loading rule templates:', error);
+                console.error('Error loading rule templates:', error);
                 showError('Error loading rule templates: ' + error.message);
             }
         }
@@ -1350,7 +1348,6 @@
                     }
                 };
                 
-                console.log('📦 Creating badge with data:', formData);
                 
                 // Make API request
                 const apiKey = localStorage.getItem('issuerApiKey');
@@ -1363,10 +1360,8 @@
                     body: JSON.stringify(formData)
                 });
                 
-                console.log('📡 Response status:', response.status);
                 
                 const result = await response.json();
-                console.log('✅ Badge creation response:', result);
                 
                 if (result.success) {
                     showSuccess('Badge created successfully!');
@@ -1381,7 +1376,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error creating badge:', error);
+                console.error('Error creating badge:', error);
                 showError('Error creating badge: ' + error.message);
             } finally {
                 submitBtn.disabled = false;
@@ -1407,19 +1402,6 @@
         function previewBadge() {
             updatePreview();
             showSuccess('Preview updated! Scroll up to see your badge.');
-        }
-
-        // Debug Auth State
-        function debugAuthState() {
-            const apiKey = localStorage.getItem('issuerApiKey');
-            const issuer = localStorage.getItem('issuerData');
-            
-            console.log('=== 🔍 ISSUER AUTH DEBUG ===');
-            console.log('API Key exists:', !!apiKey);
-            console.log('Issuer data exists:', !!issuer);
-            console.log('Current template:', currentTemplate);
-            console.log('Secondary rule count:', secondaryRuleCount);
-            console.log('========================');
         }
 
         // Auth Fetch for Issuer API
@@ -1451,7 +1433,7 @@
                 
                 return response;
             } catch (error) {
-                console.error('❌ Fetch error:', error);
+                console.error('Fetch error:', error);
                 throw error;
             }
         }
@@ -1462,7 +1444,7 @@
             el.textContent = message;
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 5000);
-            console.error('💥 Error:', message);
+            console.error('Error:', message);
         }
 
         function showSuccess(message) {
@@ -1470,7 +1452,6 @@
             el.textContent = message;
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 5000);
-            console.log('✅ Success:', message);
         }
 
         // Close modal when clicking outside

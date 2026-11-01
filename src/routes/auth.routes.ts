@@ -1,11 +1,14 @@
 import { Router } from 'express';
 import { authController } from '../controllers/auth.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
+import { config } from '../config';
 
 const router = Router();
 
 // Public routes
-router.get('/nonce', authController.getNonce); 
+// Lets the login page hide sign-in options this server does not offer.
+router.get('/options', (_req, res) => res.json({ demoLogin: !config.server.isProduction }));
+router.get('/nonce', authController.getNonce);
 router.post('/init', authController.initAuth);
 router.post('/verify', authController.verifyAuth);
 router.post('/dev-verify', authController.devVerify);

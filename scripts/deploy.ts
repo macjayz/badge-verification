@@ -1,64 +1,33 @@
 import { ethers } from "hardhat";
+import { BADGE_NAME, BADGE_SYMBOL } from "./collection";
+
+// Starter badge types. Their ids must match contractBadgeTypeId on the badge types in the database.
+const BADGE_TYPES = [
+  { id: 1, name: "Verified Creator", description: "Identity-verified content creator", maxSupply: 10_000 },
+  { id: 2, name: "Early Supporter", description: "Early supporter with historical on-chain activity", maxSupply: 5_000 },
+  { id: 3, name: "DAO Voter", description: "Active participant in DAO governance", maxSupply: 3_000 },
+];
 
 async function main() {
-  console.log("🚀 Deploying BadgeSBT contract...");
-
-  // Get the deployer
   const [deployer] = await ethers.getSigners();
-  console.log(`Deploying contract with account: ${deployer.address}`);
+  console.log(`Deploying BadgeSBT from ${deployer.address}`);
 
-  // Deploy the contract
-  const BadgeSBT = await ethers.getContractFactory("BadgeSBT");
-  const badgeSBT = await BadgeSBT.deploy("DeFi Camp Badges", "DFCBADGE");
-  
+  const badgeSBT = await (await ethers.getContractFactory("BadgeSBT")).deploy(BADGE_NAME, BADGE_SYMBOL);
   await badgeSBT.waitForDeployment();
-  const contractAddress = await badgeSBT.getAddress();
+  const address = await badgeSBT.getAddress();
+  console.log(`BadgeSBT deployed at ${address} (tx ${badgeSBT.deploymentTransaction()?.hash})`);
 
-  console.log(`✅ BadgeSBT deployed to: ${contractAddress}`);
-  console.log(`📝 Transaction hash: ${badgeSBT.deploymentTransaction()?.hash}`);
+  const metadataBase = process.env.BADGE_METADATA_BASE_URL;
+  for (const type of BADGE_TYPES) {
+    const uri = metadataBase ? `${metadataBase.replace(/\/$/, "")}/${type.id}.json` : "";
+    await (await badgeSBT.createBadgeType(type.id, type.name, type.description, uri, type.maxSupply)).wait();
+    console.log(`Created badge type ${type.id}: ${type.name}`);
+  }
 
-  // Create initial badge types
-  console.log("🏷️ Creating initial badge types...");
-  
-  // Verified Creator Badge
-  const tx1 = await badgeSBT.createBadgeType(
-    1, // badgeTypeId
-    "Verified Creator", 
-    "Identity-verified content creator with proven credentials",
-    "https://badges.defi.camp/metadata/verified-creator.json",
-    10000 // max supply
-  );
-  await tx1.wait();
-  console.log("✅ Created Verified Creator badge type");
-
-  // Early Supporter Badge
-  const tx2 = await badgeSBT.createBadgeType(
-    2, // badgeTypeId
-    "Early Supporter", 
-    "Early supporter of DeFi Camp with historical activity",
-    "https://badges.defi.camp/metadata/early-supporter.json",
-    5000 // max supply
-  );
-  await tx2.wait();
-  console.log("✅ Created Early Supporter badge type");
-
-  // DAO Voter Badge
-  const tx3 = await badgeSBT.createBadgeType(
-    3, // badgeTypeId
-    "DAO Voter", 
-    "Active participant in governance and DAO voting",
-    "https://badges.defi.camp/metadata/dao-voter.json",
-    3000 // max supply
-  );
-  await tx3.wait();
-  console.log("✅ Created DAO Voter badge type");
-
-  console.log("🎉 Deployment completed successfully!");
-  console.log(`🔗 Contract address: ${contractAddress}`);
-  console.log(`👤 Deployer: ${deployer.address}`);
+  console.log(`\nSet CONTRACT_ADDRESS=${address} in the backend environment.`);
 }
 
 main().catch((error) => {
-  console.error("❌ Deployment failed:", error);
+  console.error("Deployment failed:", error);
   process.exitCode = 1;
 });

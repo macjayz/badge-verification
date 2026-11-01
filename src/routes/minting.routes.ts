@@ -1,19 +1,18 @@
-// src/routes/minting.routes.ts
 import { Router } from 'express';
 import { mintingController } from '../controllers/minting.controller';
-import { authenticateToken } from '../middleware/auth.middleware'; // CORRECT IMPORT NAME
+import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
 
 // All minting routes require authentication
 router.use(authenticateToken);
 
-// Use the controller methods directly (they now use asyncHandler)
 router.post('/initiate', mintingController.initiateMint);
 router.get('/status/:mintId', mintingController.getMintStatus);
 router.get('/user/mints', mintingController.getUserMints);
 router.get('/user/badges', mintingController.getActiveBadges);
 router.post('/check-eligibility', mintingController.checkMintEligibility);
-router.post('/revoke', mintingController.revokeBadge);
+// Revoking a badge is an administrative action, not something a holder can do to anyone's badge.
+router.post('/revoke', requireAdmin, mintingController.revokeBadge);
 
 export { router as mintingRoutes };

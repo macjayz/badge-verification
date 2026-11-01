@@ -64,7 +64,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="logo">🎖️ Badge System - Gallery</div>
+        <div class="logo">Badge System - Gallery</div>
         <div class="user-info">
             <div class="wallet-address" id="walletAddress">Loading...</div>
             <button class="back-btn" onclick="goToDashboard()">Dashboard</button>
@@ -112,6 +112,17 @@
         </div>
     </div>
 
+    <!-- Badge info modal: details, requirements and eligibility -->
+    <div class="modal" id="infoModal">
+        <div class="modal-content">
+            <h3 id="infoTitle"></h3>
+            <div id="infoBody" style="text-align: left; margin: 1rem 0; line-height: 1.6;"></div>
+            <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem;">
+                <button class="btn btn-primary" onclick="closeInfoModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Share Modal -->
     <div class="modal" id="shareModal">
         <div class="modal-content">
@@ -120,28 +131,12 @@
             
             <div class="share-options">
                 <div class="share-option" onclick="shareToTwitter()">
-                    <div style="font-size: 2rem;">🐦</div>
-                    <div>Twitter</div>
+                    <div style="font-size: 2rem;">𝕏</div>
+                    <div>Post on X</div>
                 </div>
-                <div class="share-option" onclick="shareToDiscord()">
-                    <div style="font-size: 2rem;">💬</div>
-                    <div>Discord</div>
-                </div>
-                <div class="share-option" onclick="copyShareLink()">
-                    <div style="font-size: 2rem;">🔗</div>
-                    <div>Copy Link</div>
-                </div>
-                <div class="share-option" onclick="downloadBadgeImage()">
-                    <div style="font-size: 2rem;">📷</div>
-                    <div>Save Image</div>
-                </div>
-                <div class="share-option" onclick="generateVerificationProof()">
-                    <div style="font-size: 2rem;">🔐</div>
-                    <div>Proof</div>
-                </div>
-                <div class="share-option" onclick="embedBadge()">
-                    <div style="font-size: 2rem;">📄</div>
-                    <div>Embed</div>
+                <div class="share-option" onclick="copyShareText()">
+                    <div style="font-size: 2rem;">⧉</div>
+                    <div>Copy text</div>
                 </div>
             </div>
             
@@ -243,8 +238,8 @@
                     </div>
                     
                     <div class="badge-status ${'status-' + badge.status}">
-                        ${badge.status === 'earned' ? '✅ Earned' : 
-                          badge.status === 'available' ? '🔓 Available' : '🔒 Locked'}
+                        ${badge.status === 'earned' ? 'Earned' : 
+                          badge.status === 'available' ? 'Available' : 'Locked'}
                     </div>
                     
                     <div class="badge-actions">
@@ -332,43 +327,20 @@
         }
 
         function shareToTwitter() {
-            const badgeName = currentBadgeForSharing?.badgeType?.name || currentBadgeForSharing?.name;
-            const text = `I just earned the "${badgeName}" badge! 🎖️ Check out my achievements.`;
-            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText())}`;
             window.open(url, '_blank');
             closeShareModal();
         }
 
-        function shareToDiscord() {
-            alert('Discord sharing would embed your badge in Discord channels. Feature coming soon!');
-            closeShareModal();
+        function shareText() {
+            const badge = currentBadgeForSharing;
+            const name = badge?.badgeType?.name || badge?.name;
+            const tx = badge?.transactionHash ? ` Minted in transaction ${badge.transactionHash}.` : '';
+            return `I earned the "${name}" badge.${tx}`;
         }
 
-        function copyShareLink() {
-            const badgeId = currentBadgeForSharing?.id;
-            const link = `${window.location.origin}/badge-proof/${badgeId}`;
-            navigator.clipboard.writeText(link).then(() => {
-                alert('Share link copied to clipboard!');
-            });
-            closeShareModal();
-        }
-
-        function downloadBadgeImage() {
-            alert('This would generate and download a beautiful badge image for sharing on social media.');
-            closeShareModal();
-        }
-
-        function generateVerificationProof() {
-            alert('This would generate a cryptographic proof of your badge ownership.');
-            closeShareModal();
-        }
-
-        function embedBadge() {
-            const badgeId = currentBadgeForSharing?.id;
-            const embedCode = `<script src="${window.location.origin}/embed.js?badge=${badgeId}"><\/script>`;
-            navigator.clipboard.writeText(embedCode).then(() => {
-                alert('Embed code copied to clipboard! Paste this on your website.');
-            });
+        function copyShareText() {
+            navigator.clipboard.writeText(shareText()).then(() => alert('Copied to clipboard.'));
             closeShareModal();
         }
 
@@ -396,16 +368,79 @@
             }
         }
 
-        function checkEligibility(badgeId) {
-            alert('This would check your eligibility for the badge. Feature coming soon!');
+        function escapeHtml(value) {
+            const div = document.createElement('div');
+            div.textContent = value == null ? '' : String(value);
+            return div.innerHTML;
+        }
+
+        function describeRules(rules) {
+            if (!rules) return '<p>This badge has no published requirements.</p>';
+            const items = [];
+            for (const provider of rules.primary || []) {
+                items.push(`Verify your identity with ${escapeHtml(provider)}`);
+            }
+            for (const rule of rules.secondary || []) {
+                const p = rule.params || {};
+                const text = {
+                    twitter_follow: `Follow @${p.account} on X`,
+                    discord_member: `Join the Discord server ${p.serverName || p.serverId}`,
+                    snapshot_votes: `Cast at least ${p.minVotes || 1} Snapshot vote(s)${p.space ? ` in ${p.space}` : ''}`,
+                    onchain_activity: `Send at least ${p.minTransactions || 1} on-chain transaction(s)`
+                }[rule.method] || rule.method;
+                items.push(escapeHtml(text) + (rule.required === false ? ' (optional)' : ''));
+            }
+            return items.length ? `<ul>${items.map(i => `<li>${i}</li>`).join('')}</ul>` : '<p>No requirements.</p>';
+        }
+
+        function openInfoModal(title, html) {
+            document.getElementById('infoTitle').textContent = title;
+            document.getElementById('infoBody').innerHTML = html;
+            document.getElementById('infoModal').style.display = 'flex';
+        }
+
+        function closeInfoModal() {
+            document.getElementById('infoModal').style.display = 'none';
+        }
+
+        async function checkEligibility(badgeId) {
+            const badge = allBadges.find(b => b.id === badgeId);
+            try {
+                const response = await fetch(`${API_BASE}/check-eligibility`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
+                    body: JSON.stringify({ badgeTypeId: badgeId })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || 'Eligibility check failed');
+
+                const missing = (result.reasons || []).map(r => `<li>${escapeHtml(r)}</li>`).join('');
+                openInfoModal(badge?.name || 'Eligibility', result.isEligible
+                    ? '<p>You meet every requirement and can mint this badge.</p>'
+                    : `<p>You are not eligible yet. Still needed:</p><ul>${missing}</ul>`);
+            } catch (error) {
+                openInfoModal('Eligibility', `<p>${escapeHtml(error.message)}</p>`);
+            }
         }
 
         function viewBadgeDetails(badgeId) {
-            alert('This would show detailed information about the badge. Feature coming soon!');
+            const badge = allBadges.find(b => b.id === badgeId);
+            if (!badge) return;
+            const type = badge.badgeType || badge;
+            const rows = [
+                ['Issuer', type.issuer?.name || type.issuer || badge.issuer],
+                ['Earned', badge.earnedDate && new Date(badge.earnedDate).toLocaleString()],
+                ['Token ID', badge.tokenId],
+                ['Transaction', badge.transactionHash]
+            ].filter(([, value]) => value);
+            openInfoModal(type.name, `<p>${escapeHtml(type.description || '')}</p>` +
+                rows.map(([label, value]) => `<div><strong>${label}:</strong> <code style="word-break: break-all;">${escapeHtml(value)}</code></div>`).join(''));
         }
 
         function viewRequirements(badgeId) {
-            alert('This would show the requirements to earn this badge. Feature coming soon!');
+            const badge = allBadges.find(b => b.id === badgeId);
+            if (!badge) return;
+            openInfoModal(`Requirements: ${badge.name}`, describeRules(badge.rules));
         }
 
         function goToDashboard() {
@@ -414,10 +449,8 @@
 
         // Close modal when clicking outside
         window.onclick = function(event) {
-            const modal = document.getElementById('shareModal');
-            if (event.target === modal) {
-                closeShareModal();
-            }
+            if (event.target === document.getElementById('shareModal')) closeShareModal();
+            if (event.target === document.getElementById('infoModal')) closeInfoModal();
         }
     </script>
 </body>

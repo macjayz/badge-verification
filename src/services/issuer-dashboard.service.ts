@@ -1,10 +1,10 @@
-// src/services/issuer-dashboard.service.ts
 import { AppDataSource } from '../db/datasource';
 import { IssuerProfile } from '../entities/IssuerProfile';
 import { ProjectSocialRules } from '../entities/ProjectSocialRules';
 import { Issuer } from '../entities/Issuer';
 import { BadgeType } from '../entities/BadgeType';
 import { BadgeMint } from '../entities/BadgeMint';
+import { Verification } from '../entities/Verification';
 import { logger } from '../utils/logger';
 
 const issuerProfileRepository = AppDataSource.getRepository(IssuerProfile);
@@ -12,6 +12,12 @@ const projectSocialRulesRepository = AppDataSource.getRepository(ProjectSocialRu
 const issuerRepository = AppDataSource.getRepository(Issuer);
 const badgeTypeRepository = AppDataSource.getRepository(BadgeType);
 const badgeMintRepository = AppDataSource.getRepository(BadgeMint);
+const verificationRepository = AppDataSource.getRepository(Verification);
+
+const EDITABLE_PROFILE_FIELDS = [
+  'projectName', 'description', 'website', 'contactEmail', 'twitterHandle',
+  'discordServerId', 'discordServerName', 'snapshotSpace', 'githubOrganization', 'socialConfig'
+] as const;
 
 export interface IssuerDashboardStats {
   totalBadges: number;
@@ -23,8 +29,12 @@ export interface IssuerDashboardStats {
   recentActivity: Array<{
     date: string;
     mints: number;
+    completed: number;
     verifications: number;
+    newWallets: number;
   }>;
+  verificationRates: Record<string, { completed: number; total: number }>;
+  avgMintSeconds: number | null;
   topBadges: Array<{
     id: string;
     name: string;
@@ -87,9 +97,9 @@ export class IssuerDashboardService {
     });
 
     await issuerProfileRepository.save(profile);
-    
+
     logger.info(`Created issuer profile for: ${projectName} (${issuerId})`);
-    
+
     return profile;
   }
 
@@ -123,11 +133,16 @@ export class IssuerDashboardService {
       throw new Error('Issuer profile not found');
     }
 
-    Object.assign(profile, updates);
+    // Copy only editable fields; isVerified, onboardingStatus and issuerId are not the issuer's to set.
+    for (const field of EDITABLE_PROFILE_FIELDS) {
+      if (updates[field] !== undefined) {
+        (profile as any)[field] = updates[field];
+      }
+    }
     await issuerProfileRepository.save(profile);
 
     logger.info(`Updated issuer profile for: ${profile.projectName}`);
-    
+
     return profile;
   }
 
@@ -148,7 +163,7 @@ export class IssuerDashboardService {
       throw new Error('Issuer not found');
     }
 
-    // FIXED: Create the rule object properly
+    // Create the rule object properly
     const rule = new ProjectSocialRules();
     rule.issuerId = issuerId;
     rule.ruleType = ruleType as any; // Type assertion for the enum
@@ -160,9 +175,9 @@ export class IssuerDashboardService {
     rule.isActive = true;
 
     await projectSocialRulesRepository.save(rule);
-    
+
     logger.info(`Created social rule: ${name} for issuer: ${issuer.name}`);
-    
+
     return rule;
   }
 
@@ -197,7 +212,7 @@ export class IssuerDashboardService {
     await projectSocialRulesRepository.save(rule);
 
     logger.info(`Updated social rule: ${rule.name}`);
-    
+
     return rule;
   }
 
@@ -211,11 +226,11 @@ export class IssuerDashboardService {
     }
 
     await projectSocialRulesRepository.remove(rule);
-    
+
     logger.info(`Deleted social rule: ${rule.name}`);
   }
 
-  async getIssuerDashboardStats(issuerId: string): Promise<IssuerDashboardStats> {
+  async getIssuerDashboardStats(issuerId: string, days = 30): Promise<IssuerDashboardStats> {
     // Get issuer's badges
     const badges = await badgeTypeRepository.find({
       where: { issuer: { id: issuerId } },
@@ -225,28 +240,38 @@ export class IssuerDashboardService {
     // Calculate stats
     const totalBadges = badges.length;
     const activeBadges = badges.filter(b => b.isActive).length;
-    
+
     const allMints = badges.flatMap(badge => badge.mints || []);
     const totalMints = allMints.length;
-    
-    // FIXED: Use metadata.status instead of direct status property
-    const successfulMints = allMints.filter(mint => mint.metadata?.status === 'completed').length;
+
+    // Use metadata.status instead of direct status property
+    const isCompleted = (mint: BadgeMint) => ['completed', 'success'].includes(mint.metadata?.status);
+    const successfulMints = allMints.filter(isCompleted).length;
     const failedMints = allMints.filter(mint => mint.metadata?.status === 'failed').length;
     const successRate = totalMints > 0 ? (successfulMints / totalMints) * 100 : 0;
 
-    // Get recent activity (last 7 days)
-    const recentActivity = await this.getRecentActivity(issuerId);
+    const recentActivity = await this.getRecentActivity(issuerId, days);
+    const verificationRates = await this.getVerificationRates(issuerId);
+
+    // Time from the mint request to its confirmation, over completed mints.
+    const durations = allMints
+      .filter(isCompleted)
+      .map(mint => (new Date(mint.updatedAt).getTime() - new Date(mint.createdAt).getTime()) / 1000)
+      .filter(seconds => seconds >= 0);
+    const avgMintSeconds = durations.length
+      ? Math.round(durations.reduce((sum, seconds) => sum + seconds, 0) / durations.length)
+      : null;
 
     // Get top badges by mint count
     const topBadges = badges
       .map(badge => {
         const badgeMints = badge.mints || [];
-        // FIXED: Use metadata.status
-        const completedMints = badgeMints.filter(m => m.metadata?.status === 'completed').length;
-        const badgeSuccessRate = badgeMints.length > 0 
-          ? (completedMints / badgeMints.length) * 100 
+        // Use metadata.status
+        const completedMints = badgeMints.filter(isCompleted).length;
+        const badgeSuccessRate = badgeMints.length > 0
+          ? (completedMints / badgeMints.length) * 100
           : 0;
-        
+
         return {
           id: badge.id,
           name: badge.name,
@@ -265,22 +290,101 @@ export class IssuerDashboardService {
       failedMints,
       successRate,
       recentActivity,
+      verificationRates,
+      avgMintSeconds,
       topBadges
     };
   }
 
-  private async getRecentActivity(issuerId: string): Promise<Array<{ date: string; mints: number; verifications: number }>> {
-    // Simplified implementation - in production, you'd query by date ranges
-    const last7Days = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      return date.toISOString().split('T')[0];
-    }).reverse();
+  private async getRecentActivity(issuerId: string, days: number): Promise<IssuerDashboardStats['recentActivity']> {
+    const since = new Date();
+    since.setUTCHours(0, 0, 0, 0);
+    since.setUTCDate(since.getUTCDate() - (days - 1));
+    const dayOf = (column: string) => `to_char(date_trunc('day', ${column} AT TIME ZONE 'UTC'), 'YYYY-MM-DD')`;
 
-    return last7Days.map(date => ({
-      date,
-      mints: Math.floor(Math.random() * 10), // Mock data
-      verifications: Math.floor(Math.random() * 15) // Mock data
+    const mintRows: Array<{ day: string; mints: string; completed: string }> = await badgeMintRepository
+      .createQueryBuilder('mint')
+      .innerJoin('mint.badgeType', 'badgeType')
+      .select(dayOf('mint.createdAt'), 'day')
+      .addSelect('COUNT(*)', 'mints')
+      .addSelect("COUNT(CASE WHEN mint.metadata ->> 'status' IN ('completed', 'success') THEN 1 END)", 'completed')
+      .where('badgeType.issuerId = :issuerId', { issuerId })
+      .andWhere('mint.createdAt >= :since', { since })
+      .groupBy('day')
+      .getRawMany();
+
+    // A wallet counts as new on the day of its first mint of any of this issuer's badges.
+    const firstMintRows: Array<{ day: string; count: string }> = await AppDataSource.query(
+      `SELECT to_char(date_trunc('day', first_mint AT TIME ZONE 'UTC'), 'YYYY-MM-DD') AS day, COUNT(*) AS count
+         FROM (SELECT mint.wallet, MIN(mint."createdAt") AS first_mint
+                 FROM badge_mints mint
+                 JOIN badge_types badge_type ON badge_type.id = mint."badgeTypeId"
+                WHERE badge_type."issuerId" = $1
+                GROUP BY mint.wallet) firsts
+        WHERE first_mint >= $2
+        GROUP BY day`,
+      [issuerId, since]
+    );
+
+    const verificationRows: Array<{ day: string; count: string }> = await verificationRepository
+      .createQueryBuilder('verification')
+      .select(dayOf('verification.createdAt'), 'day')
+      .addSelect('COUNT(*)', 'count')
+      .where("verification.metadata ->> 'issuerId' = :issuerId", { issuerId })
+      .andWhere('verification.createdAt >= :since', { since })
+      .groupBy('day')
+      .getRawMany();
+
+    const mints = new Map(mintRows.map(row => [row.day, row]));
+    const newWallets = new Map(firstMintRows.map(row => [row.day, Number(row.count)]));
+    const verifications = new Map(verificationRows.map(row => [row.day, Number(row.count)]));
+
+    return Array.from({ length: days }, (_, i) => {
+      const day = new Date(since);
+      day.setUTCDate(since.getUTCDate() + i);
+      const date = day.toISOString().slice(0, 10);
+      return {
+        date,
+        mints: Number(mints.get(date)?.mints ?? 0),
+        completed: Number(mints.get(date)?.completed ?? 0),
+        verifications: verifications.get(date) ?? 0,
+        newWallets: newWallets.get(date) ?? 0
+      };
+    });
+  }
+
+  private async getVerificationRates(issuerId: string): Promise<IssuerDashboardStats['verificationRates']> {
+    const rows: Array<{ provider: string; completed: string; total: string }> = await verificationRepository
+      .createQueryBuilder('verification')
+      .select('verification.provider', 'provider')
+      .addSelect("COUNT(CASE WHEN verification.status = 'completed' THEN 1 END)", 'completed')
+      .addSelect('COUNT(*)', 'total')
+      .where("verification.metadata ->> 'issuerId' = :issuerId", { issuerId })
+      .groupBy('verification.provider')
+      .getRawMany();
+    return Object.fromEntries(rows.map(row => [row.provider, { completed: Number(row.completed), total: Number(row.total) }]));
+  }
+
+  /** Mints of this issuer's badges, newest first, for exports. */
+  async getIssuerMints(issuerId: string, limit = 1000) {
+    const mints = await badgeMintRepository
+      .createQueryBuilder('mint')
+      .innerJoinAndSelect('mint.badgeType', 'badgeType')
+      .where('badgeType.issuerId = :issuerId', { issuerId })
+      .orderBy('mint.createdAt', 'DESC')
+      .take(Math.min(Math.max(limit, 1), 10000))
+      .getMany();
+
+    return mints.map(mint => ({
+      id: mint.id,
+      createdAt: mint.createdAt,
+      badgeKey: mint.badgeType.key,
+      badgeName: mint.badgeType.name,
+      wallet: mint.wallet,
+      status: mint.metadata?.status === 'success' ? 'completed' : mint.metadata?.status ?? 'unknown',
+      tokenId: mint.tokenId ?? null,
+      transactionHash: mint.transactionHash ?? null,
+      revoked: mint.isRevoked
     }));
   }
 

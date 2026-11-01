@@ -24,7 +24,7 @@ export class IssuerController {
         contactEmail
       );
 
-      // IMPORTANT: Return API key only once during registration
+      // Return API key only once during registration
       res.status(201).json({
         success: true,
         message: 'Issuer registered successfully',
@@ -44,7 +44,7 @@ export class IssuerController {
 
     } catch (error) {
       logger.error('Register issuer error:', error);
-      
+
       if (error instanceof Error) {
         return res.status(400).json({
           success: false,
@@ -85,7 +85,7 @@ export class IssuerController {
         });
       }
 
-      // Validate rules structure - FIXED: Use static method
+      // Validate rules structure
       if (!IssuerController.validateBadgeRules(rules)) {
         return res.status(400).json({
           success: false,
@@ -125,7 +125,7 @@ export class IssuerController {
 
     } catch (error) {
       logger.error('Create badge type error:', error);
-      
+
       if (error instanceof Error) {
         return res.status(400).json({
           success: false,
@@ -215,7 +215,7 @@ export class IssuerController {
 
     } catch (error) {
       logger.error('Update badge type error:', error);
-      
+
       if (error instanceof Error) {
         return res.status(400).json({
           success: false,
@@ -251,7 +251,7 @@ export class IssuerController {
 
     } catch (error) {
       logger.error('Rotate API key error:', error);
-      
+
       if (error instanceof Error) {
         return res.status(400).json({
           success: false,
@@ -308,7 +308,7 @@ export class IssuerController {
     }
   }
 
-  // FIXED: Make this a static method to avoid 'this' binding issues
+  // Make this a static method to avoid 'this' binding issues
   private static validateBadgeRules(rules: any): rules is BadgeRules {
     if (!rules.primary || !Array.isArray(rules.primary)) {
       return false;

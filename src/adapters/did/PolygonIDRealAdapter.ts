@@ -34,7 +34,7 @@ export class PolygonIDRealAdapter implements DIDAdapter {
     this.apiBaseUrl = process.env.POLYGONID_API_URL || 'https://api.polygonid.com';
     this.clientId = process.env.POLYGONID_CLIENT_ID!;
     this.clientSecret = process.env.POLYGONID_CLIENT_SECRET!;
-    
+
     if (!this.clientId || !this.clientSecret) {
       logger.warn('Polygon ID credentials not configured - using fallback mode');
     }
@@ -79,7 +79,7 @@ export class PolygonIDRealAdapter implements DIDAdapter {
       }
 
       const data = await response.json() as PolygonIDVerificationAPIResponse;
-      
+
       return {
         success: true,
         challengeUrl: data.verification_url,
@@ -105,7 +105,7 @@ export class PolygonIDRealAdapter implements DIDAdapter {
       }
 
       const token = await this.getAccessToken();
-      
+
       // Check verification status with Polygon ID
       const response = await fetch(`${this.apiBaseUrl}/v1/verifications/${sessionId}`, {
         method: 'GET',
@@ -119,7 +119,7 @@ export class PolygonIDRealAdapter implements DIDAdapter {
       }
 
       const data = await response.json() as PolygonIDVerificationStatus;
-      
+
       if (data.status === 'verified') {
         return {
           success: true,

@@ -1,14 +1,10 @@
 import { AppDataSource } from '../db/datasource';
 import { Achievement, AchievementType, AchievementTier } from '../entities/Achievement';
 import { User } from '../entities/User';
-import { BadgeMint } from '../entities/BadgeMint';
-import { Verification } from '../entities/Verification';
 import { logger } from '../utils/logger';
 
 const achievementRepository = AppDataSource.getRepository(Achievement);
 const userRepository = AppDataSource.getRepository(User);
-const badgeMintRepository = AppDataSource.getRepository(BadgeMint);
-const verificationRepository = AppDataSource.getRepository(Verification);
 
 export interface AchievementProgress {
   type: AchievementType;
@@ -23,7 +19,7 @@ export interface AchievementProgress {
 }
 
 export class AchievementService {
-  
+
   // Initialize achievements for a user
 async initializeUserAchievements(userId: string): Promise<Achievement[]> {
     const achievementDefinitions = this.getAchievementDefinitions();
@@ -31,10 +27,10 @@ async initializeUserAchievements(userId: string): Promise<Achievement[]> {
 
     for (const definition of achievementDefinitions) {
         const existing = await achievementRepository.findOne({
-            where: { 
+            where: {
                 userId: userId,
-                type: definition.type, 
-                tier: definition.tier 
+                type: definition.type,
+                tier: definition.tier
             }
         });
 
@@ -157,14 +153,14 @@ async initializeUserAchievements(userId: string): Promise<Achievement[]> {
   }
 
   // Update achievements when user performs actions
-  async updateAchievements(userId: string, action: string, data?: any): Promise<Achievement[]> {
+  async updateAchievements(userId: string, action: string, _data?: any): Promise<Achievement[]> {
     const userAchievements = await achievementRepository.find({
       where: { userId },
       order: { type: 'ASC', tier: 'ASC' }
     });
 
     const updatedAchievements: Achievement[] = [];
-    let unlockedAchievements: Achievement[] = [];
+    const unlockedAchievements: Achievement[] = [];
 
     for (const achievement of userAchievements) {
       let newValue = achievement.currentValue;
@@ -172,7 +168,7 @@ async initializeUserAchievements(userId: string): Promise<Achievement[]> {
 
       switch (action) {
         case 'badge_minted':
-          if (achievement.type === AchievementType.BADGE_COLLECTOR || 
+          if (achievement.type === AchievementType.BADGE_COLLECTOR ||
               achievement.type === AchievementType.MINTING_EXPERT) {
             newValue = achievement.currentValue + 1;
             shouldUpdate = true;
@@ -198,7 +194,7 @@ async initializeUserAchievements(userId: string): Promise<Achievement[]> {
         const unlocked = achievement.updateProgress(newValue);
         const updated = await achievementRepository.save(achievement);
         updatedAchievements.push(updated);
-        
+
         if (unlocked) {
           unlockedAchievements.push(updated);
           logger.info(`Achievement unlocked: ${achievement.name} for user ${userId}`);
@@ -257,7 +253,7 @@ async initializeUserAchievements(userId: string): Promise<Achievement[]> {
   private emitAchievementUnlocked(userId: string, achievements: Achievement[]): void {
     // This would integrate with your WebSocket service
     achievements.forEach(achievement => {
-      logger.info(`🎉 Achievement Unlocked: User ${userId} earned "${achievement.name}"`);
+      logger.info(`Achievement Unlocked: User ${userId} earned "${achievement.name}"`);
       // webSocketEventsService.sendAchievementUnlocked(userId, achievement);
     });
   }
@@ -265,11 +261,11 @@ async initializeUserAchievements(userId: string): Promise<Achievement[]> {
   // Check and initialize achievements for all users (admin function)
   async initializeAllUsersAchievements(): Promise<void> {
     const users = await userRepository.find();
-    
+
     for (const user of users) {
       await this.initializeUserAchievements(user.id);
     }
-    
+
     logger.info(`Initialized achievements for ${users.length} users`);
   }
 }
