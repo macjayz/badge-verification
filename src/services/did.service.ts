@@ -1,239 +1,101 @@
+import { DIDAdapter } from '../adapters/did/DIDAdapter.interface';
 import { PrivadoIDRealAdapter } from '../adapters/did/PrivadoIDRealAdapter';
-import { IdOSRealAdapter } from '../adapters/did/IdOSRealAdapter';
+import { PrivadoIDStubAdapter } from '../adapters/did/PrivadoIDStubAdapter';
 import { logger } from '../utils/logger';
-import {
-  DIDProviderError,
-  ValidationError,
-  ConfigurationError
-} from '../utils/errors';
+import { DIDProviderError, ValidationError } from '../utils/errors';
+
+/** Older badge rules name Privado ID by its previous brand. */
+const PROVIDER_ALIASES: Record<string, string> = { polygonid: 'privadoid' };
+
+export function canonicalProvider(provider: string): string {
+  const name = provider.toLowerCase();
+  return PROVIDER_ALIASES[name] ?? name;
+}
 
 export class DIDService {
-  private adapters: Map<string, any> = new Map();
+  private adapters = new Map<string, DIDAdapter>();
+  private readonly real = process.env.USE_REAL_ADAPTERS === 'true';
 
   constructor() {
-    this.initializeRealAdapters();
+    // Local development swaps in a stub so identity badges can be tried without a Privado ID
+    // wallet. Production refuses to start without real adapters (see config).
+    const privado = this.real ? new PrivadoIDRealAdapter() : new PrivadoIDStubAdapter();
+    this.adapters.set(privado.getName(), privado);
+    logger.info(`DID providers: ${privado.getName()} (${this.real ? 'live' : 'stub'})`);
   }
 
-  private initializeRealAdapters(): void {
-    try {
-      logger.info('Initializing REAL DID adapters only (no stubs)...');
-
-      let adaptersRegistered = 0;
-
-      // 1. Initialize Privado ID adapter (REQUIRED)
-      const privadoIDAdapter = new PrivadoIDRealAdapter();
-      if (privadoIDAdapter.isAvailable()) {
-        this.adapters.set(privadoIDAdapter.getName(), privadoIDAdapter);
-        adaptersRegistered++;
-        logger.info(`Registered Privado ID adapter: ${privadoIDAdapter.getName()}`);
-      } else {
-        logger.error('Privado ID adapter NOT available - missing PRIVADO_API_KEY');
-        logger.info('Get API key from: https://developer.privado.id');
-      }
-
-      // 2. Initialize IdOS adapter (OPTIONAL)
-      const idOSAdapter = new IdOSRealAdapter();
-      if (idOSAdapter.isAvailable()) {
-        this.adapters.set(idOSAdapter.getName(), idOSAdapter);
-        adaptersRegistered++;
-        logger.info(`Registered IdOS adapter: ${idOSAdapter.getName()}`);
-      } else {
-        logger.warn('IdOS adapter not available (optional)');
-      }
-
-      // Check if at least Privado ID is available
-      if (!privadoIDAdapter.isAvailable()) {
-        throw new ConfigurationError(
-          'DIDService',
-          'Privado ID adapter not configured. Set PRIVADO_API_KEY in environment variables.'
-        );
-      }
-
-      logger.info(`DID Service initialized with ${adaptersRegistered} real adapter(s)`);
-
-    } catch (error: any) {
-      logger.error('Failed to initialize DID adapters:', error);
-      throw new ConfigurationError(
-        'DIDService',
-        `Failed to initialize real adapters: ${error.message}`
-      );
-    }
-  }
-
-  getAdapter(provider: string): any | null {
-    const normalizedProvider = provider.toLowerCase();
-    const adapter = this.adapters.get(normalizedProvider);
-
+  getAdapter(provider: string): DIDAdapter {
+    const adapter = this.adapters.get(canonicalProvider(provider));
     if (!adapter) {
-      throw new ValidationError(
-        `Unsupported DID provider: ${provider}`,
-        {
-          supportedProviders: Array.from(this.adapters.keys()),
-          suggestion: `Available providers: ${Array.from(this.adapters.keys()).join(', ')}`
-        }
-      );
+      throw new ValidationError(`Unsupported DID provider: ${provider}`, {
+        supportedProviders: this.getAvailableAdapters()
+      });
     }
-
-    if (!adapter.isAvailable()) {
-      throw new DIDProviderError(
-        provider,
-        'Adapter not available or not configured',
-        {
-          suggestion: `Check ${provider.toUpperCase()}_API_KEY in environment variables`
-        }
-      );
-    }
-
     return adapter;
   }
 
   getAvailableAdapters(): string[] {
-    return Array.from(this.adapters.values())
-      .filter(adapter => adapter.isAvailable())
-      .map(adapter => adapter.getName());
+    return Array.from(this.adapters.keys());
   }
 
   async initVerification(provider: string, request: any): Promise<any> {
-    // Validate request
     if (!request?.wallet) {
-      throw new ValidationError('Wallet address is required for verification', {
-        field: 'wallet',
-        required: true
-      });
+      throw new ValidationError('Wallet address is required for verification', { field: 'wallet', required: true });
     }
 
-    const adapter = this.getAdapter(provider);
-
-    try {
-      logger.info(`Initializing ${provider} verification for wallet: ${request.wallet}`);
-      const result = await adapter.initVerification(request);
-
-      if (result.success) {
-        logger.info(`${provider} verification initiated, session: ${result.sessionId}`);
-      } else {
-        logger.warn(`${provider} verification initiation failed: ${result.error}`);
-        throw new DIDProviderError(
-          provider,
-          result.error || 'Verification initiation failed',
-          { wallet: request.wallet }
-        );
-      }
-
-      return result;
-    } catch (error: any) {
-      if (error instanceof DIDProviderError) throw error;
-
-      logger.error(`Error initializing ${provider} verification:`, error);
-      throw new DIDProviderError(
-        provider,
-        `Failed to initialize verification: ${error.message}`,
-        { wallet: request.wallet }
-      );
+    const result = await this.getAdapter(provider).initVerification(request);
+    if (!result.success) {
+      throw new DIDProviderError(provider, result.error || 'Verification initiation failed', { wallet: request.wallet });
     }
+    return result;
   }
 
+  /** Asks the provider for the session's outcome. A pending result is returned, not thrown. */
   async handleCallback(provider: string, payload: any, sessionId?: string): Promise<any> {
-    if (!payload) {
-      throw new ValidationError('Callback payload is required');
+    const result = await this.getAdapter(provider).verifyCallback(payload ?? {}, sessionId);
+    if (!result.success && !result.pending) {
+      throw new DIDProviderError(provider, result.error || 'Verification rejected by provider', { sessionId });
     }
-
-    const adapter = this.getAdapter(provider);
-
-    try {
-      logger.info(`Handling ${provider} callback, session: ${sessionId}`);
-      const result = await adapter.verifyCallback(payload, sessionId);
-
-      if (result.success) {
-        logger.info(`${provider} verification successful, DID: ${result.did}`);
-      } else {
-        logger.warn(`${provider} verification failed: ${result.error}`);
-        throw new DIDProviderError(
-          provider,
-          result.error || 'Verification rejected by provider',
-          { sessionId }
-        );
-      }
-
-      return result;
-    } catch (error: any) {
-      if (error instanceof DIDProviderError) throw error;
-
-      logger.error(`Error handling ${provider} callback:`, error);
-      throw new DIDProviderError(
-        provider,
-        `Callback handling failed: ${error.message}`,
-        { sessionId }
-      );
-    }
+    return result;
   }
 
   async checkAdapterHealth(provider: string): Promise<{ healthy: boolean; details: any }> {
     try {
       const adapter = this.getAdapter(provider);
-
-      if (!adapter.isAvailable()) {
-        return {
-          healthy: false,
-          details: {
-            available: false,
-            message: 'Adapter not available or not configured',
-            suggestion: `Set ${provider.toUpperCase()}_API_KEY in environment`,
-            status: 'unavailable'
-          }
-        };
+      if (!this.real) {
+        return { healthy: true, details: { status: 'operational', mode: 'stub' } };
       }
 
-      // Test the adapter with a minimal request
-      const testRequest = {
-        wallet: '0x0000000000000000000000000000000000000000',
-        callbackUrl: 'http://localhost:3000/test-callback',
-        provider: provider
-      };
-
-      const result = await adapter.initVerification(testRequest);
-
+      // A status lookup for a session that does not exist is cheap and proves the backend answers,
+      // without creating a session on every health check.
+      const base = (process.env.PRIVADO_VERIFIER_API_URL || 'https://verifier-backend.privado.id').replace(/\/$/, '');
+      const response = await fetch(`${base}/status?sessionID=00000000-0000-0000-0000-000000000000`);
+      const healthy = response.status < 500;
       return {
-        healthy: result.success !== false,
-        details: {
-          available: true,
-          testResult: result.success ? 'healthy' : 'unhealthy',
-          adapterType: adapter.constructor.name,
-          status: result.success ? 'operational' : 'degraded'
-        }
+        healthy,
+        details: { status: healthy ? 'operational' : 'degraded', mode: 'live', provider: adapter.getName() }
       };
     } catch (error: any) {
-      logger.warn(`Health check failed for ${provider}:`, error);
-      return {
-        healthy: false,
-        details: {
-          available: false,
-          error: error.message,
-          message: `Health check failed: ${error.message}`,
-          status: 'failed'
-        }
-      };
+      return { healthy: false, details: { status: 'failed', error: error.message } };
     }
   }
 
   getAdapterDetails(provider: string): any {
     try {
       const adapter = this.getAdapter(provider);
-
       return {
         name: adapter.getName(),
-        type: adapter instanceof PrivadoIDRealAdapter ? 'privadoid' : 'idos',
-        isReal: true, // All adapters are real now
+        type: adapter.getName(),
+        isReal: this.real,
         isAvailable: adapter.isAvailable(),
         configured: adapter.isAvailable(),
         adapterClass: adapter.constructor.name,
-        supports: adapter instanceof PrivadoIDRealAdapter
-          ? ['age_verification', 'identity_verification']
-          : ['social_verification', 'data_sharing']
+        supports: ['identity_verification', 'age_verification']
       };
     } catch (error) {
       return {
         name: provider,
-        isReal: true,
+        isReal: this.real,
         isAvailable: false,
         configured: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -243,29 +105,23 @@ export class DIDService {
   }
 
   getAllAdaptersStatus(): any[] {
-    return Array.from(this.adapters.keys()).map(provider =>
-      this.getAdapterDetails(provider)
-    );
+    return this.getAvailableAdapters().map(provider => this.getAdapterDetails(provider));
   }
 
-  // Get system status summary
   getSystemStatus(): { status: string; adapters: any[]; summary: any } {
     const adapters = this.getAllAdaptersStatus();
-    const healthyCount = adapters.filter(a => a.isAvailable).length;
-    const totalCount = adapters.length;
-
+    const healthy = adapters.filter(a => a.isAvailable).length;
     return {
-      status: healthyCount === totalCount ? 'operational' : 'degraded',
+      status: healthy === adapters.length ? 'operational' : 'degraded',
       adapters,
       summary: {
-        total: totalCount,
-        healthy: healthyCount,
-        unhealthy: totalCount - healthyCount,
+        total: adapters.length,
+        healthy,
+        unhealthy: adapters.length - healthy,
         primaryAvailable: adapters.some(a => a.name === 'privadoid' && a.isAvailable)
       }
     };
   }
 }
 
-// Create and export singleton instance
 export const didService = new DIDService();

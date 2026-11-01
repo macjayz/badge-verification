@@ -26,7 +26,7 @@ export class ProjectSocialRules {
   issuerId!: string;
 
   @Column({ type: 'varchar', length: 50 })
-  ruleType!: 'twitter_follow' | 'discord_member' | 'snapshot_votes' | 'onchain_activity' | 'github_contributor' | 'custom';
+  ruleType!: 'twitter_follow' | 'discord_member' | 'snapshot_votes' | 'onchain_activity';
 
   @Column({ type: 'varchar', length: 255 })
   name!: string;

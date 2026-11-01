@@ -3,7 +3,7 @@ import { AppDataSource } from '../db/datasource';
 import { Verification, VerificationStatus, VerificationType } from '../entities/Verification';
 import { User } from '../entities/User';
 import { logger } from '../utils/logger';
-import { didService } from './did.service';
+import { didService, canonicalProvider } from './did.service';
 import { webhookService, WebhookPayload } from './webhook.service';
 import { Like } from 'typeorm';
 
@@ -92,7 +92,7 @@ export class VerificationService {
       .andWhere('(verification.expiresAt IS NULL OR verification.expiresAt > :now)', { now: new Date() });
 
     if (provider) {
-      query.andWhere('verification.provider = :provider', { provider });
+      query.andWhere('verification.provider = :provider', { provider: canonicalProvider(provider) });
     }
 
     // Filter by issuerId if provided
@@ -120,7 +120,7 @@ export class VerificationService {
       .take(limit);
 
     if (provider) {
-      query.andWhere('verification.provider = :provider', { provider });
+      query.andWhere('verification.provider = :provider', { provider: canonicalProvider(provider) });
     }
 
     if (type) {
@@ -268,6 +268,7 @@ export class VerificationService {
     callbackUrl: string,
     issuerId?: string
   ): Promise<{ verification: Verification; challenge: any }> {
+    provider = canonicalProvider(provider);
     // Check if user already has a valid DID verification
     const existingVerifications = await this.getActiveVerifications(wallet, provider, issuerId);
     if (existingVerifications.length > 0) {
@@ -334,6 +335,28 @@ export class VerificationService {
 
     // Verify with DID provider
     const verificationResult = await didService.handleCallback(provider, payload, sessionId);
+
+    // The user has not finished in their wallet yet; leave the session pending.
+    if (verificationResult.pending) {
+      return verification;
+    }
+
+    // One identity, one wallet: a DID already verified for a different wallet cannot verify another.
+    if (verificationResult.success && verificationResult.did) {
+      const claimedElsewhere = await verificationRepository
+        .createQueryBuilder('v')
+        .where('v.did = :did', { did: verificationResult.did })
+        .andWhere('v.status = :status', { status: VerificationStatus.COMPLETED })
+        .andWhere('LOWER(v.wallet) != LOWER(:wallet)', { wallet: verification.wallet })
+        .getCount();
+      if (claimedElsewhere > 0) {
+        logger.warn(`DID ${verificationResult.did} is already linked to another wallet; refusing ${verification.wallet}`);
+        return await this.updateVerificationFailure(
+          verification.id,
+          'This identity is already linked to another wallet'
+        );
+      }
+    }
 
     if (verificationResult.success && verificationResult.did) {
       // Extract issuerId from verification metadata

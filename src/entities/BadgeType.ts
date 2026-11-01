@@ -3,7 +3,7 @@ import { Issuer } from './Issuer';
 import { BadgeMint } from './BadgeMint';
 
 export interface BadgeRules {
-  primary: string[];  // ['polygonid', 'idos'] - required DID providers
+  primary: string[];  // DID providers, e.g. ['privadoid']
   secondary: Array<{
     method: string;    // 'twitter_follow', 'discord_member', 'onchain_activity'
     required: boolean;

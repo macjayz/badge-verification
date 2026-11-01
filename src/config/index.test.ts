@@ -12,6 +12,7 @@ const CHAIN = {
   USE_REAL_ADAPTERS: 'true',
   DEPLOYER_PRIVATE_KEY: '0x' + '1'.repeat(64),
   CONTRACT_ADDRESS: '0x' + '2'.repeat(40),
+  PRIVADO_ALLOWED_ISSUERS: 'did:iden3:privado:main:2Si3eZUE6XetYsmU5dyUK2Cvaxr1EEe65vdv2BML4L',
 };
 
 function loadConfig(env: Record<string, string | undefined>) {
@@ -102,6 +103,14 @@ describe('assertProductionConfig', () => {
         CONTRACT_ADDRESS: undefined,
       }),
     ).toThrow(/DEPLOYER_PRIVATE_KEY[\s\S]*CONTRACT_ADDRESS/);
+  });
+
+  it('refuses to accept identity credentials from any issuer', () => {
+    for (const PRIVADO_ALLOWED_ISSUERS of [undefined, '*', 'did:iden3:a, *']) {
+      expect(() =>
+        assertInProduction({ JWT_SECRET: STRONG_SECRET, ADMIN_PASSWORD: 'a-real-password', PRIVADO_ALLOWED_ISSUERS }),
+      ).toThrow(/PRIVADO_ALLOWED_ISSUERS/);
+    }
   });
 
   it('starts when everything is set to real values', () => {

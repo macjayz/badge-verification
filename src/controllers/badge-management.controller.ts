@@ -3,6 +3,7 @@ import { AppDataSource } from '../db/datasource';
 import { BadgeType } from '../entities/BadgeType';
 import { Issuer } from '../entities/Issuer';
 import { BadgeMint } from '../entities/BadgeMint';
+import { badgeRulesProblem } from '../services/rule-support';
 import { logger } from '../utils/logger';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 
@@ -139,12 +140,9 @@ export class BadgeManagementController {
         });
       }
 
-      // Validate rules structure
-      if (!rules || !rules.primary || !Array.isArray(rules.primary)) {
-        return res.status(400).json({
-          success: false,
-          error: 'Invalid rules: must include primary array'
-        });
+      const rulesProblem = badgeRulesProblem(rules);
+      if (rulesProblem) {
+        return res.status(400).json({ success: false, error: rulesProblem });
       }
 
       // Check if badge key already exists
@@ -378,12 +376,9 @@ export class BadgeManagementController {
         });
       }
 
-      // Validate rules structure
-      if (!rules || !rules.primary || !Array.isArray(rules.primary)) {
-        return res.status(400).json({
-          success: false,
-          error: 'Invalid rules: must include primary array'
-        });
+      const rulesProblem = badgeRulesProblem(rules);
+      if (rulesProblem) {
+        return res.status(400).json({ success: false, error: rulesProblem });
       }
 
       badgeType.rules = rules;
