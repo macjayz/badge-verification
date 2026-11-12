@@ -23,6 +23,10 @@ personal data: the identity proof is a credential the user holds, not a KYC uplo
 4. If the wallet qualifies, the backend mints the badge from `contracts/BadgeSBT.sol` and pushes
    progress to the browser over a WebSocket.
 
+The contract is a soulbound ERC-721: every badge is permanently locked (ERC-5192), transfers and
+approvals revert, and `tokenURI` returns the metadata URI of the badge's type. The owner can pause
+minting of a badge type or change its metadata, which emits an ERC-4906 refresh event.
+
 Checks fail closed. An unreachable API or an X API plan without follow lookups counts as "not
 met", never as a pass, and badge rules naming a check the server does not support are rejected
 when they are saved. One identity can verify only one wallet.
@@ -165,7 +169,9 @@ test/            Contract tests
 - Follow checks need an X API plan that exposes follow lookups. Without one, X follow rules fail
   unless `TWITTER_ACCEPT_CONNECTION_AS_FOLLOW=true`.
 - Revoking burns the token, and the contract will not mint the same badge type to that wallet
-  again.
+  again. A revoked badge still counts toward its type's supply.
+- `tokenURI` is empty for badge types created without a metadata URI. `scripts/deploy.ts` sets one
+  when `BADGE_METADATA_BASE_URL` is set; otherwise set it later with `setBadgeTypeMetadataUri`.
 - The identity check is tested against Privado's live verifier up to "waiting for the wallet",
   and the success path is covered by unit tests. A full run with a real wallet proof has not been
   done yet.
