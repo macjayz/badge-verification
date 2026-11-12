@@ -49,10 +49,6 @@ pids/
 .DS_Store
 Thumbs.db
 
-# Hardhat specific (keep source contracts)
-/contracts/
-!contracts/BadgeSBT.sol
-
 # TypeScript
 *.tsbuildinfo
 
